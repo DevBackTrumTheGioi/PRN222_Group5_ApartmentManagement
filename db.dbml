@@ -1,0 +1,441 @@
+// ===== QUẢN LÝ CĂN HỘ & CƯ DÂN =====
+Table Apartments [headercolor: #175e7a] {
+  ApartmentId integer [pk, increment, not null]
+  ApartmentNumber nvarchar(20) [not null, unique]
+  Floor integer [not null]
+  BuildingBlock nvarchar(10)
+  Area decimal(10,2)
+  ApartmentType nvarchar(50)
+  Status nvarchar(20) [note: 'Available, Occupied, Maintenance']
+  Description nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+}
+
+Table Residents [headercolor: #175e7a] {
+  ResidentId integer [pk, increment, not null]
+  FullName nvarchar(200) [not null]
+  DateOfBirth date
+  PhoneNumber nvarchar(20)
+  Email nvarchar(100)
+  IdentityCardNumber nvarchar(20) [unique]
+  ResidentType nvarchar(50) [note: 'Owner, Tenant, FamilyMember']
+  ResidencyStatus nvarchar(20) [note: 'Active, Inactive']
+  ApartmentId integer
+  MoveInDate date
+  MoveOutDate date
+  Note nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+}
+
+Table ResidentCards [headercolor: #175e7a] {
+  ResidentCardId integer [pk, increment, not null]
+  CardNumber nvarchar(50) [not null, unique]
+  CardType nvarchar(50) [note: 'Resident, Elevator, Parking']
+  ResidentId integer [not null]
+  VehicleId integer
+  IssuedDate date [not null]
+  ExpiryDate date
+  Status nvarchar(20) [note: 'Active, Expired, Lost']
+  Notes nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+}
+
+Table Vehicles [headercolor: #175e7a] {
+  VehicleId integer [pk, increment, not null]
+  ResidentId integer [not null]
+  VehicleType nvarchar(50) [note: 'Car, Motorcycle, Bicycle']
+  LicensePlate nvarchar(20) [unique]
+  Brand nvarchar(50)
+  Model nvarchar(50)
+  Color nvarchar(30)
+  RegisteredDate date
+  IsActive bit [default: 1]
+  Notes nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+// ===== QUẢN LÝ DỊCH VỤ & HÓA ĐƠN =====
+Table ServiceTypes [headercolor: #4a90a4] {
+  ServiceTypeId integer [pk, increment, not null]
+  ServiceTypeName nvarchar(100) [not null]
+  Description nvarchar(500)
+  MeasurementUnit nvarchar(50) [note: 'kWh, m³, month, vehicle']
+  IsActive bit [default: 1]
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+}
+
+Table ServicePrices [headercolor: #4a90a4] {
+  ServicePriceId integer [pk, increment, not null]
+  ServiceTypeId integer [not null]
+  UnitPrice decimal(18,2) [not null]
+  EffectiveFrom date [not null]
+  EffectiveTo date
+  Description nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+Table MeterReadings [headercolor: #4a90a4] {
+  MeterReadingId integer [pk, increment, not null]
+  ApartmentId integer [not null]
+  ServiceTypeId integer [not null]
+  PreviousReading decimal(18,2) [not null]
+  CurrentReading decimal(18,2) [not null]
+  ReadingDate date [not null]
+  Consumption decimal(18,2) [note: 'Computed: CurrentReading - PreviousReading']
+  StaffId integer
+  Notes nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+Table Invoices [headercolor: #4a90a4] {
+  InvoiceId integer [pk, increment, not null]
+  InvoiceNumber nvarchar(50) [not null, unique]
+  ApartmentId integer [not null]
+  BillingMonth integer [not null, note: '1-12']
+  BillingYear integer [not null]
+  IssueDate date [not null]
+  DueDate date [not null]
+  TotalAmount decimal(18,2) [not null]
+  PaidAmount decimal(18,2) [default: 0]
+  Status integer [note: '0:Unpaid, 1:Paid, 2:Overdue, 3:PartialPaid']
+  PaymentMethod nvarchar(50)
+  PaymentDate datetime
+  Notes nvarchar(500)
+  CreatedBy integer [not null]
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+}
+
+Table InvoiceDetails [headercolor: #4a90a4] {
+  InvoiceDetailId integer [pk, increment, not null]
+  InvoiceId integer [not null]
+  ServiceTypeId integer [not null]
+  ServicePriceId integer [not null]
+  Quantity decimal(18,2) [not null]
+  UnitPrice decimal(18,2) [not null]
+  Amount decimal(18,2) [note: 'Computed: Quantity * UnitPrice']
+  MeterReadingId integer
+  Description nvarchar(500)
+}
+
+Table PaymentTransactions [headercolor: #4a90a4] {
+  TransactionId integer [pk, increment, not null]
+  InvoiceId integer [not null]
+  TransactionCode nvarchar(100) [not null, unique]
+  Amount decimal(18,2) [not null]
+  PaymentMethod nvarchar(50) [note: 'VNPay, Momo, BankTransfer, Cash']
+  PaymentDate datetime [not null]
+  Status integer [note: '0:Pending, 1:Success, 2:Failed, 3:Refunded']
+  GatewayResponse nvarchar(max)
+  CreatedBy integer
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+Table ApartmentServices [headercolor: #4a90a4] {
+  ApartmentServiceId integer [pk, increment, not null]
+  ApartmentId integer [not null]
+  ServiceTypeId integer [not null]
+  Quantity integer [default: 1]
+  RegisteredFrom date [not null]
+  RegisteredTo date
+  IsActive bit [default: 1]
+  Notes nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+// ===== QUẢN LÝ YÊU CẦU & PHẢN ÁNH =====
+Table Requests [headercolor: #7fb069] {
+  RequestId integer [pk, increment, not null]
+  RequestNumber nvarchar(50) [not null, unique]
+  ApartmentId integer [not null]
+  ResidentId integer [not null]
+  RequestType nvarchar(50) [note: 'Maintenance, Complaint, Service']
+  Title nvarchar(200) [not null]
+  Description nvarchar(max)
+  Priority integer [note: '1:Low, 2:Medium, 3:High, 4:Urgent']
+  Status integer [note: '0:New, 1:InProgress, 2:Resolved, 3:Closed']
+  AssignedTo integer
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+  ResolvedAt datetime
+}
+
+Table RequestAttachments [headercolor: #7fb069] {
+  AttachmentId integer [pk, increment, not null]
+  RequestId integer [not null]
+  FileName nvarchar(255) [not null]
+  FilePath nvarchar(500) [not null]
+  FileSize bigint
+  ContentType nvarchar(100)
+  UploadedAt datetime [default: `GETDATE()`]
+}
+
+// ===== QUẢN LÝ THÔNG BÁO & CỘNG ĐỒNG =====
+Table Announcements [headercolor: #f4a259] {
+  AnnouncementId integer [pk, increment, not null]
+  Title nvarchar(200) [not null]
+  Content nvarchar(max) [not null]
+  AnnouncementType nvarchar(50) [note: 'General, Emergency, Event, Maintenance']
+  Priority integer [note: '1:Normal, 2:Important, 3:Urgent']
+  PublishedDate datetime [not null]
+  ExpiryDate datetime
+  IsActive bit [default: 1]
+  CreatedBy integer [not null]
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+}
+
+Table Documents [headercolor: #f4a259] {
+  DocumentId integer [pk, increment, not null]
+  Title nvarchar(200) [not null]
+  Description nvarchar(500)
+  DocumentType nvarchar(50) [note: 'Handbook, Regulation, FireSafety, Other']
+  FileName nvarchar(255) [not null]
+  FilePath nvarchar(500) [not null]
+  FileSize bigint
+  UploadedBy integer [not null]
+  UploadedAt datetime [default: `GETDATE()`]
+  IsActive bit [default: 1]
+}
+
+// ===== QUẢN LÝ KHÁCH & BƯU PHẨM =====
+Table Visitors [headercolor: #bc4b51] {
+  VisitorId integer [pk, increment, not null]
+  VisitorName nvarchar(200) [not null]
+  PhoneNumber nvarchar(20) [not null]
+  IdentityCard nvarchar(20)
+  ApartmentId integer [not null]
+  RegisteredBy integer [not null]
+  VisitDate date [not null]
+  CheckInTime datetime
+  CheckOutTime datetime
+  QRCode nvarchar(255) [unique]
+  Status nvarchar(20) [note: 'Pending, CheckedIn, CheckedOut, Cancelled']
+  Notes nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+Table Parcels [headercolor: #bc4b51] {
+  ParcelId integer [pk, increment, not null]
+  TrackingNumber nvarchar(100) [unique]
+  ApartmentId integer [not null]
+  RecipientName nvarchar(200)
+  Sender nvarchar(200)
+  ReceivedDate datetime [not null]
+  ReceivedBy integer [not null]
+  NotificationSent bit [default: 0]
+  PickedUpDate datetime
+  PickedUpBy integer
+  Status nvarchar(20) [note: 'Received, Notified, PickedUp']
+  Notes nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+// ===== QUẢN LÝ TIỆN ÍCH CHUNG =====
+Table Amenities [headercolor: #8b5a3c] {
+  AmenityId integer [pk, increment, not null]
+  AmenityName nvarchar(100) [not null]
+  AmenityType nvarchar(50) [note: 'BBQ, Tennis, Pool, GymRoom, MeetingRoom']
+  Location nvarchar(200)
+  Capacity integer
+  PricePerHour decimal(18,2)
+  IsActive bit [default: 1]
+  Description nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+Table AmenityBookings [headercolor: #8b5a3c] {
+  BookingId integer [pk, increment, not null]
+  AmenityId integer [not null]
+  ApartmentId integer [not null]
+  ResidentId integer [not null]
+  BookingDate date [not null]
+  StartTime time [not null]
+  EndTime time [not null]
+  TotalHours decimal(4,2)
+  TotalAmount decimal(18,2)
+  Status nvarchar(20) [note: 'Pending, Confirmed, Cancelled, Completed']
+  Notes nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+}
+
+// ===== QUẢN LÝ NGƯỜI DÙNG =====
+Table Users [headercolor: #5e3a8f] {
+  UserId integer [pk, increment, not null]
+  Username nvarchar(50) [not null, unique]
+  PasswordHash nvarchar(255) [not null]
+  FullName nvarchar(200) [not null]
+  Email nvarchar(100) [unique]
+  PhoneNumber nvarchar(20)
+  Role nvarchar(50) [note: 'Admin, Staff, Resident, Security']
+  IsActive bit [default: 1]
+  LastLogin datetime
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+}
+
+// ===== QUẢN LÝ THÔNG BÁO & TIN NHẮN =====
+Table Notifications [headercolor: #9b59b6] {
+  NotificationId integer [pk, increment, not null]
+  UserId integer [not null]
+  Title nvarchar(200) [not null]
+  Content nvarchar(max) [not null]
+  NotificationType nvarchar(50) [note: 'Invoice, Request, Announcement, Message, System']
+  ReferenceType nvarchar(50) [note: 'Invoice, Request, Announcement, Message']
+  ReferenceId integer
+  IsRead bit [default: 0]
+  ReadAt datetime
+  Priority integer [note: '1:Normal, 2:Important, 3:Urgent']
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+Table Conversations [headercolor: #9b59b6] {
+  ConversationId integer [pk, increment, not null]
+  ConversationName nvarchar(200)
+  ConversationType nvarchar(50) [note: 'Direct, Group, Support']
+  CreatedBy integer [not null]
+  IsActive bit [default: 1]
+  LastMessageAt datetime
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+}
+
+Table ConversationParticipants [headercolor: #9b59b6] {
+  ParticipantId integer [pk, increment, not null]
+  ConversationId integer [not null]
+  UserId integer [not null]
+  JoinedAt datetime [default: `GETDATE()`]
+  LeftAt datetime
+  IsActive bit [default: 1]
+  Role nvarchar(50) [note: 'Owner, Admin, Member']
+  LastReadAt datetime
+}
+
+Table Messages [headercolor: #9b59b6] {
+  MessageId integer [pk, increment, not null]
+  ConversationId integer [not null]
+  SenderId integer [not null]
+  Content nvarchar(max) [not null]
+  MessageType nvarchar(50) [note: 'Text, Image, File, System']
+  AttachmentUrl nvarchar(500)
+  IsEdited bit [default: 0]
+  EditedAt datetime
+  IsDeleted bit [default: 0]
+  DeletedAt datetime
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+Table MessageReadReceipts [headercolor: #9b59b6] {
+  ReadReceiptId integer [pk, increment, not null]
+  MessageId integer [not null]
+  UserId integer [not null]
+  ReadAt datetime [default: `GETDATE()`]
+}
+
+Table MessageReactions [headercolor: #9b59b6] {
+  ReactionId integer [pk, increment, not null]
+  MessageId integer [not null]
+  UserId integer [not null]
+  ReactionType nvarchar(50) [note: 'Like, Love, Haha, Wow, Sad, Angry']
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+// ===== QUẢN LÝ HỢP ĐỒNG =====
+Table Contracts [headercolor: #e74c3c] {
+  ContractId integer [pk, increment, not null]
+  ContractNumber nvarchar(50) [not null, unique]
+  ApartmentId integer [not null]
+  ContractType nvarchar(50) [note: 'Lease, Purchase, Service']
+  StartDate date [not null]
+  EndDate date
+  MonthlyRent decimal(18,2)
+  DepositAmount decimal(18,2)
+  Status nvarchar(20) [note: 'Draft, Active, Expired, Terminated']
+  Terms nvarchar(max)
+  ContractFile nvarchar(500)
+  SignedDate date
+  CreatedBy integer [not null]
+  CreatedAt datetime [default: `GETDATE()`]
+  UpdatedAt datetime
+  TerminatedAt datetime
+  TerminationReason nvarchar(500)
+}
+
+Table ContractMembers [headercolor: #e74c3c] {
+  ContractMemberId integer [pk, increment, not null]
+  ContractId integer [not null]
+  ResidentId integer [not null]
+  MemberRole nvarchar(50) [note: 'PrimaryTenant, CoTenant, Guarantor, FamilyMember']
+  SignatureStatus nvarchar(20) [note: 'Pending, Signed, Rejected']
+  SignedDate date
+  IsActive bit [default: 1]
+  Notes nvarchar(500)
+  CreatedAt datetime [default: `GETDATE()`]
+}
+
+// ===== RELATIONSHIPS =====
+Ref: Residents.ApartmentId > Apartments.ApartmentId [delete: set null]
+Ref: ResidentCards.ResidentId > Residents.ResidentId [delete: cascade]
+Ref: ResidentCards.VehicleId > Vehicles.VehicleId [delete: set null]
+Ref: Vehicles.ResidentId > Residents.ResidentId [delete: cascade]
+
+Ref: ServicePrices.ServiceTypeId > ServiceTypes.ServiceTypeId
+Ref: MeterReadings.ApartmentId > Apartments.ApartmentId
+Ref: MeterReadings.ServiceTypeId > ServiceTypes.ServiceTypeId
+Ref: MeterReadings.StaffId > Users.UserId [delete: set null]
+
+Ref: Invoices.ApartmentId > Apartments.ApartmentId
+Ref: Invoices.CreatedBy > Users.UserId
+Ref: InvoiceDetails.InvoiceId > Invoices.InvoiceId [delete: cascade]
+Ref: InvoiceDetails.ServiceTypeId > ServiceTypes.ServiceTypeId
+Ref: InvoiceDetails.ServicePriceId > ServicePrices.ServicePriceId
+Ref: InvoiceDetails.MeterReadingId > MeterReadings.MeterReadingId [delete: set null]
+
+Ref: PaymentTransactions.InvoiceId > Invoices.InvoiceId
+Ref: PaymentTransactions.CreatedBy > Users.UserId [delete: set null]
+
+Ref: ApartmentServices.ApartmentId > Apartments.ApartmentId
+Ref: ApartmentServices.ServiceTypeId > ServiceTypes.ServiceTypeId
+
+Ref: Requests.ApartmentId > Apartments.ApartmentId
+Ref: Requests.ResidentId > Residents.ResidentId
+Ref: Requests.AssignedTo > Users.UserId [delete: set null]
+Ref: RequestAttachments.RequestId > Requests.RequestId [delete: cascade]
+
+Ref: Announcements.CreatedBy > Users.UserId
+Ref: Documents.UploadedBy > Users.UserId
+
+Ref: Visitors.ApartmentId > Apartments.ApartmentId
+Ref: Visitors.RegisteredBy > Residents.ResidentId
+
+Ref: Parcels.ApartmentId > Apartments.ApartmentId
+Ref: Parcels.ReceivedBy > Users.UserId
+Ref: Parcels.PickedUpBy > Residents.ResidentId [delete: set null]
+
+Ref: AmenityBookings.AmenityId > Amenities.AmenityId
+Ref: AmenityBookings.ApartmentId > Apartments.ApartmentId
+Ref: AmenityBookings.ResidentId > Residents.ResidentId
+
+Ref: Notifications.UserId > Users.UserId [delete: cascade]
+
+Ref: Conversations.CreatedBy > Users.UserId
+Ref: ConversationParticipants.ConversationId > Conversations.ConversationId [delete: cascade]
+Ref: ConversationParticipants.UserId > Users.UserId [delete: cascade]
+
+Ref: Messages.ConversationId > Conversations.ConversationId [delete: cascade]
+Ref: Messages.SenderId > Users.UserId
+Ref: MessageReadReceipts.MessageId > Messages.MessageId [delete: cascade]
+Ref: MessageReadReceipts.UserId > Users.UserId [delete: cascade]
+Ref: MessageReactions.MessageId > Messages.MessageId [delete: cascade]
+Ref: MessageReactions.UserId > Users.UserId [delete: cascade]
+
+Ref: Contracts.ApartmentId > Apartments.ApartmentId
+Ref: Contracts.CreatedBy > Users.UserId
+Ref: ContractMembers.ContractId > Contracts.ContractId [delete: cascade]
+Ref: ContractMembers.ResidentId > Residents.ResidentId
+
