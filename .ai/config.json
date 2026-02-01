@@ -1,0 +1,112 @@
+﻿{
+  "version": "1.0.0",
+  "projectName": "PRN222_ApartmentManagement",
+  "lastUpdated": "2026-02-01",
+  "rules": {
+    "databaseSchemaFirst": {
+      "enabled": true,
+      "schemaFile": "db.dbml",
+      "mandatory": true,
+      "description": "Always read database schema before implementing data-related features"
+    },
+    "noIconsInDocs": {
+      "enabled": true,
+      "mandatory": true,
+      "affectedFiles": [
+        "*.md",
+        "*.txt",
+        "commit messages",
+        "PR descriptions"
+      ],
+      "description": "No emojis or icons in any documentation"
+    },
+    "noAutoDocumentation": {
+      "enabled": true,
+      "mandatory": true,
+      "prohibited": [
+        "Auto-creating README.md",
+        "Auto-creating documentation files",
+        "Example files after code",
+        "Summary documents"
+      ],
+      "allowed": [
+        "XML documentation in code",
+        "User-requested documentation only"
+      ],
+      "description": "Do not create documentation files automatically"
+    },
+    "autoBuildAndCheck": {
+      "enabled": true,
+      "mandatory": true,
+      "commands": [
+        "dotnet build",
+        "get_errors check"
+      ],
+      "errorHandling": "Fix immediately, do not proceed with errors",
+      "description": "Always build and check for errors after code changes"
+    },
+    "universalCompliance": {
+      "enabled": true,
+      "mandatory": true,
+      "appliesTo": [
+        "Code generation",
+        "Refactoring",
+        "Bug fixes",
+        "Feature implementation",
+        "Testing",
+        "All AI operations"
+      ],
+      "description": "All tasks must follow these rules"
+    }
+  },
+  "projectStructure": {
+    "databaseSchema": "db.dbml",
+    "sourceRoot": "PRN222_ApartmentManagement",
+    "models": "PRN222_ApartmentManagement/Models",
+    "data": "PRN222_ApartmentManagement/Data",
+    "repositories": "PRN222_ApartmentManagement/Repositories",
+    "utils": "PRN222_ApartmentManagement/Utils",
+    "pages": "PRN222_ApartmentManagement/Pages",
+    "wwwroot": "PRN222_ApartmentManagement/wwwroot"
+  },
+  "techStack": {
+    "framework": "ASP.NET Core 8.0",
+    "ui": "Razor Pages",
+    "orm": "Entity Framework Core",
+    "database": "SQL Server / SQLite",
+    "frontend": "Bootstrap 5"
+  },
+  "codingStandards": {
+    "language": "C#",
+    "namingConventions": {
+      "publicMembers": "PascalCase",
+      "privateFields": "camelCase with underscore prefix",
+      "asyncMethods": "Async suffix required"
+    },
+    "documentation": "XML comments required for public APIs",
+    "asyncPattern": "Use async/await for I/O operations",
+    "dataAccess": "Repository pattern"
+  },
+  "buildProcess": {
+    "primaryCommand": "dotnet build",
+    "testCommand": "dotnet test",
+    "restoreCommand": "dotnet restore",
+    "cleanCommand": "dotnet clean"
+  },
+  "enforcement": {
+    "strictMode": true,
+    "autoCorrect": true,
+    "failOnViolation": true,
+    "reportViolations": true
+  },
+  "checklistBeforeComplete": [
+    "Database schema checked (if data-related)",
+    "No icons in documentation",
+    "No auto-generated docs",
+    "Code built successfully",
+    "All errors resolved",
+    "XML comments added",
+    "Follows project structure"
+  ]
+}
+

@@ -455,6 +455,13 @@ $RECYCLE.BIN/
 ## Project Specific
 ##
 
+# AI Assistant files (keep config, ignore temp)
+.ai/temp/
+.ai/cache/
+.ai/*.log
+.ai/*.tmp
+# Keep .ai/rules.md and .ai/config.json
+
 # Database files
 *.db
 *.db-shm

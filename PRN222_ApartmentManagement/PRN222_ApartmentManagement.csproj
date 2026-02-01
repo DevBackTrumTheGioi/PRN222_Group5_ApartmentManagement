@@ -4,7 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>PRN222_ApartmentManagement.Web</RootNamespace>
+    <RootNamespace>PRN222_ApartmentManagement</RootNamespace>
+    <AssemblyName>PRN222_ApartmentManagement</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
