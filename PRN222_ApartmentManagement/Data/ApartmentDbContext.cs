@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Models;
 
 namespace PRN222_ApartmentManagement.Data;
@@ -226,7 +226,7 @@ public class ApartmentDbContext : DbContext
 
         modelBuilder.Entity<Contract>()
             .HasOne(c => c.Apartment)
-            .WithMany()
+            .WithMany(a => a.Contracts)
             .HasForeignKey(c => c.ApartmentId)
             .OnDelete(DeleteBehavior.NoAction);
 

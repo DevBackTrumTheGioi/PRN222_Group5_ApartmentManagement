@@ -227,8 +227,7 @@ namespace PRN222_ApartmentManagement.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     TerminatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    TerminationReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    ApartmentId1 = table.Column<int>(type: "int", nullable: true)
+                    TerminationReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -236,11 +235,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     table.ForeignKey(
                         name: "FK_Contracts_Apartments_ApartmentId",
                         column: x => x.ApartmentId,
-                        principalTable: "Apartments",
-                        principalColumn: "ApartmentId");
-                    table.ForeignKey(
-                        name: "FK_Contracts_Apartments_ApartmentId1",
-                        column: x => x.ApartmentId1,
                         principalTable: "Apartments",
                         principalColumn: "ApartmentId");
                     table.ForeignKey(
@@ -925,11 +919,6 @@ namespace PRN222_ApartmentManagement.Migrations
                 name: "IX_Contracts_ApartmentId",
                 table: "Contracts",
                 column: "ApartmentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Contracts_ApartmentId1",
-                table: "Contracts",
-                column: "ApartmentId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Contracts_ContractNumber",

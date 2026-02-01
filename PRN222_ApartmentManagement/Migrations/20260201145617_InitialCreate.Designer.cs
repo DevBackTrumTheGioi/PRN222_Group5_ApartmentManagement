@@ -12,7 +12,7 @@ using PRN222_ApartmentManagement.Data;
 namespace PRN222_ApartmentManagement.Migrations
 {
     [DbContext(typeof(ApartmentDbContext))]
-    [Migration("20260201104822_InitialCreate")]
+    [Migration("20260201145617_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -277,9 +277,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Property<int>("ApartmentId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ApartmentId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("ContractFile")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -335,8 +332,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.HasKey("ContractId");
 
                     b.HasIndex("ApartmentId");
-
-                    b.HasIndex("ApartmentId1");
 
                     b.HasIndex("ContractNumber")
                         .IsUnique();
@@ -1487,14 +1482,10 @@ namespace PRN222_ApartmentManagement.Migrations
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Contract", b =>
                 {
                     b.HasOne("PRN222_ApartmentManagement.Models.Apartment", "Apartment")
-                        .WithMany()
+                        .WithMany("Contracts")
                         .HasForeignKey("ApartmentId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
-
-                    b.HasOne("PRN222_ApartmentManagement.Models.Apartment", null)
-                        .WithMany("Contracts")
-                        .HasForeignKey("ApartmentId1");
 
                     b.HasOne("PRN222_ApartmentManagement.Models.User", "Creator")
                         .WithMany("CreatedContracts")
