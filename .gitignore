@@ -529,3 +529,51 @@ tmp/
 Thumbs.db
 desktop.ini
 
+###############################################################################
+# ASP.NET Core - Configuration Files
+###############################################################################
+# Ignore local development settings (each developer may have different setup)
+**/appsettings.Development.json
+# Ignore production settings (contains sensitive production configs)
+**/appsettings.Production.json
+# Ignore staging settings
+**/appsettings.Staging.json
+# Ignore any environment-specific settings with credentials
+**/appsettings.*.json
+# BUT keep the base appsettings.json (doesn't contain sensitive data)
+!**/appsettings.json
+# User Secrets (ASP.NET Core)
+**/secrets.json
+# Connection strings with real credentials
+**/connectionstrings.json
+###############################################################################
+# Database Files (SQL Server)
+###############################################################################
+# Local database files
+*.mdf
+*.ldf
+*.ndf
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+###############################################################################
+# Logs and temporary files
+###############################################################################
+# Application logs
+**/logs/
+**/Logs/
+*.log
+# Temp files
+**/temp/
+**/tmp/
+###############################################################################
+# File uploads (development only)
+###############################################################################
+# Uploaded files during development/testing
+**/wwwroot/uploads/**
+# But keep folder structure
+!**/wwwroot/uploads/.gitkeep
+!**/wwwroot/uploads/*/.gitkeep
