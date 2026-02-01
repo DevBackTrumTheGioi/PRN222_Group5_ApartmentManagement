@@ -481,6 +481,8 @@ logs/
 appsettings.Local.json
 appsettings.Development.local.json
 appsettings.Production.local.json
+appsettings.json
+appsettings.Development.json
 *.env
 .env.local
 .env.development
