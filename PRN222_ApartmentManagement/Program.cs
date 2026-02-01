@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using PRN222_ApartmentManagement.Web.Data;
-using PRN222_ApartmentManagement.Web.Repositories.Interfaces;
-using PRN222_ApartmentManagement.Web.Repositories.Implementations;
+using PRN222_ApartmentManagement.Data;
+using PRN222_ApartmentManagement.Repositories.Interfaces;
+using PRN222_ApartmentManagement.Repositories.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +12,16 @@ builder.Services.AddDbContext<ApartmentDbContext>(options =>
 builder.Services.AddScoped<IApartmentRepository, ApartmentRepository>();
 
 var app = builder.Build();
+
+// Automatically create database if it doesn't exist
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApartmentDbContext>();
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
+    await DbInitializer.InitializeAsync(context, logger);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

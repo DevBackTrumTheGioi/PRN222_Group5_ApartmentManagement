@@ -1,14 +1,13 @@
-﻿namespace PRN222_ApartmentManagement.Web.Repositories.Interfaces;
+﻿using PRN222_ApartmentManagement.Models;
 
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using PRN222_ApartmentManagement.Web.Models;
+namespace PRN222_ApartmentManagement.Repositories.Interfaces;
 
 public interface IApartmentRepository
 {
-    Task DeleteAsync(int id);
-    Task UpdateAsync(Apartment apartment);
-    Task AddAsync(Apartment apartment);
-    Task<Apartment?> GetByIdAsync(int id);
     Task<IEnumerable<Apartment>> GetAllAsync();
+    Task<Apartment?> GetByIdAsync(int id);
+    Task AddAsync(Apartment apartment);
+    Task UpdateAsync(Apartment apartment);
+    Task DeleteAsync(int id);
 }
+

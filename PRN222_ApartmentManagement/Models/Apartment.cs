@@ -1,9 +1,52 @@
-﻿namespace PRN222_ApartmentManagement.Web.Models;
+﻿﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PRN222_ApartmentManagement.Models;
+
+/// <summary>
+/// Apartment entity representing apartment units in the building
+/// </summary>
+[Table("Apartments")]
 public class Apartment
 {
-    public int NumberOfRooms { get; set; }
-    public string Address { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public int Id { get; set; }
+    [Key]
+    public int ApartmentId { get; set; }
+
+    [Required]
+    [MaxLength(20)]
+    public string ApartmentNumber { get; set; } = string.Empty;
+
+    [Required]
+    public int Floor { get; set; }
+
+    [MaxLength(10)]
+    public string? BuildingBlock { get; set; }
+
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal? Area { get; set; }
+
+    [MaxLength(50)]
+    public string? ApartmentType { get; set; }
+
+    [MaxLength(20)]
+    public string Status { get; set; } = "Available";
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    public DateTime? UpdatedAt { get; set; }
+
+    // Navigation properties
+    public virtual ICollection<Resident> Residents { get; set; } = new List<Resident>();
+    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
+    public virtual ICollection<Visitor> Visitors { get; set; } = new List<Visitor>();
+    public virtual ICollection<Parcel> Parcels { get; set; } = new List<Parcel>();
+    public virtual ICollection<AmenityBooking> AmenityBookings { get; set; } = new List<AmenityBooking>();
+    public virtual ICollection<MeterReading> MeterReadings { get; set; } = new List<MeterReading>();
+    public virtual ICollection<ApartmentService> ApartmentServices { get; set; } = new List<ApartmentService>();
+    public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
 }
 
