@@ -25,7 +25,7 @@ This document lists all system use cases derived from the Requirements Definitio
 |:---|:---|:---|:---|:---|
 | UC-05 | Manage Users | Admin | **Primary** | Create, update, block Staff and Admin accounts. |
 | UC-06 | Manage Roles | Admin | Secondary | Configure user permissions (if dynamic). |
-| UC-07 | Manage Service Types | Admin | Secondary | Define available services (Water, Electric, Parking). |
+| UC-07 | Manage Service Types | Admin | Secondary | Define available services. |
 | UC-08 | Manage Service Prices | Admin | **Primary** | Update unit prices for services. |
 | UC-09 | Manage Amenities | Admin | Secondary | Setup facilities (Gym, Pool, BBQ). |
 
