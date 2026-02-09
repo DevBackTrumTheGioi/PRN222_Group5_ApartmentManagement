@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -7,22 +7,9 @@ namespace PRN222_ApartmentManagement.Models;
 /// Resident entity representing apartment residents
 /// </summary>
 [Table("Residents")]
-public class Resident
+public class Resident : User
 {
-    [Key]
-    public int ResidentId { get; set; }
-
-    [Required]
-    [MaxLength(200)]
-    public string FullName { get; set; } = string.Empty;
-
     public DateTime? DateOfBirth { get; set; }
-
-    [MaxLength(20)]
-    public string? PhoneNumber { get; set; }
-
-    [MaxLength(100)]
-    public string? Email { get; set; }
 
     [MaxLength(20)]
     public string? IdentityCardNumber { get; set; }
@@ -43,9 +30,6 @@ public class Resident
     [MaxLength(500)]
     public string? Note { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
     public virtual Apartment? Apartment { get; set; }

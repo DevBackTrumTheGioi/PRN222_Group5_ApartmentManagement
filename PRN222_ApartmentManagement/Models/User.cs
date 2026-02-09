@@ -37,7 +37,9 @@ public class User
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public DateTime? UpdatedAt { get; set; }
-
+    
+    public bool IsDeleted { get; set; } = false;
+    
     // Navigation properties
     public virtual ICollection<Invoice> CreatedInvoices { get; set; } = new List<Invoice>();
     public virtual ICollection<MeterReading> MeterReadings { get; set; } = new List<MeterReading>();
@@ -47,11 +49,6 @@ public class User
     public virtual ICollection<Parcel> ReceivedParcels { get; set; } = new List<Parcel>();
     public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
-    public virtual ICollection<Conversation> CreatedConversations { get; set; } = new List<Conversation>();
-    public virtual ICollection<ConversationParticipant> ConversationParticipants { get; set; } = new List<ConversationParticipant>();
-    public virtual ICollection<Message> SentMessages { get; set; } = new List<Message>();
-    public virtual ICollection<MessageReadReceipt> MessageReadReceipts { get; set; } = new List<MessageReadReceipt>();
-    public virtual ICollection<MessageReaction> MessageReactions { get; set; } = new List<MessageReaction>();
     public virtual ICollection<Contract> CreatedContracts { get; set; } = new List<Contract>();
 }
 

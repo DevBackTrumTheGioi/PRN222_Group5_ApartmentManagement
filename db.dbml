@@ -12,12 +12,10 @@ Table Apartments [headercolor: #175e7a] {
   UpdatedAt datetime
 }
 
+
 Table Residents [headercolor: #175e7a] {
-  ResidentId integer [pk, increment, not null]
-  FullName nvarchar(200) [not null]
+  UserId integer [pk, not null, ref: - Users.UserId]
   DateOfBirth date
-  PhoneNumber nvarchar(20)
-  Email nvarchar(100)
   IdentityCardNumber nvarchar(20) [unique]
   ResidentType nvarchar(50) [note: 'Owner, Tenant, FamilyMember']
   ResidencyStatus nvarchar(20) [note: 'Active, Inactive']
@@ -25,8 +23,6 @@ Table Residents [headercolor: #175e7a] {
   MoveInDate date
   MoveOutDate date
   Note nvarchar(500)
-  CreatedAt datetime [default: `GETDATE()`]
-  UpdatedAt datetime
 }
 
 Table ResidentCards [headercolor: #175e7a] {
@@ -279,69 +275,18 @@ Table Users [headercolor: #5e3a8f] {
   UpdatedAt datetime
 }
 
-// ===== QUẢN LÝ THÔNG BÁO & TIN NHẮN =====
+// ===== QUẢN LÝ THÔNG BÁO =====
 Table Notifications [headercolor: #9b59b6] {
   NotificationId integer [pk, increment, not null]
   UserId integer [not null]
   Title nvarchar(200) [not null]
   Content nvarchar(max) [not null]
-  NotificationType nvarchar(50) [note: 'Invoice, Request, Announcement, Message, System']
-  ReferenceType nvarchar(50) [note: 'Invoice, Request, Announcement, Message']
+  NotificationType nvarchar(50) [note: 'Invoice, Request, Announcement, System']
+  ReferenceType nvarchar(50) [note: 'Invoice, Request, Announcement']
   ReferenceId integer
   IsRead bit [default: 0]
   ReadAt datetime
   Priority integer [note: '1:Normal, 2:Important, 3:Urgent']
-  CreatedAt datetime [default: `GETDATE()`]
-}
-
-Table Conversations [headercolor: #9b59b6] {
-  ConversationId integer [pk, increment, not null]
-  ConversationName nvarchar(200)
-  ConversationType nvarchar(50) [note: 'Direct, Group, Support']
-  CreatedBy integer [not null]
-  IsActive bit [default: 1]
-  LastMessageAt datetime
-  CreatedAt datetime [default: `GETDATE()`]
-  UpdatedAt datetime
-}
-
-Table ConversationParticipants [headercolor: #9b59b6] {
-  ParticipantId integer [pk, increment, not null]
-  ConversationId integer [not null]
-  UserId integer [not null]
-  JoinedAt datetime [default: `GETDATE()`]
-  LeftAt datetime
-  IsActive bit [default: 1]
-  Role nvarchar(50) [note: 'Owner, Admin, Member']
-  LastReadAt datetime
-}
-
-Table Messages [headercolor: #9b59b6] {
-  MessageId integer [pk, increment, not null]
-  ConversationId integer [not null]
-  SenderId integer [not null]
-  Content nvarchar(max) [not null]
-  MessageType nvarchar(50) [note: 'Text, Image, File, System']
-  AttachmentUrl nvarchar(500)
-  IsEdited bit [default: 0]
-  EditedAt datetime
-  IsDeleted bit [default: 0]
-  DeletedAt datetime
-  CreatedAt datetime [default: `GETDATE()`]
-}
-
-Table MessageReadReceipts [headercolor: #9b59b6] {
-  ReadReceiptId integer [pk, increment, not null]
-  MessageId integer [not null]
-  UserId integer [not null]
-  ReadAt datetime [default: `GETDATE()`]
-}
-
-Table MessageReactions [headercolor: #9b59b6] {
-  ReactionId integer [pk, increment, not null]
-  MessageId integer [not null]
-  UserId integer [not null]
-  ReactionType nvarchar(50) [note: 'Like, Love, Haha, Wow, Sad, Angry']
   CreatedAt datetime [default: `GETDATE()`]
 }
 
@@ -380,9 +325,11 @@ Table ContractMembers [headercolor: #e74c3c] {
 
 // ===== RELATIONSHIPS =====
 Ref: Residents.ApartmentId > Apartments.ApartmentId [delete: set null]
-Ref: ResidentCards.ResidentId > Residents.ResidentId [delete: cascade]
+
+// Residents PK is UserId (1-1 with Users)
+Ref: ResidentCards.ResidentId > Residents.UserId [delete: cascade]
 Ref: ResidentCards.VehicleId > Vehicles.VehicleId [delete: set null]
-Ref: Vehicles.ResidentId > Residents.ResidentId [delete: cascade]
+Ref: Vehicles.ResidentId > Residents.UserId [delete: cascade]
 
 Ref: ServicePrices.ServiceTypeId > ServiceTypes.ServiceTypeId
 Ref: MeterReadings.ApartmentId > Apartments.ApartmentId
@@ -403,7 +350,7 @@ Ref: ApartmentServices.ApartmentId > Apartments.ApartmentId
 Ref: ApartmentServices.ServiceTypeId > ServiceTypes.ServiceTypeId
 
 Ref: Requests.ApartmentId > Apartments.ApartmentId
-Ref: Requests.ResidentId > Residents.ResidentId
+Ref: Requests.ResidentId > Residents.UserId
 Ref: Requests.AssignedTo > Users.UserId [delete: set null]
 Ref: RequestAttachments.RequestId > Requests.RequestId [delete: cascade]
 
@@ -411,31 +358,20 @@ Ref: Announcements.CreatedBy > Users.UserId
 Ref: Documents.UploadedBy > Users.UserId
 
 Ref: Visitors.ApartmentId > Apartments.ApartmentId
-Ref: Visitors.RegisteredBy > Residents.ResidentId
+Ref: Visitors.RegisteredBy > Residents.UserId
 
 Ref: Parcels.ApartmentId > Apartments.ApartmentId
 Ref: Parcels.ReceivedBy > Users.UserId
-Ref: Parcels.PickedUpBy > Residents.ResidentId [delete: set null]
+Ref: Parcels.PickedUpBy > Residents.UserId [delete: set null]
 
 Ref: AmenityBookings.AmenityId > Amenities.AmenityId
 Ref: AmenityBookings.ApartmentId > Apartments.ApartmentId
-Ref: AmenityBookings.ResidentId > Residents.ResidentId
+Ref: AmenityBookings.ResidentId > Residents.UserId
 
 Ref: Notifications.UserId > Users.UserId [delete: cascade]
 
-Ref: Conversations.CreatedBy > Users.UserId
-Ref: ConversationParticipants.ConversationId > Conversations.ConversationId [delete: cascade]
-Ref: ConversationParticipants.UserId > Users.UserId [delete: cascade]
-
-Ref: Messages.ConversationId > Conversations.ConversationId [delete: cascade]
-Ref: Messages.SenderId > Users.UserId
-Ref: MessageReadReceipts.MessageId > Messages.MessageId [delete: cascade]
-Ref: MessageReadReceipts.UserId > Users.UserId [delete: cascade]
-Ref: MessageReactions.MessageId > Messages.MessageId [delete: cascade]
-Ref: MessageReactions.UserId > Users.UserId [delete: cascade]
 
 Ref: Contracts.ApartmentId > Apartments.ApartmentId
 Ref: Contracts.CreatedBy > Users.UserId
 Ref: ContractMembers.ContractId > Contracts.ContractId [delete: cascade]
-Ref: ContractMembers.ResidentId > Residents.ResidentId
-
+Ref: ContractMembers.ResidentId > Residents.UserId
