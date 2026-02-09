@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PRN222_ApartmentManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -90,37 +90,6 @@ namespace PRN222_ApartmentManagement.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.UserId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Residents",
-                columns: table => new
-                {
-                    ResidentId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FullName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    IdentityCardNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    ResidentType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    ResidencyStatus = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    ApartmentId = table.Column<int>(type: "int", nullable: true),
-                    MoveInDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    MoveOutDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Note = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Residents", x => x.ResidentId);
-                    table.ForeignKey(
-                        name: "FK_Residents_Apartments_ApartmentId",
-                        column: x => x.ApartmentId,
-                        principalTable: "Apartments",
-                        principalColumn: "ApartmentId",
-                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -227,8 +196,7 @@ namespace PRN222_ApartmentManagement.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     TerminatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    TerminationReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    ApartmentId1 = table.Column<int>(type: "int", nullable: true)
+                    TerminationReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -236,11 +204,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     table.ForeignKey(
                         name: "FK_Contracts_Apartments_ApartmentId",
                         column: x => x.ApartmentId,
-                        principalTable: "Apartments",
-                        principalColumn: "ApartmentId");
-                    table.ForeignKey(
-                        name: "FK_Contracts_Apartments_ApartmentId1",
-                        column: x => x.ApartmentId1,
                         principalTable: "Apartments",
                         principalColumn: "ApartmentId");
                     table.ForeignKey(
@@ -406,222 +369,33 @@ namespace PRN222_ApartmentManagement.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AmenityBookings",
+                name: "Residents",
                 columns: table => new
                 {
-                    BookingId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AmenityId = table.Column<int>(type: "int", nullable: false),
-                    ApartmentId = table.Column<int>(type: "int", nullable: false),
-                    ResidentId = table.Column<int>(type: "int", nullable: false),
-                    BookingDate = table.Column<DateTime>(type: "date", nullable: false),
-                    StartTime = table.Column<TimeSpan>(type: "time", nullable: false),
-                    EndTime = table.Column<TimeSpan>(type: "time", nullable: false),
-                    TotalHours = table.Column<decimal>(type: "decimal(4,2)", nullable: true),
-                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IdentityCardNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    ResidentType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    ResidencyStatus = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    ApartmentId = table.Column<int>(type: "int", nullable: true),
+                    MoveInDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    MoveOutDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Note = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AmenityBookings", x => x.BookingId);
+                    table.PrimaryKey("PK_Residents", x => x.UserId);
                     table.ForeignKey(
-                        name: "FK_AmenityBookings_Amenities_AmenityId",
-                        column: x => x.AmenityId,
-                        principalTable: "Amenities",
-                        principalColumn: "AmenityId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AmenityBookings_Apartments_ApartmentId",
+                        name: "FK_Residents_Apartments_ApartmentId",
                         column: x => x.ApartmentId,
                         principalTable: "Apartments",
                         principalColumn: "ApartmentId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AmenityBookings_Residents_ResidentId",
-                        column: x => x.ResidentId,
-                        principalTable: "Residents",
-                        principalColumn: "ResidentId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Parcels",
-                columns: table => new
-                {
-                    ParcelId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    TrackingNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    ApartmentId = table.Column<int>(type: "int", nullable: false),
-                    RecipientName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    Sender = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    ReceivedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ReceivedBy = table.Column<int>(type: "int", nullable: false),
-                    NotificationSent = table.Column<bool>(type: "bit", nullable: false),
-                    PickedUpDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    PickedUpBy = table.Column<int>(type: "int", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Parcels", x => x.ParcelId);
-                    table.ForeignKey(
-                        name: "FK_Parcels_Apartments_ApartmentId",
-                        column: x => x.ApartmentId,
-                        principalTable: "Apartments",
-                        principalColumn: "ApartmentId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Parcels_Residents_PickedUpBy",
-                        column: x => x.PickedUpBy,
-                        principalTable: "Residents",
-                        principalColumn: "ResidentId",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "FK_Parcels_Users_ReceivedBy",
-                        column: x => x.ReceivedBy,
-                        principalTable: "Users",
-                        principalColumn: "UserId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Requests",
-                columns: table => new
-                {
-                    RequestId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RequestNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    ApartmentId = table.Column<int>(type: "int", nullable: false),
-                    ResidentId = table.Column<int>(type: "int", nullable: false),
-                    RequestType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Priority = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    AssignedTo = table.Column<int>(type: "int", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ResolvedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Requests", x => x.RequestId);
-                    table.ForeignKey(
-                        name: "FK_Requests_Apartments_ApartmentId",
-                        column: x => x.ApartmentId,
-                        principalTable: "Apartments",
-                        principalColumn: "ApartmentId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Requests_Residents_ResidentId",
-                        column: x => x.ResidentId,
-                        principalTable: "Residents",
-                        principalColumn: "ResidentId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Requests_Users_AssignedTo",
-                        column: x => x.AssignedTo,
+                        name: "FK_Residents_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.SetNull);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Vehicles",
-                columns: table => new
-                {
-                    VehicleId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ResidentId = table.Column<int>(type: "int", nullable: false),
-                    VehicleType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    LicensePlate = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Brand = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Model = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Color = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
-                    RegisteredDate = table.Column<DateTime>(type: "date", nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Vehicles", x => x.VehicleId);
-                    table.ForeignKey(
-                        name: "FK_Vehicles_Residents_ResidentId",
-                        column: x => x.ResidentId,
-                        principalTable: "Residents",
-                        principalColumn: "ResidentId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Visitors",
-                columns: table => new
-                {
-                    VisitorId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    VisitorName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    IdentityCard = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    ApartmentId = table.Column<int>(type: "int", nullable: false),
-                    RegisteredBy = table.Column<int>(type: "int", nullable: false),
-                    VisitDate = table.Column<DateTime>(type: "date", nullable: false),
-                    CheckInTime = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CheckOutTime = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    QRCode = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Visitors", x => x.VisitorId);
-                    table.ForeignKey(
-                        name: "FK_Visitors_Apartments_ApartmentId",
-                        column: x => x.ApartmentId,
-                        principalTable: "Apartments",
-                        principalColumn: "ApartmentId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Visitors_Residents_RegisteredBy",
-                        column: x => x.RegisteredBy,
-                        principalTable: "Residents",
-                        principalColumn: "ResidentId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ContractMembers",
-                columns: table => new
-                {
-                    ContractMemberId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ContractId = table.Column<int>(type: "int", nullable: false),
-                    ResidentId = table.Column<int>(type: "int", nullable: false),
-                    MemberRole = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    SignatureStatus = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    SignedDate = table.Column<DateTime>(type: "date", nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ContractMembers", x => x.ContractMemberId);
-                    table.ForeignKey(
-                        name: "FK_ContractMembers_Contracts_ContractId",
-                        column: x => x.ContractId,
-                        principalTable: "Contracts",
-                        principalColumn: "ContractId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ContractMembers_Residents_ResidentId",
-                        column: x => x.ResidentId,
-                        principalTable: "Residents",
-                        principalColumn: "ResidentId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -764,41 +538,19 @@ namespace PRN222_ApartmentManagement.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RequestAttachments",
+                name: "AmenityBookings",
                 columns: table => new
                 {
-                    AttachmentId = table.Column<int>(type: "int", nullable: false)
+                    BookingId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    RequestId = table.Column<int>(type: "int", nullable: false),
-                    FileName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    FilePath = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    FileSize = table.Column<long>(type: "bigint", nullable: true),
-                    ContentType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RequestAttachments", x => x.AttachmentId);
-                    table.ForeignKey(
-                        name: "FK_RequestAttachments_Requests_RequestId",
-                        column: x => x.RequestId,
-                        principalTable: "Requests",
-                        principalColumn: "RequestId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ResidentCards",
-                columns: table => new
-                {
-                    ResidentCardId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CardNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CardType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    AmenityId = table.Column<int>(type: "int", nullable: false),
+                    ApartmentId = table.Column<int>(type: "int", nullable: false),
                     ResidentId = table.Column<int>(type: "int", nullable: false),
-                    VehicleId = table.Column<int>(type: "int", nullable: true),
-                    IssuedDate = table.Column<DateTime>(type: "date", nullable: false),
-                    ExpiryDate = table.Column<DateTime>(type: "date", nullable: true),
+                    BookingDate = table.Column<DateTime>(type: "date", nullable: false),
+                    StartTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    EndTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    TotalHours = table.Column<decimal>(type: "decimal(4,2)", nullable: true),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -806,18 +558,200 @@ namespace PRN222_ApartmentManagement.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ResidentCards", x => x.ResidentCardId);
+                    table.PrimaryKey("PK_AmenityBookings", x => x.BookingId);
                     table.ForeignKey(
-                        name: "FK_ResidentCards_Residents_ResidentId",
-                        column: x => x.ResidentId,
-                        principalTable: "Residents",
-                        principalColumn: "ResidentId",
+                        name: "FK_AmenityBookings_Amenities_AmenityId",
+                        column: x => x.AmenityId,
+                        principalTable: "Amenities",
+                        principalColumn: "AmenityId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ResidentCards_Vehicles_VehicleId",
-                        column: x => x.VehicleId,
-                        principalTable: "Vehicles",
-                        principalColumn: "VehicleId");
+                        name: "FK_AmenityBookings_Apartments_ApartmentId",
+                        column: x => x.ApartmentId,
+                        principalTable: "Apartments",
+                        principalColumn: "ApartmentId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AmenityBookings_Residents_ResidentId",
+                        column: x => x.ResidentId,
+                        principalTable: "Residents",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ContractMembers",
+                columns: table => new
+                {
+                    ContractMemberId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ContractId = table.Column<int>(type: "int", nullable: false),
+                    ResidentId = table.Column<int>(type: "int", nullable: false),
+                    MemberRole = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    SignatureStatus = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    SignedDate = table.Column<DateTime>(type: "date", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ContractMembers", x => x.ContractMemberId);
+                    table.ForeignKey(
+                        name: "FK_ContractMembers_Contracts_ContractId",
+                        column: x => x.ContractId,
+                        principalTable: "Contracts",
+                        principalColumn: "ContractId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ContractMembers_Residents_ResidentId",
+                        column: x => x.ResidentId,
+                        principalTable: "Residents",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Parcels",
+                columns: table => new
+                {
+                    ParcelId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TrackingNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ApartmentId = table.Column<int>(type: "int", nullable: false),
+                    RecipientName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Sender = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    ReceivedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReceivedBy = table.Column<int>(type: "int", nullable: false),
+                    NotificationSent = table.Column<bool>(type: "bit", nullable: false),
+                    PickedUpDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PickedUpBy = table.Column<int>(type: "int", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Parcels", x => x.ParcelId);
+                    table.ForeignKey(
+                        name: "FK_Parcels_Apartments_ApartmentId",
+                        column: x => x.ApartmentId,
+                        principalTable: "Apartments",
+                        principalColumn: "ApartmentId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Parcels_Residents_PickedUpBy",
+                        column: x => x.PickedUpBy,
+                        principalTable: "Residents",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Parcels_Users_ReceivedBy",
+                        column: x => x.ReceivedBy,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Requests",
+                columns: table => new
+                {
+                    RequestId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RequestNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ApartmentId = table.Column<int>(type: "int", nullable: false),
+                    ResidentId = table.Column<int>(type: "int", nullable: false),
+                    RequestType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Priority = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    AssignedTo = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ResolvedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Requests", x => x.RequestId);
+                    table.ForeignKey(
+                        name: "FK_Requests_Apartments_ApartmentId",
+                        column: x => x.ApartmentId,
+                        principalTable: "Apartments",
+                        principalColumn: "ApartmentId");
+                    table.ForeignKey(
+                        name: "FK_Requests_Residents_ResidentId",
+                        column: x => x.ResidentId,
+                        principalTable: "Residents",
+                        principalColumn: "UserId");
+                    table.ForeignKey(
+                        name: "FK_Requests_Users_AssignedTo",
+                        column: x => x.AssignedTo,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Vehicles",
+                columns: table => new
+                {
+                    VehicleId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ResidentId = table.Column<int>(type: "int", nullable: false),
+                    VehicleType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    LicensePlate = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Brand = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Model = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Color = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
+                    RegisteredDate = table.Column<DateTime>(type: "date", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Vehicles", x => x.VehicleId);
+                    table.ForeignKey(
+                        name: "FK_Vehicles_Residents_ResidentId",
+                        column: x => x.ResidentId,
+                        principalTable: "Residents",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Visitors",
+                columns: table => new
+                {
+                    VisitorId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VisitorName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    IdentityCard = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    ApartmentId = table.Column<int>(type: "int", nullable: false),
+                    RegisteredBy = table.Column<int>(type: "int", nullable: false),
+                    VisitDate = table.Column<DateTime>(type: "date", nullable: false),
+                    CheckInTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CheckOutTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    QRCode = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Visitors", x => x.VisitorId);
+                    table.ForeignKey(
+                        name: "FK_Visitors_Apartments_ApartmentId",
+                        column: x => x.ApartmentId,
+                        principalTable: "Apartments",
+                        principalColumn: "ApartmentId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Visitors_Residents_RegisteredBy",
+                        column: x => x.RegisteredBy,
+                        principalTable: "Residents",
+                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -875,6 +809,63 @@ namespace PRN222_ApartmentManagement.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "RequestAttachments",
+                columns: table => new
+                {
+                    AttachmentId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RequestId = table.Column<int>(type: "int", nullable: false),
+                    FileName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    FilePath = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    FileSize = table.Column<long>(type: "bigint", nullable: true),
+                    ContentType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RequestAttachments", x => x.AttachmentId);
+                    table.ForeignKey(
+                        name: "FK_RequestAttachments_Requests_RequestId",
+                        column: x => x.RequestId,
+                        principalTable: "Requests",
+                        principalColumn: "RequestId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ResidentCards",
+                columns: table => new
+                {
+                    ResidentCardId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CardNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CardType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    ResidentId = table.Column<int>(type: "int", nullable: false),
+                    VehicleId = table.Column<int>(type: "int", nullable: true),
+                    IssuedDate = table.Column<DateTime>(type: "date", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "date", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ResidentCards", x => x.ResidentCardId);
+                    table.ForeignKey(
+                        name: "FK_ResidentCards_Residents_ResidentId",
+                        column: x => x.ResidentId,
+                        principalTable: "Residents",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ResidentCards_Vehicles_VehicleId",
+                        column: x => x.VehicleId,
+                        principalTable: "Vehicles",
+                        principalColumn: "VehicleId");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AmenityBookings_AmenityId",
                 table: "AmenityBookings",
@@ -894,12 +885,6 @@ namespace PRN222_ApartmentManagement.Migrations
                 name: "IX_Announcements_CreatedBy",
                 table: "Announcements",
                 column: "CreatedBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Apartments_ApartmentNumber",
-                table: "Apartments",
-                column: "ApartmentNumber",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ApartmentServices_ApartmentId",
@@ -925,11 +910,6 @@ namespace PRN222_ApartmentManagement.Migrations
                 name: "IX_Contracts_ApartmentId",
                 table: "Contracts",
                 column: "ApartmentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Contracts_ApartmentId1",
-                table: "Contracts",
-                column: "ApartmentId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Contracts_ContractNumber",
@@ -1270,10 +1250,10 @@ namespace PRN222_ApartmentManagement.Migrations
                 name: "Residents");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Apartments");
 
             migrationBuilder.DropTable(
-                name: "Apartments");
+                name: "Users");
         }
     }
 }

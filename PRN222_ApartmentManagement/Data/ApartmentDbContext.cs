@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Models;
 
 namespace PRN222_ApartmentManagement.Data;
@@ -47,11 +47,6 @@ public class ApartmentDbContext : DbContext
 
     // Communication entities
     public DbSet<Notification> Notifications { get; set; }
-    public DbSet<Conversation> Conversations { get; set; }
-    public DbSet<ConversationParticipant> ConversationParticipants { get; set; }
-    public DbSet<Message> Messages { get; set; }
-    public DbSet<MessageReadReceipt> MessageReadReceipts { get; set; }
-    public DbSet<MessageReaction> MessageReactions { get; set; }
 
     // Contract entities
     public DbSet<Contract> Contracts { get; set; }
@@ -61,10 +56,11 @@ public class ApartmentDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure unique indexes
-        modelBuilder.Entity<Apartment>()
-            .HasIndex(a => a.ApartmentNumber)
-            .IsUnique();
+        modelBuilder.Entity<User>()
+            .UseTptMappingStrategy();
+
+        modelBuilder.Entity<Resident>()
+            .ToTable("Residents");
 
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Username)
@@ -177,10 +173,22 @@ public class ApartmentDbContext : DbContext
             .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Request>()
+            .HasOne(r => r.Apartment)
+            .WithMany(a => a.Requests)
+            .HasForeignKey(r => r.ApartmentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Request>()
+            .HasOne(r => r.Resident)
+            .WithMany(res => res.Requests)
+            .HasForeignKey(r => r.ResidentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Request>()
             .HasOne(r => r.AssignedUser)
             .WithMany(u => u.AssignedRequests)
             .HasForeignKey(r => r.AssignedTo)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Announcement>()
             .HasOne(a => a.Creator)
@@ -212,21 +220,10 @@ public class ApartmentDbContext : DbContext
             .HasForeignKey(p => p.PickedUpBy)
             .OnDelete(DeleteBehavior.SetNull);
 
-        modelBuilder.Entity<Conversation>()
-            .HasOne(c => c.Creator)
-            .WithMany(u => u.CreatedConversations)
-            .HasForeignKey(c => c.CreatedBy)
-            .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<Message>()
-            .HasOne(m => m.Sender)
-            .WithMany(u => u.SentMessages)
-            .HasForeignKey(m => m.SenderId)
-            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Contract>()
             .HasOne(c => c.Apartment)
-            .WithMany()
+            .WithMany(a => a.Contracts)
             .HasForeignKey(c => c.ApartmentId)
             .OnDelete(DeleteBehavior.NoAction);
 
