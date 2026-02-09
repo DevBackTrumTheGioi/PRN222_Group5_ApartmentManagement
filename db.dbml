@@ -23,8 +23,8 @@ Table Residents [headercolor: #175e7a] {
   MoveInDate date
   MoveOutDate date
   Note nvarchar(500)
+  note: 'Inherits IsDeleted from Users table'
 }
-
 Table ResidentCards [headercolor: #175e7a] {
   ResidentCardId integer [pk, increment, not null]
   CardNumber nvarchar(50) [not null, unique]
@@ -48,7 +48,7 @@ Table Vehicles [headercolor: #175e7a] {
   Model nvarchar(50)
   Color nvarchar(30)
   RegisteredDate date
-  IsActive bit [default: 1]
+  IsDeleted bit [default: 0]
   Notes nvarchar(500)
   CreatedAt datetime [default: `GETDATE()`]
 }
@@ -60,6 +60,7 @@ Table ServiceTypes [headercolor: #4a90a4] {
   Description nvarchar(500)
   MeasurementUnit nvarchar(50) [note: 'kWh, m³, month, vehicle']
   IsActive bit [default: 1]
+  IsDeleted bit [default: 0]
   CreatedAt datetime [default: `GETDATE()`]
   UpdatedAt datetime
 }
@@ -180,6 +181,7 @@ Table Announcements [headercolor: #f4a259] {
   PublishedDate datetime [not null]
   ExpiryDate datetime
   IsActive bit [default: 1]
+  IsDeleted bit [default: 0]
   CreatedBy integer [not null]
   CreatedAt datetime [default: `GETDATE()`]
   UpdatedAt datetime
@@ -196,6 +198,7 @@ Table Documents [headercolor: #f4a259] {
   UploadedBy integer [not null]
   UploadedAt datetime [default: `GETDATE()`]
   IsActive bit [default: 1]
+  IsDeleted bit [default: 0]
 }
 
 // ===== QUẢN LÝ KHÁCH & BƯU PHẨM =====
@@ -240,6 +243,7 @@ Table Amenities [headercolor: #8b5a3c] {
   Capacity integer
   PricePerHour decimal(18,2)
   IsActive bit [default: 1]
+  IsDeleted bit [default: 0]
   Description nvarchar(500)
   CreatedAt datetime [default: `GETDATE()`]
 }
@@ -309,6 +313,7 @@ Table Contracts [headercolor: #e74c3c] {
   UpdatedAt datetime
   TerminatedAt datetime
   TerminationReason nvarchar(500)
+  IsDeleted bit [default: 0]
 }
 
 Table ContractMembers [headercolor: #e74c3c] {
