@@ -1,0 +1,70 @@
+﻿@page
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "User Management";
+    ViewData["CurrentPage"] = "residents";
+    
+    var breadcrumbs = new[]
+    {
+        new { Label = "Home", Href = "/" },
+        new { Label = "Users", Href = "" }
+    };
+    
+    // Sample data for DataTable
+    var columns = new[]
+    {
+        new { Header = "User", Field = "User", Type = "user" },
+        new { Header = "Email Address", Field = "Email", Type = "text" },
+        new { Header = "Role", Field = "Role", Type = "badge" },
+        new { Header = "Status", Field = "Status", Type = "status" },
+    };
+    
+    var rows = new[]
+    {
+        new { 
+            User = new { Name = "Jane Cooper", Subtitle = "Joined Oct 12, 2023", Avatar = "https://i.pravatar.cc/150?img=1" },
+            Email = "jane.cooper@example.com",
+            Role = "Admin",
+            Status = "Active"
+        },
+        new { 
+            User = new { Name = "Cody Fisher", Subtitle = "Joined Sep 28, 2023", Avatar = "https://i.pravatar.cc/150?img=2" },
+            Email = "cody.fisher@company.io",
+            Role = "Editor",
+            Status = "Inactive"
+        },
+        new { 
+            User = new { Name = "Esther Howard", Subtitle = "Joined Jan 05, 2024", Avatar = "https://i.pravatar.cc/150?img=3" },
+            Email = "e.howard@studio.com",
+            Role = "Viewer",
+            Status = "Active"
+        },
+        new { 
+            User = new { Name = "Robert Fox", Subtitle = "Joined Feb 14, 2024", Avatar = "https://i.pravatar.cc/150?img=4" },
+            Email = "robert.fox@agency.net",
+            Role = "Viewer",
+            Status = "Active"
+        }
+    };
+}
+
+<!-- Page Header -->
+<partial name="Components/PageHeader" model='new { 
+    Title = "User Management",
+    BreadcrumbItems = breadcrumbs,
+    NotificationCount = 3
+}' />
+
+<!-- Data Table -->
+<partial name="Components/DataTable" model='new { 
+    Columns = columns, 
+    Rows = rows,
+    CurrentPage = 1,
+    TotalPages = 6,
+    TotalItems = 24,
+    ItemsPerPage = 4,
+    ShowSearch = true,
+    ShowActions = true,
+    ShowPagination = true
+}' />
+

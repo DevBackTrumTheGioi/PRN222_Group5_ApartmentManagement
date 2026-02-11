@@ -1,0 +1,42 @@
+﻿@{
+    var label = ViewBag.Label ?? "";
+    var placeholder = ViewBag.Placeholder ?? "";
+    var cssClass = ViewBag.CssClass ?? "";
+    var isRequired = ViewBag.IsRequired ?? false;
+    var hasError = ViewBag.HasError ?? false;
+    var errorMessage = ViewBag.ErrorMessage ?? "";
+    var rows = ViewBag.Rows ?? 4;
+    
+    var textareaClasses = hasError 
+        ? "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-2 border-red-300 dark:border-red-700 rounded-lg focus:ring-2 focus:ring-red-500/40 focus:bg-white dark:focus:bg-slate-700 transition-all resize-vertical"
+        : "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-700 transition-all resize-vertical";
+}
+
+<div class="@cssClass">
+    @if (!string.IsNullOrEmpty(label))
+    {
+        <label class="block text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
+            @label
+            @if (isRequired)
+            {
+                <span class="text-red-600">*</span>
+            }
+        </label>
+    }
+    
+    <textarea 
+        class="@textareaClasses" 
+        placeholder="@placeholder"
+        rows="@rows"
+        @if (isRequired) { @Html.Raw("required") }
+    >@RenderBody()</textarea>
+    
+    @if (hasError && !string.IsNullOrEmpty(errorMessage))
+    {
+        <p class="text-red-600 dark:text-red-400 text-sm mt-1.5 flex items-center gap-1">
+            <span class="material-icons text-[16px]">error</span>
+            @errorMessage
+        </p>
+    }
+</div>
+

@@ -1,0 +1,91 @@
+﻿/* Custom Tailwind Components Styles */
+
+/* Smooth transitions */
+* {
+    @apply transition-all duration-200;
+}
+
+/* Input focus effect */
+input:focus,
+textarea:focus,
+select:focus {
+    @apply ring-2 ring-blue-500/30;
+}
+
+/* Button smooth hover */
+button {
+    @apply active:scale-95;
+}
+
+/* Checkbox custom styling */
+input[type="checkbox"] {
+    @apply accent-blue-600 dark:accent-blue-500;
+}
+
+/* Remove default styling for select */
+select {
+    @apply appearance-none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+/* Dark mode select */
+select.dark {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%9CA3AF' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-slate-100 dark:bg-slate-800;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-600 rounded-lg;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400 dark:bg-slate-500;
+}
+
+/* Modal backdrop animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-backdrop {
+    @apply animate-[fadeIn_0.2s_ease-out];
+}
+
+/* Alert icon animation */
+@keyframes slideIn {
+    from {
+        transform: translateX(-8px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.alert-content {
+    @apply animate-[slideIn_0.3s_ease-out];
+}
+
+/* Placeholder styling */
+::placeholder {
+    @apply text-slate-400 dark:text-slate-500;
+}
+

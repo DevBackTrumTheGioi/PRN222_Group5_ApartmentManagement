@@ -1,0 +1,71 @@
+﻿@model dynamic
+
+@{
+    var model = (object)Model;
+    var dict = model?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(model));
+    
+    string title = dict?.ContainsKey("Title") == true ? dict["Title"]?.ToString() : "";
+    string buttonText = dict?.ContainsKey("ButtonText") == true ? dict["ButtonText"]?.ToString() : "";
+    string buttonIcon = dict?.ContainsKey("ButtonIcon") == true ? dict["ButtonIcon"]?.ToString() : "add";
+    string buttonHref = dict?.ContainsKey("ButtonHref") == true ? dict["ButtonHref"]?.ToString() : "#";
+    bool showButton = dict?.ContainsKey("ShowButton") == true && dict["ShowButton"] is bool sb && sb;
+    int notificationCount = dict?.ContainsKey("NotificationCount") == true && dict["NotificationCount"] is int nc ? nc : 0;
+    
+    var breadcrumbItems = dict?.ContainsKey("BreadcrumbItems") == true ? dict["BreadcrumbItems"] as System.Collections.IEnumerable : null;
+}
+
+<header class="flex justify-between items-start mb-6">
+    <!-- Left: Breadcrumb + Title -->
+    <div>
+        @if (breadcrumbItems != null)
+        {
+            <nav class="flex text-sm text-slate-500 mb-1 gap-1.5 items-center">
+                @{
+                    var itemList = breadcrumbItems.Cast<object>().ToList();
+                    for (int i = 0; i < itemList.Count; i++)
+                    {
+                        var item = itemList[i];
+                        var itemDict = item?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(item)?.ToString());
+                        string label = itemDict?.ContainsKey("Label") == true ? itemDict["Label"] : "";
+                        string href = itemDict?.ContainsKey("Href") == true ? itemDict["Href"] : "";
+                        bool isLast = i == itemList.Count - 1;
+                        
+                        if (isLast)
+                        {
+                            <span class="text-slate-900 font-medium">@label</span>
+                        }
+                        else
+                        {
+                            <a class="hover:text-emerald-600 transition-colors" href="@href">@label</a>
+                            <span class="material-icons text-base text-slate-400">chevron_right</span>
+                        }
+                    }
+                }
+            </nav>
+        }
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">@title</h1>
+    </div>
+    
+    <!-- Right: Notification + Action Button -->
+    <div class="flex items-center gap-3">
+        <!-- Notification Bell -->
+        <button class="relative w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all">
+            <span class="material-icons text-slate-500">notifications_none</span>
+            @if (notificationCount > 0)
+            {
+                <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    @(notificationCount > 9 ? "9+" : notificationCount.ToString())
+                </span>
+            }
+        </button>
+        
+        <!-- Primary Action Button -->
+        @if (showButton && !string.IsNullOrEmpty(buttonText))
+        {
+            <a href="@buttonHref" class="bg-emerald-500 text-white px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-emerald-600 transition-all">
+                <span class="material-icons text-lg">@buttonIcon</span>
+                @buttonText
+            </a>
+        }
+    </div>
+</header>
