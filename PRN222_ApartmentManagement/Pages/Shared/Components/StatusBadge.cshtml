@@ -1,0 +1,28 @@
+﻿@model dynamic
+
+@{
+    var model = (object)Model;
+    var dict = model?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(model)?.ToString());
+    
+    string status = dict?.ContainsKey("Status") == true ? dict["Status"] : "active";
+    string label = dict?.ContainsKey("Label") == true ? dict["Label"] : "";
+    
+    var dotColor = status switch
+    {
+        "inactive" => "bg-slate-400",
+        "pending" => "bg-amber-500",
+        _ => "bg-emerald-500"
+    };
+    
+    var displayLabel = !string.IsNullOrEmpty(label) ? label : status switch
+    {
+        "inactive" => "Inactive",
+        "pending" => "Pending",
+        _ => "Active"
+    };
+}
+
+<div class="flex items-center gap-2">
+    <div class="w-2 h-2 rounded-full @dotColor"></div>
+    <span class="text-sm text-slate-600">@displayLabel</span>
+</div>

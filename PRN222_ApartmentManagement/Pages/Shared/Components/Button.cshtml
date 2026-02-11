@@ -1,0 +1,36 @@
+﻿@model dynamic
+
+@{
+    var model = (object)Model;
+    var dict = model?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(model)?.ToString());
+    
+    string variant = dict?.ContainsKey("Variant") == true ? dict["Variant"] : "primary";
+    string size = dict?.ContainsKey("Size") == true ? dict["Size"] : "md";
+    string text = dict?.ContainsKey("Text") == true ? dict["Text"] : "";
+    string icon = dict?.ContainsKey("Icon") == true ? dict["Icon"] : "";
+    string cssClass = dict?.ContainsKey("CssClass") == true ? dict["CssClass"] : "";
+    
+    var baseClasses = "font-semibold inline-flex items-center gap-2 rounded-lg transition-all cursor-pointer";
+    
+    var variantClasses = variant switch
+    {
+        "secondary" => "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50",
+        "danger" => "bg-red-600 text-white hover:bg-red-700",
+        _ => "bg-primary-600 text-white hover:bg-primary-700"
+    };
+    
+    var sizeClasses = size switch
+    {
+        "sm" => "px-3 py-1.5 text-sm",
+        "lg" => "px-6 py-3 text-base",
+        _ => "px-5 py-2.5 text-sm"
+    };
+}
+
+<button class="@baseClasses @variantClasses @sizeClasses @cssClass">
+    @if (!string.IsNullOrEmpty(icon))
+    {
+        <span class="material-icons text-lg">@icon</span>
+    }
+    @text
+</button>

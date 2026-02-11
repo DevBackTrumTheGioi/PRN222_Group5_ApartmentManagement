@@ -1,0 +1,184 @@
+﻿@model dynamic
+
+@{
+    var model = (object)Model;
+    var dict = model?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(model));
+    
+    string title = dict?.ContainsKey("Title") == true ? dict["Title"]?.ToString() : "Data Table";
+    var columns = dict?.ContainsKey("Columns") == true ? dict["Columns"] as System.Collections.IEnumerable : null;
+    var rows = dict?.ContainsKey("Rows") == true ? dict["Rows"] as System.Collections.IEnumerable : null;
+    bool showSearch = dict?.ContainsKey("ShowSearch") == true && dict["ShowSearch"] is bool s ? s : true;
+    bool showActions = dict?.ContainsKey("ShowActions") == true && dict["ShowActions"] is bool a ? a : true;
+    bool showPagination = dict?.ContainsKey("ShowPagination") == true && dict["ShowPagination"] is bool p ? p : true;
+    
+    int currentPage = dict?.ContainsKey("CurrentPage") == true && dict["CurrentPage"] is int cp ? cp : 1;
+    int totalPages = dict?.ContainsKey("TotalPages") == true && dict["TotalPages"] is int tp ? tp : 1;
+    int totalItems = dict?.ContainsKey("TotalItems") == true && dict["TotalItems"] is int ti ? ti : 0;
+    int itemsPerPage = dict?.ContainsKey("ItemsPerPage") == true && dict["ItemsPerPage"] is int ipp ? ipp : 10;
+    
+    int startItem = (currentPage - 1) * itemsPerPage + 1;
+    int endItem = Math.Min(currentPage * itemsPerPage, totalItems);
+}
+
+<div class="space-y-6">
+    @if (showSearch)
+    {
+        <!-- Toolbar & Search -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="relative w-full md:w-96">
+                <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input class="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-lg focus:ring-2 focus:ring-primary-500/40 transition-all" placeholder="Search..." type="text"/>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
+                    <span class="material-icons text-lg">filter_list</span>
+                    <span>Filters</span>
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
+                    <span class="material-icons text-lg">file_download</span>
+                    <span>Export</span>
+                </button>
+            </div>
+        </div>
+    }
+    
+    <!-- Table Card -->
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/50 border-b border-slate-200">
+                        @if (columns != null)
+                        {
+                            @foreach (var col in columns)
+                            {
+                                var colDict = col?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(col)?.ToString());
+                                string header = colDict?.ContainsKey("Header") == true ? colDict["Header"] : "";
+                                string align = colDict?.ContainsKey("Align") == true ? colDict["Align"] : "left";
+                                
+                                <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500 @(align == "right" ? "text-right" : align == "center" ? "text-center" : "")">
+                                    @header
+                                </th>
+                            }
+                        }
+                        @if (showActions)
+                        {
+                            <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @if (rows != null)
+                    {
+                        @foreach (var row in rows)
+                        {
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                @if (columns != null)
+                                {
+                                    @foreach (var col in columns)
+                                    {
+                                        var colDict = col?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(col)?.ToString());
+                                        string field = colDict?.ContainsKey("Field") == true ? colDict["Field"] : "";
+                                        string type = colDict?.ContainsKey("Type") == true ? colDict["Type"] : "text";
+                                        string align = colDict?.ContainsKey("Align") == true ? colDict["Align"] : "left";
+                                        
+                                        var rowDict = row?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(row));
+                                        var value = rowDict?.ContainsKey(field) == true ? rowDict[field] : null;
+                                        
+                                        <td class="px-6 py-4 @(align == "right" ? "text-right" : align == "center" ? "text-center" : "")">
+                                            @if (type == "user")
+                                            {
+                                                var userDict = value as System.Collections.Generic.Dictionary<string, object>;
+                                                if (userDict == null && value != null)
+                                                {
+                                                    userDict = value.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(value));
+                                                }
+                                                
+                                                <div class="flex items-center gap-3">
+                                                    @if (userDict?.ContainsKey("Avatar") == true && !string.IsNullOrEmpty(userDict["Avatar"]?.ToString()))
+                                                    {
+                                                        <img alt="@userDict["Name"]" class="w-10 h-10 rounded-full object-cover border border-slate-100" src="@userDict["Avatar"]"/>
+                                                    }
+                                                    <div>
+                                                        <p class="font-semibold text-slate-900">@userDict?["Name"]</p>
+                                                        @if (userDict?.ContainsKey("Subtitle") == true)
+                                                        {
+                                                            <p class="text-xs text-slate-500">@userDict["Subtitle"]</p>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (type == "badge")
+                                            {
+                                                var badgeValue = value?.ToString() ?? "";
+                                                var badgeVariant = badgeValue.ToLower() == "admin" ? "primary" : "default";
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @(badgeVariant == "primary" ? "bg-primary-100 text-primary-700" : "bg-slate-100 text-slate-600")">
+                                                    @badgeValue
+                                                </span>
+                                            }
+                                            else if (type == "status")
+                                            {
+                                                var statusValue = value?.ToString()?.ToLower() ?? "inactive";
+                                                var statusColor = statusValue == "active" ? "bg-emerald-500" : "bg-slate-400";
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-2 h-2 rounded-full @statusColor"></div>
+                                                    <span class="text-sm text-slate-600">@value</span>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-sm text-slate-600">@value</span>
+                                            }
+                                        </td>
+                                    }
+                                }
+                                @if (showActions)
+                                {
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="p-1 hover:text-primary-600 transition-colors text-slate-400">
+                                                <span class="material-icons text-xl">edit</span>
+                                            </button>
+                                            <button class="p-1 hover:text-red-500 transition-colors text-slate-400">
+                                                <span class="material-icons text-xl">delete_outline</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        @if (showPagination)
+        {
+            <!-- Pagination -->
+            <div class="px-6 py-4 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between flex-wrap gap-4">
+                <p class="text-sm text-slate-500">
+                    Showing <span class="font-medium text-slate-900">@startItem</span> 
+                    to <span class="font-medium text-slate-900">@endItem</span> 
+                    of <span class="font-medium text-slate-900">@totalItems</span> items
+                </p>
+                <div class="flex items-center gap-2">
+                    <button class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors disabled:opacity-50" @(currentPage == 1 ? "disabled" : "")>
+                        Previous
+                    </button>
+                    <div class="flex items-center gap-1">
+                        @for (int i = 1; i <= Math.Min(totalPages, 5); i++)
+                        {
+                            <button class="w-8 h-8 rounded-lg text-sm font-medium flex items-center justify-center transition-colors @(i == currentPage ? "bg-primary-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100")">
+                                @i
+                            </button>
+                        }
+                    </div>
+                    <button class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors" @(currentPage == totalPages ? "disabled" : "")>
+                        Next
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
