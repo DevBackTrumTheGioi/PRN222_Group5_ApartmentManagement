@@ -1,0 +1,158 @@
+﻿@{
+    var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
+    
+    var menuGroups = new[]
+    {
+        new {
+            GroupName = "Tổng quan",
+            Icon = "dashboard",
+            IsCollapsible = false,
+            Items = new[] {
+                new { Icon = "dashboard", Label = "Dashboard", Href = "/", Key = "dashboard" }
+            }
+        },
+        new {
+            GroupName = "Quản lý",
+            Icon = "business",
+            IsCollapsible = true,
+            Items = new[] {
+                new { Icon = "apartment", Label = "Căn hộ", Href = "/Apartments", Key = "apartments" },
+                new { Icon = "people", Label = "Cư dân", Href = "/Residents", Key = "residents" },
+                new { Icon = "local_parking", Label = "Xe & Thẻ", Href = "/Vehicles", Key = "vehicles" }
+            }
+        },
+        new {
+            GroupName = "Tài chính",
+            Icon = "payments",
+            IsCollapsible = true,
+            Items = new[] {
+                new { Icon = "receipt_long", Label = "Hóa đơn", Href = "/Invoices", Key = "invoices" },
+                new { Icon = "account_balance_wallet", Label = "Thanh toán", Href = "/Payments", Key = "payments" }
+            }
+        },
+        new {
+            GroupName = "Dịch vụ",
+            Icon = "room_service",
+            IsCollapsible = true,
+            Items = new[] {
+                new { Icon = "support_agent", Label = "Yêu cầu", Href = "/Requests", Key = "requests" },
+                new { Icon = "fitness_center", Label = "Tiện ích", Href = "/Amenities", Key = "amenities" }
+            }
+        },
+        new {
+            GroupName = "Truyền thông",
+            Icon = "notifications",
+            IsCollapsible = true,
+            Items = new[] {
+                new { Icon = "campaign", Label = "Thông báo", Href = "/Announcements", Key = "announcements" }
+            }
+        },
+        new {
+            GroupName = "Hệ thống",
+            Icon = "settings",
+            IsCollapsible = true,
+            Items = new[] {
+                new { Icon = "settings", Label = "Cài đặt", Href = "/Settings", Key = "settings" }
+            }
+        }
+    };
+}
+
+<aside style="position: fixed; left: 0; top: 0; width: 256px; height: 100vh; z-index: 50; display: flex; flex-direction: column;" class="bg-white border-r border-slate-200">
+    <!-- Logo -->
+    <div class="h-16 p-4 flex items-center gap-3 border-b border-slate-100">
+        <div class="w-9 h-9 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span class="material-icons text-white text-xl">apartment</span>
+        </div>
+        <div class="min-w-0">
+            <span class="font-bold text-base tracking-tight text-slate-900 block">ApartmentMS</span>
+            <p class="text-xs text-slate-500">Quản lý chung cư</p>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
+        @foreach (var group in menuGroups)
+        {
+            var groupId = "menu-" + group.GroupName.ToLower().Replace(" ", "-");
+            var hasActiveItem = group.Items.Any(item => currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase));
+            
+            if (!group.IsCollapsible)
+            {
+                // Non-collapsible group - render items directly
+                foreach (var item in group.Items)
+                {
+                    bool isActive = currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase);
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors @(isActive ? "bg-emerald-50 text-emerald-700 font-semibold" : "text-slate-600 hover:bg-slate-50")" 
+                       href="@item.Href">
+                        <span class="material-icons text-xl @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
+                        <span class="text-sm">@item.Label</span>
+                    </a>
+                }
+            }
+            else
+            {
+                // Collapsible group
+                <div class="space-y-1">
+                    <!-- Group Header -->
+                    <button type="button" 
+                            class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors @(hasActiveItem ? "bg-emerald-50/50" : "hover:bg-slate-50")"
+                            onclick="toggleMenu('@groupId')">
+                        <div class="flex items-center gap-3">
+                            <span class="material-icons text-xl text-slate-400">@group.Icon</span>
+                            <span class="text-sm font-medium text-slate-700">@group.GroupName</span>
+                        </div>
+                        <span class="material-icons text-lg text-slate-400 transition-transform duration-200" id="@groupId-icon">
+                            expand_more
+                        </span>
+                    </button>
+                    
+                    <!-- Group Items -->
+                    <div id="@groupId" class="pl-3 space-y-1 @(hasActiveItem ? "" : "hidden")">
+                        @foreach (var item in group.Items)
+                        {
+                            bool isActive = currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase);
+                            <a class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors @(isActive ? "bg-emerald-50 text-emerald-700 font-semibold" : "text-slate-600 hover:bg-slate-50")" 
+                               href="@item.Href">
+                                <span class="material-icons text-lg @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
+                                <span class="text-sm">@item.Label</span>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </nav>
+    
+    <!-- User Profile -->
+    <div class="p-3 border-t border-slate-200">
+        <div class="bg-slate-50 p-3 rounded-lg flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <span class="material-icons text-emerald-600 text-xl">person</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-slate-900 truncate">Admin User</p>
+                <p class="text-xs text-slate-500 truncate">admin@apartment.vn</p>
+            </div>
+            <a href="/logout" class="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="Đăng xuất">
+                <span class="material-icons text-xl">logout</span>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<script>
+function toggleMenu(menuId) {
+    const menu = document.getElementById(menuId);
+    const icon = document.getElementById(menuId + '-icon');
+    
+    if (menu.classList.contains('hidden')) {
+        menu.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        menu.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+</script>
+
