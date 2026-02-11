@@ -12,8 +12,6 @@ builder.Services.AddDbContext<ApartmentDbContext>(options =>
 builder.Services.AddScoped<IApartmentRepository, ApartmentRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
-builder.Services.AddScoped<IAmenityBookingRepository, AmenityBookingRepository>();
-builder.Services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
 builder.Services.AddScoped<IApartmentServiceRepository, ApartmentServiceRepository>();
 builder.Services.AddScoped<IContractRepository, ContractRepository>();
 builder.Services.AddScoped<IContractMemberRepository, ContractMemberRepository>();
@@ -33,6 +31,8 @@ builder.Services.AddScoped<IServiceTypeRepository, ServiceTypeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IVisitorRepository, VisitorRepository>();
+builder.Services.AddScoped<IAmenityBookingRepository, AmenityBookingRepository>();
+builder.Services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
 builder.Services.AddScoped<IApartmentServiceRepository, ApartmentServiceRepository>();
 builder.Services.AddScoped<IContractRepository, ContractRepository>();
 builder.Services.AddScoped<IContractMemberRepository, ContractMemberRepository>();

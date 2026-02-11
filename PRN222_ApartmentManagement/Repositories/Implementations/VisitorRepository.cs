@@ -10,4 +10,3 @@ public class VisitorRepository : GenericRepository<Visitor>, IVisitorRepository
     {
     }
 }
-
