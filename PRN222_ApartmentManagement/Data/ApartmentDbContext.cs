@@ -52,6 +52,9 @@ public class ApartmentDbContext : DbContext
     public DbSet<Contract> Contracts { get; set; }
     public DbSet<ContractMember> ContractMembers { get; set; }
 
+    // Activity Log
+    public DbSet<ActivityLog> ActivityLogs { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

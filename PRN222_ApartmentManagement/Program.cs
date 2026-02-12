@@ -2,13 +2,24 @@ using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Repositories.Interfaces;
 using PRN222_ApartmentManagement.Repositories.Implementations;
+using PRN222_ApartmentManagement.Services;
+using PRN222_ApartmentManagement.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+// Add HttpContextAccessor for accessing HttpContext in services
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddDbContext<ApartmentDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register Activity Log Service
+builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
+
+// Register repositories
 builder.Services.AddScoped<IApartmentRepository, ApartmentRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
