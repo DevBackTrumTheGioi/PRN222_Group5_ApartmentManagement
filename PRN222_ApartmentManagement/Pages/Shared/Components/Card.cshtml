@@ -1,0 +1,29 @@
+﻿@model dynamic
+
+@{
+    var model = (object)Model;
+    var dict = model?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(model)?.ToString());
+    
+    string title = dict?.ContainsKey("Title") == true ? dict["Title"] : "";
+    string icon = dict?.ContainsKey("Icon") == true ? dict["Icon"] : "";
+    string value = dict?.ContainsKey("Value") == true ? dict["Value"] : "";
+    string valueColor = dict?.ContainsKey("ValueColor") == true ? dict["ValueColor"] : "text-primary-600";
+}
+
+<div class="bg-white border border-slate-200 rounded-xl p-6">
+    <div class="flex items-start gap-4">
+        @if (!string.IsNullOrEmpty(icon))
+        {
+            <div class="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
+                <span class="material-icons text-primary-600">@icon</span>
+            </div>
+        }
+        <div>
+            <h3 class="text-lg font-semibold text-slate-900">@title</h3>
+            @if (!string.IsNullOrEmpty(value))
+            {
+                <div class="text-3xl font-bold @valueColor mt-2">@value</div>
+            }
+        </div>
+    </div>
+</div>

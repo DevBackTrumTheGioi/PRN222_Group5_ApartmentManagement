@@ -1,0 +1,21 @@
+﻿@{
+    var searchPlaceholder = ViewBag.SearchPlaceholder ?? "Search...";
+    var onSearch = ViewBag.OnSearch ?? "";
+}
+
+<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+    <div class="relative w-full md:w-96">
+        <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+        <input 
+            type="text" 
+            class="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border-none rounded-lg focus:ring-2 focus:ring-blue-500/40 focus:bg-white dark:focus:bg-slate-800 transition-all text-sm"
+            placeholder="@searchPlaceholder"
+            @if (!string.IsNullOrEmpty(onSearch)) { @Html.Raw($"onchange=\"{onSearch}\"") }
+        />
+    </div>
+    
+    <div class="flex items-center gap-3">
+        @RenderBody()
+    </div>
+</div>
+

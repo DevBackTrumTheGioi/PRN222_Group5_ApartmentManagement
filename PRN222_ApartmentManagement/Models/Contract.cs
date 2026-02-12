@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -56,6 +56,8 @@ public class Contract
 
     [MaxLength(500)]
     public string? TerminationReason { get; set; }
+
+    public bool IsDeleted { get; set; } = false;
 
     public virtual Apartment Apartment { get; set; } = null!;
     public virtual User Creator { get; set; } = null!;

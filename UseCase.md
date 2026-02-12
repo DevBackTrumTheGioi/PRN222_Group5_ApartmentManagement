@@ -65,3 +65,12 @@ This document lists all system use cases derived from the Requirements Definitio
 | UC-28 | Book Amenity | Resident | Secondary | Reserve time slot for facilities. |
 | UC-29 | Manage Parcels | Staff | Secondary | Receive and notify residents of packages. |
 
+### 2.7 Face Recognition & Biometric Authentication
+| ID | Use Case Name | Primary Actor | Type | Description |
+|:---|:---|:---|:---|:---|
+| UC-30 | Register Face | Resident | **Primary** | Đăng ký khuôn mặt để sử dụng cho xác thực sinh trắc học. |
+| UC-31 | Update Face Data | Resident | Secondary | Cập nhật dữ liệu khuôn mặt khi cần thiết. |
+| UC-32 | Verify Face for Amenity | Resident, System | **Primary** | Xác thực khuôn mặt khi check-in sử dụng tiện ích (Gym, Pool, BBQ). |
+| UC-33 | Manage Face Records | Staff | Secondary | Quản lý, xóa dữ liệu khuôn mặt của cư dân. |
+| UC-34 | View Face Auth History | Admin, Staff | Secondary | Xem lịch sử xác thực khuôn mặt tại các tiện ích. |
+

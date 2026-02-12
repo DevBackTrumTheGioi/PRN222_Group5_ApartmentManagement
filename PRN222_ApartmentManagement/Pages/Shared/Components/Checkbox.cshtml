@@ -1,0 +1,21 @@
+﻿@{
+    var label = ViewBag.Label ?? "";
+    var isChecked = ViewBag.IsChecked ?? false;
+    var cssClass = ViewBag.CssClass ?? "";
+}
+
+<div class="flex items-center gap-2.5 @cssClass">
+    <input 
+        type="checkbox" 
+        class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 cursor-pointer"
+        @if (isChecked) { @Html.Raw("checked") }
+    />
+    
+    @if (!string.IsNullOrEmpty(label))
+    {
+        <label class="text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none">
+            @label
+        </label>
+    }
+</div>
+

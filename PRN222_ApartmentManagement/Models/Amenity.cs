@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -25,6 +25,8 @@ public class Amenity
     public decimal? PricePerHour { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    public bool IsDeleted { get; set; } = false;
 
     [MaxLength(500)]
     public string? Description { get; set; }

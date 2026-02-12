@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -36,6 +36,8 @@ public class Document
     public DateTime UploadedAt { get; set; } = DateTime.Now;
 
     public bool IsActive { get; set; } = true;
+
+    public bool IsDeleted { get; set; } = false;
 
     public virtual User Uploader { get; set; } = null!;
 }

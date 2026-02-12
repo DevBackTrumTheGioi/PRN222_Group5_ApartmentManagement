@@ -1,0 +1,186 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Admin.ActivityLogsModel
+@{
+    ViewData["Title"] = "Activity Logs";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="text-2xl font-bold">📋 Activity Logs</h1>
+            <p class="text-slate-600">Theo dõi tất cả hoạt động trong hệ thống</p>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="bg-white rounded-lg shadow p-4 mb-4">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Từ ngày</label>
+                <input type="date" name="fromDate" class="form-control" value="@Model.FromDate?.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Đến ngày</label>
+                <input type="date" name="toDate" class="form-control" value="@Model.ToDate?.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Action</label>
+                <select name="action" class="form-select">
+                    <option value="">-- All --</option>
+                    <option value="Create" selected="@(Model.Action == "Create")">Create</option>
+                    <option value="Update" selected="@(Model.Action == "Update")">Update</option>
+                    <option value="Delete" selected="@(Model.Action == "Delete")">Delete</option>
+                    <option value="Login" selected="@(Model.Action == "Login")">Login</option>
+                    <option value="Logout" selected="@(Model.Action == "Logout")">Logout</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Entity</label>
+                <input type="text" name="entityName" class="form-control" placeholder="Apartment, User..." value="@Model.EntityName">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">🔍 Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>Entity ID</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>IP Address</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Logs?.Any() == true)
+                    {
+                        @foreach (var log in Model.Logs)
+                        {
+                            <tr>
+                                <td class="text-nowrap">
+                                    <small>@log.Timestamp.ToString("dd/MM/yyyy HH:mm:ss")</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">@log.UserName</div>
+                                    <small class="text-muted">@log.UserRole</small>
+                                </td>
+                                <td>
+                                    <span class="badge @GetActionBadgeClass(log.Action)">
+                                        @log.Action
+                                    </span>
+                                </td>
+                                <td>@log.EntityName</td>
+                                <td>@log.EntityId</td>
+                                <td>
+                                    <small>@log.Description</small>
+                                </td>
+                                <td>
+                                    @if (log.IsSuccess)
+                                    {
+                                        <span class="badge bg-success">✓ Success</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">✗ Failed</span>
+                                    }
+                                </td>
+                                <td>
+                                    <small>@log.IpAddress</small>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDetails(@log.LogId)">
+                                        Details
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <p class="text-muted mb-0">Không có log nào</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="p-3 border-top d-flex justify-content-between align-items-center">
+                <div>
+                    Showing page @Model.PageNumber of @Model.TotalPages
+                </div>
+                <nav>
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                            <a class="page-link" href="?pageNumber=@(Model.PageNumber - 1)&fromDate=@Model.FromDate?.ToString("yyyy-MM-dd")&toDate=@Model.ToDate?.ToString("yyyy-MM-dd")&action=@Model.Action&entityName=@Model.EntityName">Previous</a>
+                        </li>
+                        @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="?pageNumber=@i&fromDate=@Model.FromDate?.ToString("yyyy-MM-dd")&toDate=@Model.ToDate?.ToString("yyyy-MM-dd")&action=@Model.Action&entityName=@Model.EntityName">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="?pageNumber=@(Model.PageNumber + 1)&fromDate=@Model.FromDate?.ToString("yyyy-MM-dd")&toDate=@Model.ToDate?.ToString("yyyy-MM-dd")&action=@Model.Action&entityName=@Model.EntityName">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal for Log Details -->
+<div class="modal fade" id="logDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Log Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="logDetailsContent">
+                <!-- Content loaded via JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewDetails(logId) {
+            // TODO: Implement AJAX call to get log details
+            alert('View details for log: ' + logId);
+        }
+    </script>
+}
+
+@functions {
+    private string GetActionBadgeClass(string action)
+    {
+        return action switch
+        {
+            "Create" => "bg-success",
+            "Update" => "bg-warning text-dark",
+            "Delete" => "bg-danger",
+            "Login" => "bg-info",
+            "Logout" => "bg-secondary",
+            _ => "bg-primary"
+        };
+    }
+}
+
