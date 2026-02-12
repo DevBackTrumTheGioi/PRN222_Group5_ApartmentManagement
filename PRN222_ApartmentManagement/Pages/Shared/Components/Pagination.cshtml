@@ -1,0 +1,30 @@
+﻿@model dynamic
+
+@{
+    var model = (object)Model;
+    var dict = model?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(model));
+    
+    int currentPage = dict?.ContainsKey("CurrentPage") == true && dict["CurrentPage"] is int cp ? cp : 1;
+    int totalPages = dict?.ContainsKey("TotalPages") == true && dict["TotalPages"] is int tp ? tp : 1;
+    int totalItems = dict?.ContainsKey("TotalItems") == true && dict["TotalItems"] is int ti ? ti : 0;
+    int itemsPerPage = dict?.ContainsKey("ItemsPerPage") == true && dict["ItemsPerPage"] is int ipp ? ipp : 10;
+    
+    int startItem = (currentPage - 1) * itemsPerPage + 1;
+    int endItem = Math.Min(currentPage * itemsPerPage, totalItems);
+}
+
+<div class="px-6 py-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between flex-wrap gap-4">
+    <p class="text-sm text-slate-500">
+        Showing <span class="font-medium text-slate-900">@startItem</span> to <span class="font-medium text-slate-900">@endItem</span> of <span class="font-medium text-slate-900">@totalItems</span> items
+    </p>
+    <div class="flex items-center gap-2">
+        <button class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors disabled:opacity-50" @(currentPage == 1 ? "disabled" : "")>Previous</button>
+        <div class="flex items-center gap-1">
+            @for (int i = 1; i <= Math.Min(totalPages, 5); i++)
+            {
+                <button class="w-8 h-8 rounded-lg text-sm font-medium flex items-center justify-center transition-colors @(i == currentPage ? "bg-primary-600 text-white" : "text-slate-600 hover:bg-slate-100")">@i</button>
+            }
+        </div>
+        <button class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors disabled:opacity-50" @(currentPage == totalPages ? "disabled" : "")>Next</button>
+    </div>
+</div>

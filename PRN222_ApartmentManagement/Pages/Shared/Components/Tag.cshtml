@@ -1,0 +1,17 @@
+﻿@model dynamic
+
+@{
+    var model = (object)Model;
+    var dict = model?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(model)?.ToString());
+    
+    string text = dict?.ContainsKey("Text") == true ? dict["Text"] : "";
+    string icon = dict?.ContainsKey("Icon") == true ? dict["Icon"] : "";
+}
+
+<div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-full text-xs font-medium">
+    @if (!string.IsNullOrEmpty(icon))
+    {
+        <span class="material-icons text-sm">@icon</span>
+    }
+    @text
+</div>

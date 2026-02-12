@@ -1,0 +1,38 @@
+﻿@model dynamic
+
+@{
+    var model = (object)Model;
+    var dict = model?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(model));
+    
+    string label = dict?.ContainsKey("Label") == true ? dict["Label"]?.ToString() : "";
+    string type = dict?.ContainsKey("Type") == true ? dict["Type"]?.ToString() : "text";
+    string placeholder = dict?.ContainsKey("Placeholder") == true ? dict["Placeholder"]?.ToString() : "";
+    bool isRequired = dict?.ContainsKey("IsRequired") == true && dict["IsRequired"] is bool b && b;
+    bool hasError = dict?.ContainsKey("HasError") == true && dict["HasError"] is bool e && e;
+    string errorMessage = dict?.ContainsKey("ErrorMessage") == true ? dict["ErrorMessage"]?.ToString() : "";
+    
+    var inputClasses = hasError 
+        ? "w-full px-4 py-2.5 bg-slate-50 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500/40 transition-all"
+        : "w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 transition-all";
+}
+
+<div>
+    @if (!string.IsNullOrEmpty(label))
+    {
+        <label class="block text-sm font-semibold text-slate-900 mb-2">
+            @label
+            @if (isRequired)
+            {
+                <span class="text-red-600">*</span>
+            }
+        </label>
+    }
+    <input type="@type" class="@inputClasses" placeholder="@placeholder" />
+    @if (hasError && !string.IsNullOrEmpty(errorMessage))
+    {
+        <p class="text-red-600 text-sm mt-1.5 flex items-center gap-1">
+            <span class="material-icons text-base">error</span>
+            @errorMessage
+        </p>
+    }
+</div>

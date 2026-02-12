@@ -1,0 +1,19 @@
+﻿@model dynamic
+
+@{
+    var model = (object)Model;
+    var dict = model?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(model)?.ToString());
+    
+    string role = dict?.ContainsKey("Role") == true ? dict["Role"] : "";
+    string variant = dict?.ContainsKey("Variant") == true ? dict["Variant"] : "default";
+    
+    var variantClasses = variant switch
+    {
+        "primary" => "bg-primary-100 text-primary-700",
+        _ => "bg-slate-100 text-slate-700"
+    };
+}
+
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold @variantClasses">
+    @role
+</span>

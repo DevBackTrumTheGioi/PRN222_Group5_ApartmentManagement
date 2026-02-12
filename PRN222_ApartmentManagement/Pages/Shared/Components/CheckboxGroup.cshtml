@@ -1,0 +1,23 @@
+﻿@{
+    var label = ViewBag.Label ?? "";
+    var cssClass = ViewBag.CssClass ?? "";
+    var isRequired = ViewBag.IsRequired ?? false;
+}
+
+<div class="@cssClass">
+    @if (!string.IsNullOrEmpty(label))
+    {
+        <label class="block text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">
+            @label
+            @if (isRequired)
+            {
+                <span class="text-red-600">*</span>
+            }
+        </label>
+    }
+    
+    <div class="space-y-3">
+        @RenderBody()
+    </div>
+</div>
+

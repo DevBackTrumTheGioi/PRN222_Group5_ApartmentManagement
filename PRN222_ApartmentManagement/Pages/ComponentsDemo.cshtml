@@ -1,0 +1,214 @@
+﻿@page
+
+@{
+    ViewData["Title"] = "Components Demo";
+    
+    // Sample data for DataTable
+    var columns = new[]
+    {
+        new { Header = "User", Field = "User", Type = "user" },
+        new { Header = "Email Address", Field = "Email", Type = "text" },
+        new { Header = "Role", Field = "Role", Type = "badge" },
+        new { Header = "Status", Field = "Status", Type = "status" },
+    };
+    
+    var rows = new[]
+    {
+        new { 
+            User = new { Name = "Jane Cooper", Subtitle = "Joined Oct 12, 2023", Avatar = "https://i.pravatar.cc/150?img=1" },
+            Email = "jane.cooper@example.com",
+            Role = "Admin",
+            Status = "Active"
+        },
+        new { 
+            User = new { Name = "Cody Fisher", Subtitle = "Joined Sep 28, 2023", Avatar = "https://i.pravatar.cc/150?img=2" },
+            Email = "cody.fisher@company.io",
+            Role = "Editor",
+            Status = "Inactive"
+        },
+        new { 
+            User = new { Name = "Esther Howard", Subtitle = "Joined Jan 05, 2024", Avatar = "https://i.pravatar.cc/150?img=3" },
+            Email = "e.howard@studio.com",
+            Role = "Viewer",
+            Status = "Active"
+        },
+        new { 
+            User = new { Name = "Robert Fox", Subtitle = "Joined Feb 14, 2024", Avatar = "https://i.pravatar.cc/150?img=4" },
+            Email = "robert.fox@agency.net",
+            Role = "Viewer",
+            Status = "Active"
+        }
+    };
+}
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12">
+    <div class="container mx-auto px-4">
+        <div class="space-y-8">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-slate-900 mb-2">Component Library</h1>
+                <p class="text-slate-600">Danh sách tất cả các component có sẵn</p>
+            </div>
+
+            <!-- DataTable Section -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900">Data Table</h2>
+                <partial name="Components/DataTable" model='new { 
+                    Columns = columns, 
+                    Rows = rows,
+                    CurrentPage = 1,
+                    TotalPages = 6,
+                    TotalItems = 24,
+                    ItemsPerPage = 4,
+                    ShowSearch = true,
+                    ShowActions = true,
+                    ShowPagination = true
+                }' />
+            </div>
+
+            <!-- Buttons Section -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900">Buttons</h2>
+                <div class="flex flex-wrap gap-4 p-6 bg-white border border-slate-200 rounded-xl">
+                    <partial name="Components/Button" model='new { Text = "Primary", Icon = "add", Variant = "primary" }' />
+                    <partial name="Components/Button" model='new { Text = "Secondary", Icon = "edit", Variant = "secondary" }' />
+                    <partial name="Components/Button" model='new { Text = "Danger", Icon = "delete", Variant = "danger" }' />
+                    <partial name="Components/Button" model='new { Text = "Large Button", Size = "lg" }' />
+                    <partial name="Components/Button" model='new { Text = "Small", Size = "sm" }' />
+                </div>
+            </div>
+
+            <!-- Alerts Section -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900">Alerts</h2>
+                <div class="space-y-3 p-6 bg-white border border-slate-200 rounded-xl">
+                    <partial name="Components/Alert" model='new { Variant = "info", Title = "Info Alert", Message = "Đây là thông báo thông tin" }' />
+                    <partial name="Components/Alert" model='new { Variant = "success", Title = "Success Alert", Message = "Thao tác hoàn thành thành công" }' />
+                    <partial name="Components/Alert" model='new { Variant = "warning", Title = "Warning Alert", Message = "Vui lòng kiểm tra lại thông tin" }' />
+                    <partial name="Components/Alert" model='new { Variant = "error", Title = "Error Alert", Message = "Có lỗi xảy ra, vui lòng thử lại" }' />
+                </div>
+            </div>
+
+            <!-- Form Fields Section -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900">Form Fields</h2>
+                <div class="p-6 bg-white border border-slate-200 rounded-xl space-y-4">
+                    <partial name="Components/InputField" model='new { Label = "Text Input", Placeholder = "Nhập text...", IsRequired = true }' />
+                    <partial name="Components/InputField" model='new { Label = "Email Input", Type = "email", Placeholder = "user@example.com" }' />
+                    <partial name="Components/InputField" model='new { Label = "Input với lỗi", HasError = true, ErrorMessage = "Trường này là bắt buộc" }' />
+                </div>
+            </div>
+
+            <!-- Checkboxes Section -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900">Checkboxes</h2>
+                <div class="p-6 bg-white border border-slate-200 rounded-xl">
+                    <label class="block text-sm font-semibold text-slate-900 mb-3">Select permissions</label>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2.5">
+                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"/>
+                            <label class="text-sm text-slate-600">Xem</label>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <input type="checkbox" checked class="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"/>
+                            <label class="text-sm text-slate-600">Tạo</label>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"/>
+                            <label class="text-sm text-slate-600">Chỉnh sửa</label>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"/>
+                            <label class="text-sm text-slate-600">Xóa</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cards Section -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900">Cards</h2>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <partial name="Components/Card" model='new { Title = "Tổng người dùng", Icon = "people", Value = "1,234", ValueColor = "text-primary-600" }' />
+                    <partial name="Components/Card" model='new { Title = "Tổng doanh thu", Icon = "attach_money", Value = "$45,210", ValueColor = "text-emerald-600" }' />
+                    <partial name="Components/Card" model='new { Title = "Tổng đơn hàng", Icon = "shopping_cart", Value = "892", ValueColor = "text-amber-600" }' />
+                </div>
+            </div>
+
+            <!-- Badges Section -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900">Badges</h2>
+                <div class="p-6 bg-white border border-slate-200 rounded-xl space-y-6">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-600 mb-3">Status Badges</h3>
+                        <div class="flex gap-4 flex-wrap">
+                            <partial name="Components/StatusBadge" model='new { Status = "active" }' />
+                            <partial name="Components/StatusBadge" model='new { Status = "inactive" }' />
+                            <partial name="Components/StatusBadge" model='new { Status = "pending" }' />
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-600 mb-3">Role Badges</h3>
+                        <div class="flex gap-4 flex-wrap">
+                            <partial name="Components/RoleBadge" model='new { Role = "Admin", Variant = "primary" }' />
+                            <partial name="Components/RoleBadge" model='new { Role = "Editor" }' />
+                            <partial name="Components/RoleBadge" model='new { Role = "Viewer" }' />
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-600 mb-3">Tags</h3>
+                        <div class="flex gap-2 flex-wrap">
+                            <partial name="Components/Tag" model='new { Text = "Frontend", Icon = "code" }' />
+                            <partial name="Components/Tag" model='new { Text = "Backend", Icon = "storage" }' />
+                            <partial name="Components/Tag" model='new { Text = "Database", Icon = "dns" }' />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Bar Section -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900">Search Bar</h2>
+                <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+                    <div class="relative w-full md:w-96">
+                        <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+                        <input type="text" class="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-lg focus:ring-2 focus:ring-primary-500/40 transition-all text-sm" placeholder="Search users..."/>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
+                            <span class="material-icons text-lg">filter_list</span>
+                            <span>Filters</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination Section -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900">Pagination</h2>
+                <partial name="Components/Pagination" model='new { CurrentPage = 2, TotalPages = 5, TotalItems = 100, ItemsPerPage = 20 }' />
+            </div>
+
+            <!-- Panel Section -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900">Panel</h2>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-200">
+                        <h2 class="text-lg font-semibold text-slate-900">User Settings</h2>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div class="space-y-4">
+                            <p class="text-slate-700">
+                                This is an example panel component that can be used to group related content together.
+                            </p>
+                            <div class="flex gap-3">
+                                <button class="bg-primary-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-primary-700 transition-colors">Save</button>
+                                <button class="bg-white border border-slate-200 text-slate-600 px-5 py-2.5 rounded-lg font-semibold hover:bg-slate-50 transition-colors">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
