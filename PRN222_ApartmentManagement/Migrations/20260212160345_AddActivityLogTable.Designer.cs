@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN222_ApartmentManagement.Data;
 
@@ -11,9 +12,11 @@ using PRN222_ApartmentManagement.Data;
 namespace PRN222_ApartmentManagement.Migrations
 {
     [DbContext(typeof(ApartmentDbContext))]
-    partial class ApartmentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260212160345_AddActivityLogTable")]
+    partial class AddActivityLogTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -599,11 +602,11 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Property<int>("InvoiceId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("MeterReadingId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("ServiceOrderId")
-                        .HasColumnType("int");
 
                     b.Property<int>("ServicePriceId")
                         .HasColumnType("int");
@@ -618,13 +621,62 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.HasIndex("InvoiceId");
 
-                    b.HasIndex("ServiceOrderId");
+                    b.HasIndex("MeterReadingId");
 
                     b.HasIndex("ServicePriceId");
 
                     b.HasIndex("ServiceTypeId");
 
                     b.ToTable("InvoiceDetails");
+                });
+
+            modelBuilder.Entity("PRN222_ApartmentManagement.Models.MeterReading", b =>
+                {
+                    b.Property<int>("MeterReadingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MeterReadingId"));
+
+                    b.Property<int>("ApartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Consumption")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("decimal(18,2)")
+                        .HasComputedColumnSql("[CurrentReading] - [PreviousReading]", true);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("CurrentReading")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("PreviousReading")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("ReadingDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("ServiceTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StaffId")
+                        .HasColumnType("int");
+
+                    b.HasKey("MeterReadingId");
+
+                    b.HasIndex("ApartmentId");
+
+                    b.HasIndex("ServiceTypeId");
+
+                    b.HasIndex("StaffId");
+
+                    b.ToTable("MeterReadings");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Notification", b =>
@@ -675,6 +727,71 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("PRN222_ApartmentManagement.Models.Parcel", b =>
+                {
+                    b.Property<int>("ParcelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ParcelId"));
+
+                    b.Property<int>("ApartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("NotificationSent")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("PickedUpBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PickedUpDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReceivedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ReceivedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RecipientName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Sender")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TrackingNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ParcelId");
+
+                    b.HasIndex("ApartmentId");
+
+                    b.HasIndex("PickedUpBy");
+
+                    b.HasIndex("ReceivedBy");
+
+                    b.HasIndex("TrackingNumber")
+                        .IsUnique()
+                        .HasFilter("[TrackingNumber] IS NOT NULL");
+
+                    b.ToTable("Parcels");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.PaymentTransaction", b =>
@@ -882,117 +999,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.HasIndex("VehicleId");
 
                     b.ToTable("ResidentCards");
-                });
-
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.ServiceOrder", b =>
-                {
-                    b.Property<int>("ServiceOrderId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ServiceOrderId"));
-
-                    b.Property<decimal?>("ActualPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("AdditionalCharges")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ApartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("AssignedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("AssignedTo")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CancelReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("CancelledAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ChargeNotes")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("CompletedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CompletionNotes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<decimal?>("EstimatedPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("InvoiceId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("OrderNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("Rating")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("RequestedDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("RequestedTimeSlot")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("ResidentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReviewComment")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ServiceTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ServiceOrderId");
-
-                    b.HasIndex("ApartmentId");
-
-                    b.HasIndex("AssignedTo");
-
-                    b.HasIndex("CompletedBy");
-
-                    b.HasIndex("InvoiceId");
-
-                    b.HasIndex("OrderNumber")
-                        .IsUnique();
-
-                    b.HasIndex("ResidentId");
-
-                    b.HasIndex("ServiceTypeId");
-
-                    b.ToTable("ServiceOrders");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.ServicePrice", b =>
@@ -1435,10 +1441,10 @@ namespace PRN222_ApartmentManagement.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PRN222_ApartmentManagement.Models.ServiceOrder", "ServiceOrder")
-                        .WithMany()
-                        .HasForeignKey("ServiceOrderId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                    b.HasOne("PRN222_ApartmentManagement.Models.MeterReading", "MeterReading")
+                        .WithMany("InvoiceDetails")
+                        .HasForeignKey("MeterReadingId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("PRN222_ApartmentManagement.Models.ServicePrice", "ServicePrice")
                         .WithMany("InvoiceDetails")
@@ -1454,11 +1460,37 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.Navigation("Invoice");
 
-                    b.Navigation("ServiceOrder");
+                    b.Navigation("MeterReading");
 
                     b.Navigation("ServicePrice");
 
                     b.Navigation("ServiceType");
+                });
+
+            modelBuilder.Entity("PRN222_ApartmentManagement.Models.MeterReading", b =>
+                {
+                    b.HasOne("PRN222_ApartmentManagement.Models.Apartment", "Apartment")
+                        .WithMany("MeterReadings")
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PRN222_ApartmentManagement.Models.ServiceType", "ServiceType")
+                        .WithMany("MeterReadings")
+                        .HasForeignKey("ServiceTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PRN222_ApartmentManagement.Models.User", "Staff")
+                        .WithMany("MeterReadings")
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Apartment");
+
+                    b.Navigation("ServiceType");
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Notification", b =>
@@ -1470,6 +1502,32 @@ namespace PRN222_ApartmentManagement.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PRN222_ApartmentManagement.Models.Parcel", b =>
+                {
+                    b.HasOne("PRN222_ApartmentManagement.Models.Apartment", "Apartment")
+                        .WithMany("Parcels")
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PRN222_ApartmentManagement.Models.Resident", "PickedUpByResident")
+                        .WithMany("PickedUpParcels")
+                        .HasForeignKey("PickedUpBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("PRN222_ApartmentManagement.Models.User", "ReceivedByUser")
+                        .WithMany("ReceivedParcels")
+                        .HasForeignKey("ReceivedBy")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Apartment");
+
+                    b.Navigation("PickedUpByResident");
+
+                    b.Navigation("ReceivedByUser");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.PaymentTransaction", b =>
@@ -1545,54 +1603,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("Vehicle");
                 });
 
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.ServiceOrder", b =>
-                {
-                    b.HasOne("PRN222_ApartmentManagement.Models.Apartment", "Apartment")
-                        .WithMany("ServiceOrders")
-                        .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("PRN222_ApartmentManagement.Models.User", "AssignedStaff")
-                        .WithMany("AssignedServiceOrders")
-                        .HasForeignKey("AssignedTo")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("PRN222_ApartmentManagement.Models.User", "CompletedByUser")
-                        .WithMany("CompletedServiceOrders")
-                        .HasForeignKey("CompletedBy")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("PRN222_ApartmentManagement.Models.Invoice", "Invoice")
-                        .WithMany("ServiceOrders")
-                        .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("PRN222_ApartmentManagement.Models.Resident", "Resident")
-                        .WithMany("ServiceOrders")
-                        .HasForeignKey("ResidentId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("PRN222_ApartmentManagement.Models.ServiceType", "ServiceType")
-                        .WithMany("ServiceOrders")
-                        .HasForeignKey("ServiceTypeId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Apartment");
-
-                    b.Navigation("AssignedStaff");
-
-                    b.Navigation("CompletedByUser");
-
-                    b.Navigation("Invoice");
-
-                    b.Navigation("Resident");
-
-                    b.Navigation("ServiceType");
-                });
-
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.ServicePrice", b =>
                 {
                     b.HasOne("PRN222_ApartmentManagement.Models.ServiceType", "ServiceType")
@@ -1665,11 +1675,13 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.Navigation("Invoices");
 
+                    b.Navigation("MeterReadings");
+
+                    b.Navigation("Parcels");
+
                     b.Navigation("Requests");
 
                     b.Navigation("Residents");
-
-                    b.Navigation("ServiceOrders");
 
                     b.Navigation("Visitors");
                 });
@@ -1684,8 +1696,11 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("InvoiceDetails");
 
                     b.Navigation("PaymentTransactions");
+                });
 
-                    b.Navigation("ServiceOrders");
+            modelBuilder.Entity("PRN222_ApartmentManagement.Models.MeterReading", b =>
+                {
+                    b.Navigation("InvoiceDetails");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Request", b =>
@@ -1704,7 +1719,7 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.Navigation("InvoiceDetails");
 
-                    b.Navigation("ServiceOrders");
+                    b.Navigation("MeterReadings");
 
                     b.Navigation("ServicePrices");
                 });
@@ -1715,19 +1730,19 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.Navigation("AssignedRequests");
 
-                    b.Navigation("AssignedServiceOrders");
-
-                    b.Navigation("CompletedServiceOrders");
-
                     b.Navigation("CreatedContracts");
 
                     b.Navigation("CreatedInvoices");
 
                     b.Navigation("Documents");
 
+                    b.Navigation("MeterReadings");
+
                     b.Navigation("Notifications");
 
                     b.Navigation("PaymentTransactions");
+
+                    b.Navigation("ReceivedParcels");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Vehicle", b =>
@@ -1741,13 +1756,13 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.Navigation("ContractMembers");
 
+                    b.Navigation("PickedUpParcels");
+
                     b.Navigation("RegisteredVisitors");
 
                     b.Navigation("Requests");
 
                     b.Navigation("ResidentCards");
-
-                    b.Navigation("ServiceOrders");
 
                     b.Navigation("Vehicles");
                 });

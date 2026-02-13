@@ -23,7 +23,7 @@ public class ApartmentDbContext : DbContext
     // Service entities
     public DbSet<ServiceType> ServiceTypes { get; set; }
     public DbSet<ServicePrice> ServicePrices { get; set; }
-    public DbSet<MeterReading> MeterReadings { get; set; }
+    public DbSet<ServiceOrder> ServiceOrders { get; set; }
     public DbSet<ApartmentService> ApartmentServices { get; set; }
 
     // Invoice entities
@@ -41,7 +41,6 @@ public class ApartmentDbContext : DbContext
 
     // Facility entities
     public DbSet<Visitor> Visitors { get; set; }
-    public DbSet<Parcel> Parcels { get; set; }
     public DbSet<Amenity> Amenities { get; set; }
     public DbSet<AmenityBooking> AmenityBookings { get; set; }
 
@@ -105,10 +104,6 @@ public class ApartmentDbContext : DbContext
             .IsUnique()
             .HasFilter("[QRCode] IS NOT NULL");
 
-        modelBuilder.Entity<Parcel>()
-            .HasIndex(p => p.TrackingNumber)
-            .IsUnique()
-            .HasFilter("[TrackingNumber] IS NOT NULL");
 
         modelBuilder.Entity<Contract>()
             .HasIndex(c => c.ContractNumber)
@@ -139,22 +134,11 @@ public class ApartmentDbContext : DbContext
             .HasForeignKey(v => v.ResidentId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<MeterReading>()
-            .HasOne(mr => mr.Staff)
-            .WithMany(u => u.MeterReadings)
-            .HasForeignKey(mr => mr.StaffId)
-            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Invoice>()
             .HasOne(i => i.Creator)
             .WithMany(u => u.CreatedInvoices)
             .HasForeignKey(i => i.CreatedBy)
-            .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<InvoiceDetail>()
-            .HasOne(id => id.MeterReading)
-            .WithMany(mr => mr.InvoiceDetails)
-            .HasForeignKey(id => id.MeterReadingId)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<InvoiceDetail>()
@@ -168,6 +152,12 @@ public class ApartmentDbContext : DbContext
             .WithMany(sp => sp.InvoiceDetails)
             .HasForeignKey(id => id.ServicePriceId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<InvoiceDetail>()
+            .HasOne(id => id.ServiceOrder)
+            .WithMany()
+            .HasForeignKey(id => id.ServiceOrderId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<PaymentTransaction>()
             .HasOne(pt => pt.Creator)
@@ -211,17 +201,6 @@ public class ApartmentDbContext : DbContext
             .HasForeignKey(v => v.RegisteredBy)
             .OnDelete(DeleteBehavior.NoAction);
 
-        modelBuilder.Entity<Parcel>()
-            .HasOne(p => p.ReceivedByUser)
-            .WithMany(u => u.ReceivedParcels)
-            .HasForeignKey(p => p.ReceivedBy)
-            .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<Parcel>()
-            .HasOne(p => p.PickedUpByResident)
-            .WithMany(r => r.PickedUpParcels)
-            .HasForeignKey(p => p.PickedUpBy)
-            .OnDelete(DeleteBehavior.SetNull);
 
 
         modelBuilder.Entity<Contract>()
@@ -237,13 +216,50 @@ public class ApartmentDbContext : DbContext
             .OnDelete(DeleteBehavior.NoAction);
 
         // Configure computed columns
-        modelBuilder.Entity<MeterReading>()
-            .Property(mr => mr.Consumption)
-            .HasComputedColumnSql("[CurrentReading] - [PreviousReading]", stored: true);
-
         modelBuilder.Entity<InvoiceDetail>()
             .Property(id => id.Amount)
             .HasComputedColumnSql("[Quantity] * [UnitPrice]", stored: true);
+
+        // ServiceOrder configurations
+        modelBuilder.Entity<ServiceOrder>()
+            .HasIndex(so => so.OrderNumber)
+            .IsUnique();
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.Apartment)
+            .WithMany(a => a.ServiceOrders)
+            .HasForeignKey(so => so.ApartmentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.Resident)
+            .WithMany(r => r.ServiceOrders)
+            .HasForeignKey(so => so.ResidentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.ServiceType)
+            .WithMany(st => st.ServiceOrders)
+            .HasForeignKey(so => so.ServiceTypeId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.AssignedStaff)
+            .WithMany(u => u.AssignedServiceOrders)
+            .HasForeignKey(so => so.AssignedTo)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.CompletedByUser)
+            .WithMany(u => u.CompletedServiceOrders)
+            .HasForeignKey(so => so.CompletedBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.Invoice)
+            .WithMany(i => i.ServiceOrders)
+            .HasForeignKey(so => so.InvoiceId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
 

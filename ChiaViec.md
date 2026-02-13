@@ -92,12 +92,12 @@ UPDATE Users SET Role = 'BQL_Staff' WHERE Role = 'Security';
 
 ### Danh sách chức năng:
 
-#### 2.1 Ghi chỉ số điện nước
-| STT | Chức năng | Mô tả | Vai trò liên quan |
-|:---:|:----------|:------|:------------------|
-| 1 | Nhập chỉ số | Ghi chỉ số điện, nước theo căn hộ | BQL_Staff |
-| 2 | Import chỉ số từ Excel | Upload file Excel chỉ số | BQL_Staff |
-| 3 | Xem lịch sử chỉ số | Tra cứu chỉ số các tháng | BQL_Manager, BQL_Staff |
+#### 2.1 Ghi chỉ số điện nước (bỏ chức năng nay nhé mn)
+| STT | Chức năng | Mô tả                                  | Vai trò liên quan |
+|:---:|:----------|:---------------------------------------|:------------------|
+| 1 | Nhập chỉ số | Ghi chỉ số điện, nước theo căn hộ (bỏ) | BQL_Staff |
+| 2 | Import chỉ số từ Excel | Upload file Excel chỉ số   (bỏ)        | BQL_Staff |
+| 3 | Xem lịch sử chỉ số | Tra cứu chỉ số các tháng   (bỏ)        | BQL_Manager, BQL_Staff |
 
 #### 2.2 Quản lý hóa đơn
 | STT | Chức năng | Mô tả | Vai trò liên quan |
@@ -190,13 +190,13 @@ ALTER TABLE Invoices ADD RejectionReason nvarchar(500) NULL;
 | 11 | **Phê duyệt chuyển đi/đến** | Xác nhận thủ tục chuyển căn hộ | BQL_Manager |
 
 #### 3.3 Quản lý hợp đồng
-| STT | Chức năng | Mô tả | Vai trò liên quan |
-|:---:|:----------|:------|:------------------|
-| 12 | Xem danh sách hợp đồng | Lọc theo trạng thái | BQL_Manager |
-| 13 | Tạo hợp đồng mới | Thuê/Mua căn hộ | BQL_Manager |
-| 14 | Gia hạn hợp đồng | Extend thời hạn | BQL_Manager |
-| 15 | Chấm dứt hợp đồng | Kết thúc hợp đồng | BQL_Manager |
-| 16 | Xem hợp đồng (Cư dân) | Cư dân xem hợp đồng của mình | Resident |
+| STT | Chức năng | Mô tả                                   | Vai trò liên quan |
+|:---:|:----------|:----------------------------------------|:------------------|
+| 12 | Xem danh sách hợp đồng | Lọc theo trạng thái                     | BQL_Manager |
+| 13 | Tạo hợp đồng mới | Thuê/Mua căn hộ -> tạo tài khoan cư dân | BQL_Manager |
+| 14 | Gia hạn hợp đồng | Extend thời hạn                         | BQL_Manager |
+| 15 | Chấm dứt hợp đồng | Kết thúc hợp đồng                       | BQL_Manager |
+| 16 | Xem hợp đồng (Cư dân) | Cư dân xem hợp đồng của mình            | Resident |
 
 #### 3.4 Quản lý xe & thẻ
 | STT | Chức năng | Mô tả | Vai trò liên quan |
@@ -238,6 +238,7 @@ ALTER TABLE Invoices ADD RejectionReason nvarchar(500) NULL;
 
 **Mô tả:** Xây dựng hệ thống tiếp nhận và xử lý yêu cầu từ cư dân, quản lý thông báo. **Bổ sung: Khiếu nại lên BQT, Escalation**.
 
+**Lưu ý:** Phân tích kỹ nghiệp vụ phần gửi yêu cầu, này để triển khai. 
 ### Danh sách chức năng:
 
 #### 4.1 Yêu cầu sửa chữa (Cư dân)
@@ -263,12 +264,12 @@ ALTER TABLE Invoices ADD RejectionReason nvarchar(500) NULL;
 | 14 | **Xử lý escalation** | Tiếp nhận và giải quyết vấn đề từ Staff | BQL_Manager |
 
 #### 4.3 Khiếu nại lên BQT (Mới)
-| STT | Chức năng | Mô tả | Vai trò liên quan |
-|:---:|:----------|:------|:------------------|
-| 15 | **Xem khiếu nại từ cư dân** | Danh sách khiếu nại gửi lên BQT | BQT_Head |
-| 16 | **Phản hồi khiếu nại** | Trả lời và đưa ra hướng giải quyết | BQT_Head |
-| 17 | **Chuyển khiếu nại cho BQL** | Yêu cầu BQL xử lý và báo cáo | BQT_Head |
-| 18 | **Xem phản hồi cư dân** | Theo dõi ý kiến, góp ý từ cư dân | BQT_Head, BQT_Member |
+| STT | Chức năng | Mô tả                                                                               | Vai trò liên quan |
+|:---:|:----------|:------------------------------------------------------------------------------------|:------------------|
+| 15 | **Xem khiếu nại từ cư dân** | Danh sách khiếu nại gửi lên BQT, khiếu nại có thể là yêu cầu nhưng Type = khiếu nại | BQT_Head |
+| 16 | **Phản hồi khiếu nại** | Trả lời và đưa ra hướng giải quyết                                                  | BQT_Head |
+| 17 | **Chuyển khiếu nại cho BQL** | Yêu cầu BQL xử lý và báo cáo                                                        | BQT_Head |
+| 18 | **Xem phản hồi cư dân** | Theo dõi ý kiến, góp ý từ cư dân                                                    | BQT_Head, BQT_Member |
 
 #### 4.4 Thông báo
 | STT | Chức năng | Mô tả | Vai trò liên quan |
@@ -325,9 +326,9 @@ ALTER TABLE Announcements ADD Source nvarchar(20) DEFAULT 'BQL';  -- 'BQL', 'BQT
 
 ---
 
-## 👤 MODULE 5 - Tiện ích & Bưu kiện
+## 👤 MODULE 5 - Tiện ích & Dich vụ
 
-### Module: Đặt tiện ích, Quản lý bưu kiện, Khách thăm
+### Module: Đặt tiện ích, Quản lý dịch vụ, Khách thăm
 
 **Mô tả:** Xây dựng chức năng đặt tiện ích (gym, hồ bơi, BBQ), quản lý bưu kiện và đăng ký khách.
 
@@ -341,46 +342,145 @@ ALTER TABLE Announcements ADD Source nvarchar(20) DEFAULT 'BQL';  -- 'BQL', 'BQT
 | 3 | Cấu hình giá/giờ | Thiết lập phí sử dụng | Admin |
 
 #### 5.2 Đặt tiện ích (Cư dân)
-| STT | Chức năng | Mô tả | Vai trò liên quan |
-|:---:|:----------|:------|:------------------|
-| 4 | Xem lịch tiện ích | Calendar view các slot | Resident |
-| 5 | Đặt tiện ích | Book slot theo ngày/giờ | Resident |
-| 6 | Xem booking của tôi | Danh sách đã đặt | Resident |
-| 7 | Hủy booking | Cancel trước thời hạn | Resident |
-| 8 | Xác nhận sử dụng | Check-in khi đến | BQL_Staff |
+| STT | Chức năng | Mô tả                                                                | Vai trò liên quan |
+|:---:|:----------|:---------------------------------------------------------------------|:------------------|
+| 4 | Xem lịch tiện ích | Calendar view các slot                                               | Resident |
+| 5 | Đặt tiện ích | Book slot theo ngày/giờ, validate kỹ càng slot đặt, k được đặt trùng | Resident |
+| 6 | Xem booking của tôi | Danh sách đã đặt                                                     | Resident |
+| 7 | Hủy booking | Cancel trước thời hạn                                                | Resident |
+| 8 | Xác nhận sử dụng | Check-in khi đến                                                     | BQL_Staff |
 
-#### 5.3 Quản lý bưu kiện
-| STT | Chức năng | Mô tả | Vai trò liên quan |
-|:---:|:----------|:------|:------------------|
-| 9 | Nhận bưu kiện | Ghi nhận bưu kiện đến | BQL_Staff |
-| 10 | Xem danh sách bưu kiện | Lọc theo trạng thái | BQL_Staff |
-| 11 | Thông báo cư dân | Gửi notification đến nhận | BQL_Staff |
-| 12 | Xác nhận đã giao | Đánh dấu picked up | BQL_Staff |
-| 13 | Xem bưu kiện của tôi | Cư dân xem danh sách | Resident |
+#### 5.3 Quản lý dịch vụ theo yêu cầu - Service (Admin/Manager)
 
-#### 5.4 Đăng ký khách
+> **Phân biệt Amenity vs Service:**
+> - **Amenity (Tiện ích)**: Cơ sở vật chất cố định như Gym, Pool, BBQ - cư dân đặt lịch sử dụng
+> - **Service (Dịch vụ)**: Dịch vụ theo yêu cầu như giặt ủi, dọn vệ sinh, sửa chữa - cư dân đặt và nhân viên thực hiện
+
 | STT | Chức năng | Mô tả | Vai trò liên quan |
 |:---:|:----------|:------|:------------------|
-| 14 | Đăng ký khách trước | Cư dân đăng ký khách sẽ đến | Resident |
-| 15 | Xem khách đã đăng ký | Danh sách khách | Resident |
-| 16 | Ghi nhận khách đến | Check-in tại sảnh | BQL_Staff |
-| 17 | Xác nhận khách ra | Check-out khi rời đi | BQL_Staff |
-| 18 | Xem lịch sử khách | Tra cứu khách đã đến | BQL_Staff |
+| 9 | Xem danh sách loại dịch vụ | Danh sách ServiceTypes (Giặt ủi, Dọn vệ sinh, Sửa chữa nhỏ...) | Admin, BQL_Manager |
+| 10 | Thêm/Sửa loại dịch vụ | CRUD ServiceTypes cho dịch vụ theo yêu cầu | Admin |
+| 11 | Cấu hình giá dịch vụ | Thiết lập đơn giá cho từng loại dịch vụ | Admin |
+| 12 | Bật/Tắt dịch vụ | Kích hoạt hoặc tạm ngưng dịch vụ | Admin |
+| 13 | Xem thống kê dịch vụ | Dashboard: số lượng đơn, doanh thu, dịch vụ phổ biến | BQL_Manager |
+
+#### 5.4 Đặt dịch vụ (Cư dân)
+| STT | Chức năng | Mô tả | Vai trò liên quan |
+|:---:|:----------|:------|:------------------|
+| 14 | Xem danh sách dịch vụ | Danh sách dịch vụ có thể đặt + giá | Resident |
+| 15 | Đặt dịch vụ | Tạo đơn đặt dịch vụ (chọn loại, ngày giờ, ghi chú) | Resident |
+| 16 | Xem đơn dịch vụ của tôi | Danh sách đơn đã đặt + trạng thái | Resident |
+| 17 | Hủy đơn dịch vụ | Hủy trước khi được xử lý | Resident |
+| 18 | Đánh giá dịch vụ | Rate + comment sau khi hoàn thành | Resident |
+| 19 | Xem lịch sử sử dụng | Tra cứu dịch vụ đã sử dụng | Resident |
+
+#### 5.5 Xử lý đơn dịch vụ (Staff/Manager)
+| STT | Chức năng | Mô tả | Vai trò liên quan |
+|:---:|:----------|:------|:------------------|
+| 20 | Xem danh sách đơn dịch vụ | Tất cả đơn + lọc theo trạng thái | BQL_Manager, BQL_Staff |
+| 21 | Tiếp nhận đơn | Xác nhận tiếp nhận đơn dịch vụ | BQL_Staff |
+| 22 | Phân công thực hiện | Giao đơn cho nhân viên phù hợp | BQL_Manager |
+| 23 | Cập nhật trạng thái | Đang xử lý, Hoàn thành | BQL_Staff |
+| 24 | Ghi nhận chi phí thực tế | Nhập chi phí phát sinh (nếu có) | BQL_Staff |
+| 25 | Hoàn thành đơn | Xác nhận hoàn thành + tính phí | BQL_Staff, BQL_Manager |
+| 26 | Tạo hóa đơn dịch vụ | Tự động/thủ công tạo hóa đơn cho cư dân | System, BQL_Staff |
+
+#### 5.6 Đăng ký khách
+| STT | Chức năng | Mô tả | Vai trò liên quan |
+|:---:|:----------|:------|:------------------|
+| 27 | Đăng ký khách trước | Cư dân đăng ký khách sẽ đến | Resident |
+| 28 | Xem khách đã đăng ký | Danh sách khách | Resident |
+| 29 | Ghi nhận khách đến | Check-in tại sảnh | BQL_Staff |
+| 30 | Xác nhận khách ra | Check-out khi rời đi | BQL_Staff |
+| 31 | Xem lịch sử khách | Tra cứu khách đã đến | BQL_Staff |
 
 ### Database Tables liên quan:
-- `Amenities`
-- `AmenityBookings`
-- `Parcels`
-- `Visitors`
+- `Amenities` - Tiện ích (Gym, Pool, BBQ...)
+- `AmenityBookings` - Đặt tiện ích
+- `ServiceTypes` - Loại dịch vụ (đã có)
+- `ServicePrices` - Giá dịch vụ (đã có)
+- `ApartmentServices` / `ServiceOrders` (MỚI) - Đơn đặt dịch vụ
+- `Visitors` - Khách thăm
+
+### ⚠️ Bảng mới cần tạo cho Đơn dịch vụ:
+
+```sql
+-- Bảng ServiceOrders (Đơn đặt dịch vụ theo yêu cầu)
+CREATE TABLE ServiceOrders (
+  ServiceOrderId INT PRIMARY KEY IDENTITY,
+  OrderNumber NVARCHAR(50) NOT NULL UNIQUE, -- Mã đơn: SO-YYYYMMDD-XXX
+  ApartmentId INT NOT NULL,
+  ResidentId INT NOT NULL,
+  ServiceTypeId INT NOT NULL,
+  
+  -- Thông tin đặt
+  RequestedDate DATE NOT NULL, -- Ngày yêu cầu thực hiện
+  RequestedTimeSlot NVARCHAR(50), -- Khung giờ: 'Morning', 'Afternoon', 'Evening'
+  Description NVARCHAR(MAX), -- Mô tả chi tiết yêu cầu
+  
+  -- Trạng thái & xử lý
+  Status INT DEFAULT 0, -- 0:Pending, 1:Confirmed, 2:InProgress, 3:Completed, 4:Cancelled
+  AssignedTo INT NULL, -- FK -> Users (Staff được giao)
+  AssignedAt DATETIME NULL,
+  
+  -- Chi phí
+  EstimatedPrice DECIMAL(18,2), -- Giá ước tính
+  ActualPrice DECIMAL(18,2), -- Giá thực tế
+  AdditionalCharges DECIMAL(18,2) DEFAULT 0, -- Phí phát sinh
+  ChargeNotes NVARCHAR(500), -- Ghi chú phí phát sinh
+  
+  -- Hoàn thành
+  CompletedAt DATETIME NULL,
+  CompletedBy INT NULL,
+  CompletionNotes NVARCHAR(MAX),
+  
+  -- Đánh giá
+  Rating INT NULL, -- 1-5 stars
+  ReviewComment NVARCHAR(500),
+  ReviewedAt DATETIME NULL,
+  
+  -- Liên kết hóa đơn
+  InvoiceId INT NULL, -- FK -> Invoices (nếu đã tạo hóa đơn)
+  
+  -- Audit
+  CreatedAt DATETIME DEFAULT GETDATE(),
+  UpdatedAt DATETIME,
+  CancelledAt DATETIME NULL,
+  CancelReason NVARCHAR(500),
+  
+  FOREIGN KEY (ApartmentId) REFERENCES Apartments(ApartmentId),
+  FOREIGN KEY (ResidentId) REFERENCES Users(UserId),
+  FOREIGN KEY (ServiceTypeId) REFERENCES ServiceTypes(ServiceTypeId),
+  FOREIGN KEY (AssignedTo) REFERENCES Users(UserId),
+  FOREIGN KEY (CompletedBy) REFERENCES Users(UserId),
+  FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId)
+);
+
+-- Index cho tìm kiếm
+CREATE INDEX IX_ServiceOrders_Status ON ServiceOrders(Status);
+CREATE INDEX IX_ServiceOrders_ApartmentId ON ServiceOrders(ApartmentId);
+CREATE INDEX IX_ServiceOrders_RequestedDate ON ServiceOrders(RequestedDate);
+```
 
 ### Pages cần tạo:
 ```
+-- Tiện ích (Amenity)
 /Admin/Amenities (Index, Create, Edit)
 /Amenities (Calendar view)
 /Amenities/Book
 /Amenities/MyBookings (cho Resident)
-/Parcels (Index, Create, Deliver)
-/Parcels/MyParcels (cho Resident)
+
+-- Dịch vụ theo yêu cầu (Service) - MỚI
+/Admin/ServiceTypes (Index, Create, Edit) - đã có ở Module 1
+/Services (Danh sách dịch vụ cho Resident)
+/Services/Order (Đặt dịch vụ)
+/Services/MyOrders (Đơn của tôi - Resident)
+/Services/Orders (Danh sách đơn - Staff/Manager)
+/Services/Orders/{id} (Chi tiết đơn)
+/Services/Orders/Assign (Phân công - Manager)
+/Services/Dashboard (Thống kê - Manager)
+
+-- Khách thăm
 /Visitors/Register (cho Resident)
 /Visitors/MyVisitors (cho Resident)
 /Visitors (Index - cho Staff)
@@ -388,7 +488,28 @@ ALTER TABLE Announcements ADD Source nvarchar(20) DEFAULT 'BQL';  -- 'BQL', 'BQT
 /Visitors/CheckOut
 ```
 
-### Thời gian ước tính: **1.5 tuần**
+### Workflow đặt dịch vụ:
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Resident   │────▶│  BQL_Staff   │────▶│  BQL_Staff   │────▶│   Resident   │
+│  Đặt dịch vụ │     │  Tiếp nhận   │     │  Thực hiện   │     │  Đánh giá    │
+└──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
+       │                    │                    │                    │
+       ▼                    ▼                    ▼                    ▼
+  [Pending]           [Confirmed]          [InProgress]         [Completed]
+       │                    │                    │                    │
+       │                    ▼                    ▼                    ▼
+       │             ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+       │             │ BQL_Manager  │     │ Cập nhật     │     │ Tạo hóa đơn  │
+       │             │ Phân công    │     │ chi phí      │     │ (tự động)    │
+       │             └──────────────┘     └──────────────┘     └──────────────┘
+       │
+       ▼
+ [Cancelled] (nếu hủy)
+```
+
+### Thời gian ước tính: **2 tuần** (tăng từ 1.5 tuần do thêm Service)
 
 ---
 
@@ -679,7 +800,7 @@ Tuần 1-2:
 ├── TV2: Ghi chỉ số + Tạo hóa đơn + Phê duyệt workflow
 ├── TV3: Căn hộ + Cư dân
 ├── TV4: Yêu cầu (Resident side) + Khiếu nại BQT
-├── TV5: Tiện ích + Bưu kiện
+├── TV5: Tiện ích + Dịch vụ theo yêu cầu (Service) - Đặt & Xem
 ├── TV6: Face Recognition - Setup + Đăng ký khuôn mặt
 └── [NEW] TV7: BQT Dashboard + Giám sát cơ bản
 
@@ -688,7 +809,7 @@ Tuần 3:
 ├── TV2: Thanh toán + Báo cáo cho BQT
 ├── TV3: Hợp đồng + Xe & Thẻ
 ├── TV4: Xử lý yêu cầu (Staff/Manager) + Escalation
-├── TV5: Khách thăm
+├── TV5: Xử lý đơn dịch vụ (Staff/Manager) + Khách thăm
 ├── TV6: Face Recognition - Xác thực + Admin
 └── [NEW] TV7: BQT Phê duyệt chi tiêu
 
@@ -697,7 +818,7 @@ Tuần 4:
 ├── TV2: Báo cáo tài chính + Export
 ├── TV3: Testing + Bug fix
 ├── TV4: Thông báo + Notification (BQL + BQT)
-├── TV5: Testing + Bug fix
+├── TV5: Dashboard dịch vụ + Testing + Bug fix
 ├── TV6: Face Recognition - Dashboard + Testing
 └── [NEW] TV7: Cuộc họp + Khảo sát (Tùy chọn)
 
@@ -732,7 +853,7 @@ Tuần 5:
          │          ┌─────────────────┐          │
          └─────────▶│   THÀNH VIÊN 5  │◀─────────┘
                     │  Tiện ích       │
-                    │  & Bưu kiện     │
+                    │  Dịch vụ & Khách│
                     └────────┬────────┘
                              │
                              ▼
@@ -754,7 +875,7 @@ Tuần 5:
 - **TV3 (Căn hộ & Cư dân)**: Cần hoàn thành sớm vì TV2, TV4, TV5, TV6 cần thông tin Apartment/Resident
 - **TV2 (Tài chính)**: Phụ thuộc vào Apartments, Residents từ TV3; cần workflow phê duyệt cho BQT
 - **TV4 (Yêu cầu)**: Phụ thuộc vào Residents từ TV3; thêm chức năng khiếu nại lên BQT
-- **TV5 (Tiện ích)**: Phụ thuộc vào Apartments, Residents từ TV3
+- **TV5 (Tiện ích & Dịch vụ)**: Phụ thuộc vào Apartments, Residents từ TV3; ServiceTypes từ TV1
 - **TV6 (Face Recognition)**: Phụ thuộc vào Residents từ TV3, Amenities từ TV5
 - **[NEW] TV7 (BQT)**: Phụ thuộc vào TV1 (phân quyền), TV2 (báo cáo tài chính), TV4 (khiếu nại)
 
@@ -804,12 +925,20 @@ Tuần 5:
 - [ ] Đánh giá dịch vụ
 - [ ] Migration: Thêm cột EscalatedTo cho Requests, Source cho Announcements
 
-### Thành viên 5 - Tiện ích & Bưu kiện:
-- [ ] CRUD Amenities
-- [ ] Đặt tiện ích
-- [ ] CRUD Parcels
-- [ ] CRUD Visitors
-- [ ] Check-in/Check-out
+### Thành viên 5 - Tiện ích, Dịch vụ & Khách:
+- [ ] CRUD Amenities (Tiện ích)
+- [ ] Đặt tiện ích (Resident)
+- [ ] Xác nhận sử dụng tiện ích (Staff)
+- [ ] **Quản lý dịch vụ theo yêu cầu (Service)**
+- [ ] **Đặt dịch vụ (Resident)**
+- [ ] **Xem đơn dịch vụ của tôi (Resident)**
+- [ ] **Tiếp nhận & phân công đơn dịch vụ (Staff/Manager)**
+- [ ] **Xử lý & hoàn thành đơn dịch vụ (Staff)**
+- [ ] **Đánh giá dịch vụ (Resident)**
+- [ ] **Dashboard thống kê dịch vụ (Manager)**
+- [ ] CRUD Visitors (Khách thăm)
+- [ ] Check-in/Check-out khách
+- [ ] Migration: Tạo bảng ServiceOrders
 
 ### Thành viên 6 - Face Recognition:
 - [ ] Đăng ký khuôn mặt (Resident)
@@ -845,22 +974,27 @@ Tuần 5:
 | 3 | Thêm cột EscalatedTo, EscalatedAt cho Requests | 🟢 Thấp |
 | 4 | Thêm cột Source cho Announcements | 🟢 Thấp |
 
+### Cho Service (Dịch vụ theo yêu cầu):
+| STT | Thay đổi | Mức độ |
+|:---:|:---------|:------:|
+| 5 | Tạo bảng ServiceOrders (Đơn đặt dịch vụ) | 🔴 Cao |
+
 ### Cho Face Recognition:
 | STT | Thay đổi | Mức độ |
 |:---:|:---------|:------:|
-| 5 | Tạo bảng FaceData | 🔴 Cao |
-| 6 | Tạo bảng FaceAuthLogs | 🔴 Cao |
-| 7 | Thêm cột RequireFaceAuth, FaceAuthThreshold cho Amenities | 🟡 TB |
-| 8 | Thêm cột CheckInMethod, FaceAuthLogId cho AmenityBookings | 🟢 Thấp |
+| 6 | Tạo bảng FaceData | 🔴 Cao |
+| 7 | Tạo bảng FaceAuthLogs | 🔴 Cao |
+| 8 | Thêm cột RequireFaceAuth, FaceAuthThreshold cho Amenities | 🟡 TB |
+| 9 | Thêm cột CheckInMethod, FaceAuthLogId cho AmenityBookings | 🟢 Thấp |
 
 ### Tùy chọn (BQT nâng cao):
 | STT | Thay đổi | Mức độ |
 |:---:|:---------|:------:|
-| 9 | Tạo bảng Meetings | 🟡 TB |
-| 10 | Tạo bảng Surveys, SurveyQuestions, SurveyResponses | 🟢 Thấp |
-| 11 | Tạo bảng ExpenseApprovals | 🟡 TB |
+| 10 | Tạo bảng Meetings | 🟡 TB |
+| 11 | Tạo bảng Surveys, SurveyQuestions, SurveyResponses | 🟢 Thấp |
+| 12 | Tạo bảng ExpenseApprovals | 🟡 TB |
 
 ---
 
-*Tài liệu phân công công việc - Nhóm 5 - Cập nhật: 13/02/2026*
+*Tài liệu phân công công việc - Nhóm 5 - Cập nhật: 14/02/2026*
 *Dựa trên CapNhatYTuong.md ngày 11/02/2026*

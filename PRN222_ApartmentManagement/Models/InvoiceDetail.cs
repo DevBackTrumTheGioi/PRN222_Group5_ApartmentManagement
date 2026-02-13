@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -32,8 +32,11 @@ public class InvoiceDetail
     [Column(TypeName = "decimal(18,2)")]
     public decimal? Amount { get; set; }
 
-    [ForeignKey("MeterReading")]
-    public int? MeterReadingId { get; set; }
+    /// <summary>
+    /// Reference to ServiceOrder if this invoice detail is from a service order
+    /// </summary>
+    [ForeignKey("ServiceOrder")]
+    public int? ServiceOrderId { get; set; }
 
     [MaxLength(500)]
     public string? Description { get; set; }
@@ -41,6 +44,6 @@ public class InvoiceDetail
     public virtual Invoice Invoice { get; set; } = null!;
     public virtual ServiceType ServiceType { get; set; } = null!;
     public virtual ServicePrice ServicePrice { get; set; } = null!;
-    public virtual MeterReading? MeterReading { get; set; }
+    public virtual ServiceOrder? ServiceOrder { get; set; }
 }
 

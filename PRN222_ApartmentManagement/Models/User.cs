@@ -42,13 +42,15 @@ public class User
     
     // Navigation properties
     public virtual ICollection<Invoice> CreatedInvoices { get; set; } = new List<Invoice>();
-    public virtual ICollection<MeterReading> MeterReadings { get; set; } = new List<MeterReading>();
     public virtual ICollection<Request> AssignedRequests { get; set; } = new List<Request>();
     public virtual ICollection<Announcement> Announcements { get; set; } = new List<Announcement>();
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
-    public virtual ICollection<Parcel> ReceivedParcels { get; set; } = new List<Parcel>();
     public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     public virtual ICollection<Contract> CreatedContracts { get; set; } = new List<Contract>();
+    
+    // ServiceOrder navigation properties
+    public virtual ICollection<ServiceOrder> AssignedServiceOrders { get; set; } = new List<ServiceOrder>();
+    public virtual ICollection<ServiceOrder> CompletedServiceOrders { get; set; } = new List<ServiceOrder>();
 }
 

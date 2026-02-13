@@ -20,28 +20,9 @@ builder.Services.AddDbContext<ApartmentDbContext>(options =>
 builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 
 // Register repositories
-builder.Services.AddScoped<IApartmentRepository, ApartmentRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IApartmentRepository, ApartmentRepository>();
 builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
-builder.Services.AddScoped<IApartmentServiceRepository, ApartmentServiceRepository>();
-builder.Services.AddScoped<IContractRepository, ContractRepository>();
-builder.Services.AddScoped<IContractMemberRepository, ContractMemberRepository>();
-builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
-builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-builder.Services.AddScoped<IInvoiceDetailRepository, InvoiceDetailRepository>();
-builder.Services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
-builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-builder.Services.AddScoped<IParcelRepository, ParcelRepository>();
-builder.Services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
-builder.Services.AddScoped<IRequestRepository, RequestRepository>();
-builder.Services.AddScoped<IRequestAttachmentRepository, RequestAttachmentRepository>();
-builder.Services.AddScoped<IResidentRepository, ResidentRepository>();
-builder.Services.AddScoped<IResidentCardRepository, ResidentCardRepository>();
-builder.Services.AddScoped<IServicePriceRepository, ServicePriceRepository>();
-builder.Services.AddScoped<IServiceTypeRepository, ServiceTypeRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
-builder.Services.AddScoped<IVisitorRepository, VisitorRepository>();
 builder.Services.AddScoped<IAmenityBookingRepository, AmenityBookingRepository>();
 builder.Services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
 builder.Services.AddScoped<IApartmentServiceRepository, ApartmentServiceRepository>();
@@ -50,9 +31,7 @@ builder.Services.AddScoped<IContractMemberRepository, ContractMemberRepository>(
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IInvoiceDetailRepository, InvoiceDetailRepository>();
-builder.Services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-builder.Services.AddScoped<IParcelRepository, ParcelRepository>();
 builder.Services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
 builder.Services.AddScoped<IRequestRepository, RequestRepository>();
 builder.Services.AddScoped<IRequestAttachmentRepository, RequestAttachmentRepository>();
@@ -63,6 +42,7 @@ builder.Services.AddScoped<IServiceTypeRepository, ServiceTypeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IVisitorRepository, VisitorRepository>();
+builder.Services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
 
 var app = builder.Build();
 

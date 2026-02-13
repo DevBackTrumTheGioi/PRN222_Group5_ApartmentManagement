@@ -1,4 +1,4 @@
-﻿﻿using System.ComponentModel.DataAnnotations;
+﻿﻿﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -37,8 +37,8 @@ public class Resident : User
     public virtual ICollection<ResidentCard> ResidentCards { get; set; } = new List<ResidentCard>();
     public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
     public virtual ICollection<Visitor> RegisteredVisitors { get; set; } = new List<Visitor>();
-    public virtual ICollection<Parcel> PickedUpParcels { get; set; } = new List<Parcel>();
     public virtual ICollection<AmenityBooking> AmenityBookings { get; set; } = new List<AmenityBooking>();
     public virtual ICollection<ContractMember> ContractMembers { get; set; } = new List<ContractMember>();
+    public virtual ICollection<ServiceOrder> ServiceOrders { get; set; } = new List<ServiceOrder>();
 }
 
