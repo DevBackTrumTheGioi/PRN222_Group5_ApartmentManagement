@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -26,9 +28,7 @@
 
   <!-- Build Tailwind CSS using PowerShell script -->
   <Target Name="BuildTailwindCSS" BeforeTargets="Build">
-    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)build-tailwind.ps1&quot;" 
-          WorkingDirectory="$(ProjectDir)" 
-          ContinueOnError="true" />
+    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)build-tailwind.ps1&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
   </Target>
 
 </Project>

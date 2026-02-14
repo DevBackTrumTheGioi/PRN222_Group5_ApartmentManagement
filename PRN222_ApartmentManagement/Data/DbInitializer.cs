@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace PRN222_ApartmentManagement.Data;
 
@@ -68,19 +68,74 @@ public static class DbInitializer
 
         logger.LogInformation("Seeding initial data...");
 
-        // Add default admin user
-        var adminUser = new Models.User
+        // Password hash for '123456' using BCrypt
+        string passwordHash = BCrypt.Net.BCrypt.HashPassword("123456");
+
+        var users = new List<Models.User>
         {
-            Username = "admin",
-            PasswordHash = "AQAAAAEAACcQAAAAEJ5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z==", // Default: admin123
-            FullName = "System Administrator",
-            Email = "admin@apartment.com",
-            Role = Models.UserRole.Admin,
-            IsActive = true,
-            CreatedAt = DateTime.Now
+            new Models.User
+            {
+                Username = "admin",
+                PasswordHash = passwordHash,
+                FullName = "System Administrator",
+                Email = "admin@apartment.com",
+                Role = Models.UserRole.Admin,
+                IsActive = true,
+                CreatedAt = DateTime.Now
+            },
+            new Models.User
+            {
+                Username = "manager",
+                PasswordHash = passwordHash,
+                FullName = "BQL Manager",
+                Email = "manager@apartment.com",
+                Role = Models.UserRole.BQL_Manager,
+                IsActive = true,
+                CreatedAt = DateTime.Now
+            },
+            new Models.User
+            {
+                Username = "staff",
+                PasswordHash = passwordHash,
+                FullName = "BQL Staff",
+                Email = "staff@apartment.com",
+                Role = Models.UserRole.BQL_Staff,
+                IsActive = true,
+                CreatedAt = DateTime.Now
+            },
+            new Models.User
+            {
+                Username = "bqt_head",
+                PasswordHash = passwordHash,
+                FullName = "BQT Head",
+                Email = "bqt_head@apartment.com",
+                Role = Models.UserRole.BQT_Head,
+                IsActive = true,
+                CreatedAt = DateTime.Now
+            },
+            new Models.User
+            {
+                Username = "resident",
+                PasswordHash = passwordHash,
+                FullName = "Nguyen Van Resident",
+                Email = "resident@apartment.com",
+                Role = Models.UserRole.Resident,
+                IsActive = true,
+                CreatedAt = DateTime.Now
+            },
+            new Models.User
+            {
+                Username = "bqt_member",
+                PasswordHash = passwordHash,
+                FullName = "BQT Member",
+                Email = "bqt_member@apartment.com",
+                Role = Models.UserRole.BQT_Member,
+                IsActive = true,
+                CreatedAt = DateTime.Now
+            }
         };
 
-        context.Users.Add(adminUser);
+        context.Users.AddRange(users);
 
         // Add some service types
         var serviceTypes = new[]
@@ -114,4 +169,3 @@ public static class DbInitializer
         }
     }
 }
-
