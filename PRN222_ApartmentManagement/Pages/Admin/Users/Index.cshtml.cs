@@ -19,6 +19,8 @@ public class IndexModel : PageModel
 
     public List<User> Users { get; set; } = new();
 
+    public List<object> TableRows { get; set; } = new();
+
     [BindProperty(SupportsGet = true)]
     public string? SearchTerm { get; set; }
 
@@ -42,6 +44,24 @@ public class IndexModel : PageModel
         }
 
         Users = await query.OrderByDescending(u => u.CreatedAt).ToListAsync();
+
+        TableRows = Users.Select(u => (object)new {
+            PrimaryId = u.UserId,
+            User = new {
+                Name = u.FullName,
+                Subtitle = "@@" + u.Username,
+                Avatar = string.Empty // Can add logic for initials-based avatar if needed
+            },
+            Contact = u.Email + "\n" + u.PhoneNumber,
+            Role = u.Role?.ToString(),
+            IsActive = u.IsActive,
+            StatusText = u.IsActive ? "Hoạt động" : "Khóa",
+            RoleBadgeClass = u.Role switch {
+                UserRole.Admin => "bg-red-100 text-red-800",
+                UserRole.Resident => "bg-blue-100 text-blue-800",
+                _ => "bg-emerald-100 text-emerald-800"
+            }
+        }).ToList();
     }
 
     public async Task<IActionResult> OnPostToggleStatusAsync(int id)
@@ -69,4 +89,3 @@ public class IndexModel : PageModel
         return RedirectToPage();
     }
 }
-
