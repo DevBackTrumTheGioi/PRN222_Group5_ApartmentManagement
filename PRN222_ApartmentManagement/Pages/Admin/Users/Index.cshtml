@@ -1,0 +1,126 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Admin.Users.IndexModel
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    ViewData["CurrentPage"] = "users";
+    Layout = "_AdminLayout";
+}
+
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Quản lý người dùng</h1>
+            <p class="text-slate-500 text-sm">Quản lý tài khoản, phân quyền và trạng thái người dùng trong hệ thống.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a asp-page="./Create" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm">
+                <span class="material-icons text-white text-lg">add</span>
+                Thêm người dùng mới
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-2 relative">
+                <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" name="SearchTerm" value="@Model.SearchTerm" placeholder="Tìm kiếm theo tên, username hoặc email..." 
+                       class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all text-sm" />
+            </div>
+            <div>
+                <select name="RoleFilter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all text-sm">
+                    <option value="">Tất cả vai trò</option>
+                    @foreach (var role in Enum.GetValues<PRN222_ApartmentManagement.Models.UserRole>())
+                    {
+                        <option value="@role" selected="@(Model.RoleFilter == role.ToString())">@role</option>
+                    }
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors font-medium text-sm">
+                    Lọc
+                </button>
+                <a asp-page="./Index" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm">
+                    Xóa
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Họ tên / Username</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Email / Số điện thoại</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Vai trò</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Trạng thái</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    @foreach (var user in Model.Users)
+                    {
+                        <tr class="hover:bg-slate-50 focus-within:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
+                                        @(user.FullName.Substring(0, 1).ToUpper())
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-semibold text-slate-900">@user.FullName</div>
+                                        <div class="text-xs text-slate-500">@@@user.Username</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-slate-600">@user.Email</div>
+                                <div class="text-xs text-slate-400">@user.PhoneNumber</div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @await Html.PartialAsync("Components/RoleBadge", user.Role)
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if (user.IsActive)
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                        Hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        Khóa
+                                    </span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <a asp-page="./Edit" asp-route-id="@user.UserId" class="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors" title="Chỉnh sửa">
+                                        <span class="material-icons text-xl">edit</span>
+                                    </a>
+                                    <form method="post" asp-page-handler="ToggleStatus" asp-route-id="@user.UserId" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn @(user.IsActive ? "khóa" : "mở khóa") tài khoản này?')">
+                                        <button type="submit" class="p-1.5 text-slate-400 hover:text-@(user.IsActive ? "red" : "emerald")-600 transition-colors" title="@(user.IsActive ? "Khóa" : "Mở khóa")">
+                                            <span class="material-icons text-xl">@(user.IsActive ? "block" : "check_circle_outline")</span>
+                                        </button>
+                                    </form>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@user.UserId" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản này? Thao tác này không thể hoàn tác.')">
+                                        <button type="submit" class="p-1.5 text-slate-400 hover:text-red-600 transition-colors" title="Xóa">
+                                            <span class="material-icons text-xl">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination would go here -->
+    </div>
+</div>
+

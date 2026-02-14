@@ -48,11 +48,9 @@
 #### 1.3 Cấu hình hệ thống (Admin)
 | STT | Chức năng | Mô tả | Vai trò liên quan |
 |:---:|:----------|:------|:------------------|
-| 10 | Cấu hình chung | Tên, logo, thông tin chung cư | Admin |
-| 11 | Quản lý danh mục dịch vụ | CRUD ServiceTypes | Admin |
-| 12 | Cấu hình giá dịch vụ | CRUD ServicePrices | Admin |
-| 13 | Xem log hệ thống | Audit trail, activity log | Admin |
-| 14 | Backup/Restore dữ liệu | Sao lưu và khôi phục dữ liệu hệ thống | Admin |
+| 10  | Cấu hình chung | Tên, logo, thông tin chung cư | Admin |
+| 11  | Xem log hệ thống | Audit trail, activity log | Admin |
+| 12  | Backup/Restore dữ liệu | Sao lưu và khôi phục dữ liệu hệ thống | Admin |
 
 ### Database Tables liên quan:
 - `Users` (Cập nhật giá trị cột Role)
@@ -179,15 +177,15 @@ ALTER TABLE Invoices ADD RejectionReason nvarchar(500) NULL;
 | 4 | Dashboard căn hộ | Thống kê trạng thái căn hộ | BQL_Manager |
 
 #### 3.2 Quản lý cư dân
-| STT | Chức năng | Mô tả | Vai trò liên quan |
-|:---:|:----------|:------|:------------------|
+| STT | Chức năng | Mô tả | Vai trò liên quan                    |
+|:---:|:----------|:------|:-------------------------------------|
 | 5 | Xem danh sách cư dân | Danh sách + tìm kiếm | BQL_Manager, BQL_Staff, **BQT_Head** |
-| 6 | Thêm cư dân mới | Đăng ký cư dân vào căn hộ | BQL_Staff |
-| 7 | Cập nhật thông tin cư dân | Sửa thông tin cá nhân | BQL_Staff |
-| 8 | Xóa/Vô hiệu hóa cư dân | Soft delete khi chuyển đi | BQL_Manager |
-| 9 | Xem hồ sơ cá nhân | Cư dân xem thông tin mình | Resident |
-| 10 | Cập nhật hồ sơ cá nhân | Cư dân sửa thông tin | Resident |
-| 11 | **Phê duyệt chuyển đi/đến** | Xác nhận thủ tục chuyển căn hộ | BQL_Manager |
+| 6 | Thêm cư dân mới | Đăng ký cư dân vào căn hộ | BQL_Staff                            |
+| 7 | Cập nhật thông tin cư dân | Sửa thông tin cá nhân | BQL_Staff                            |
+| 8 | Xóa/Vô hiệu hóa cư dân | Soft delete khi chuyển đi | BQL_Manager                          |
+| 9 | Xem hồ sơ cá nhân | Cư dân xem thông tin mình | Resident, All                        |
+| 10 | Cập nhật hồ sơ cá nhân | Cư dân sửa thông tin | Resident, All                        |
+| 11 | **Phê duyệt chuyển đi/đến** | Xác nhận thủ tục chuyển căn hộ | BQL_Manager                          |
 
 #### 3.3 Quản lý hợp đồng
 | STT | Chức năng | Mô tả                                   | Vai trò liên quan |

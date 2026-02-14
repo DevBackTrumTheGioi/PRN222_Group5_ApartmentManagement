@@ -52,7 +52,10 @@
             Icon = "settings",
             IsCollapsible = true,
             Items = new[] {
-                new { Icon = "settings", Label = "Cài đặt", Href = "/Settings", Key = "settings" }
+                new { Icon = "manage_accounts", Label = "Người dùng", Href = "/Admin/Users", Key = "users" },
+                new { Icon = "history", Label = "Lịch sử hệ thống", Href = "/Admin/ActivityLogs", Key = "activitylogs" },
+                new { Icon = "settings", Label = "Cài đặt", Href = "/Settings", Key = "settings" },
+                new { Icon = "lock", Label = "Đổi mật khẩu", Href = "/Account/ChangePassword", Key = "changepassword" }
             }
         }
     };
@@ -131,10 +134,10 @@
                 <span class="material-icons text-emerald-600 text-xl">person</span>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-slate-900 truncate">Admin User</p>
-                <p class="text-xs text-slate-500 truncate">admin@apartment.vn</p>
+                <p class="text-sm font-semibold text-slate-900 truncate">@(User.Identity?.IsAuthenticated == true ? User.FindFirst("FullName")?.Value : "Guest")</p>
+                <p class="text-xs text-slate-500 truncate">@(User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Not logged in")</p>
             </div>
-            <a href="/logout" class="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="Đăng xuất">
+            <a href="/Account/Logout" class="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="Đăng xuất">
                 <span class="material-icons text-xl">logout</span>
             </a>
         </div>
@@ -155,4 +158,3 @@ function toggleMenu(menuId) {
     }
 }
 </script>
-
