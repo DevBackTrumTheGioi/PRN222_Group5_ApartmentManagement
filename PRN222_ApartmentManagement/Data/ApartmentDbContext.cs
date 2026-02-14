@@ -54,6 +54,7 @@ public class ApartmentDbContext : DbContext
     // Activity Log
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
+    public DbSet<FaceAuthHistory> FaceAuthHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

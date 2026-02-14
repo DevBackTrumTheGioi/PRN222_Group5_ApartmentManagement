@@ -24,6 +24,10 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
+    <Folder Include="Pages\BQL_Manager\" />
+    <Folder Include="Pages\BQL_Staff\" />
+    <Folder Include="Pages\BQT_Head\" />
+    <Folder Include="Pages\BQT_Member\" />
   </ItemGroup>
 
   <!-- Build Tailwind CSS using PowerShell script -->
