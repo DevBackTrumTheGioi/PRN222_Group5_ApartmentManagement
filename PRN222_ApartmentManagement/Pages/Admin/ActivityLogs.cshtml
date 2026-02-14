@@ -4,167 +4,114 @@
     ViewData["Title"] = "Activity Logs";
 }
 
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="text-2xl font-bold">📋 Activity Logs</h1>
-            <p class="text-slate-600">Theo dõi tất cả hoạt động trong hệ thống</p>
-        </div>
-    </div>
+<div class="p-6 space-y-6">
+    @await Html.PartialAsync("Components/PageHeader", new { 
+        Title = "Activity Logs",
+        BreadcrumbItems = new[] {
+            new { Label = "Admin", Href = "/Admin" },
+            new { Label = "Activity Logs", Href = "#" }
+        }
+    })
 
-    <!-- Filter Form -->
-    <div class="bg-white rounded-lg shadow p-4 mb-4">
-        <form method="get" class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label">Từ ngày</label>
-                <input type="date" name="fromDate" class="form-control" value="@Model.FromDate?.ToString("yyyy-MM-dd")">
+    <!-- Filter Form - Using Select Components -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Từ ngày</label>
+                <input type="date" name="fromDate" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm transition-all" value="@Model.FromDate?.ToString("yyyy-MM-dd")">
             </div>
-            <div class="col-md-3">
-                <label class="form-label">Đến ngày</label>
-                <input type="date" name="toDate" class="form-control" value="@Model.ToDate?.ToString("yyyy-MM-dd")">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Đến ngày</label>
+                <input type="date" name="toDate" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm transition-all" value="@Model.ToDate?.ToString("yyyy-MM-dd")">
             </div>
-            <div class="col-md-2">
-                <label class="form-label">Action</label>
-                <select name="action" class="form-select">
-                    <option value="">-- All --</option>
-                    <option value="Create" selected="@(Model.Action == "Create")">Create</option>
-                    <option value="Update" selected="@(Model.Action == "Update")">Update</option>
-                    <option value="Delete" selected="@(Model.Action == "Delete")">Delete</option>
-                    <option value="Login" selected="@(Model.Action == "Login")">Login</option>
-                    <option value="Logout" selected="@(Model.Action == "Logout")">Logout</option>
-                </select>
+            
+            @await Html.PartialAsync("Components/Select", new {
+                Label = "Hành động",
+                Name = "action",
+                Value = Model.Action,
+                Items = new[] {
+                    new { Text = "-- Tất cả --", Value = "" },
+                    new { Text = "Thêm mới", Value = "Create" },
+                    new { Text = "Cập nhật", Value = "Update" },
+                    new { Text = "Xóa", Value = "Delete" },
+                    new { Text = "Đăng nhập", Value = "Login" },
+                    new { Text = "Đăng xuất", Value = "Logout" }
+                }
+            })
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Đối tượng</label>
+                <input type="text" name="entityName" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm transition-all" placeholder="Ví dụ: Apartment..." value="@Model.EntityName">
             </div>
-            <div class="col-md-2">
-                <label class="form-label">Entity</label>
-                <input type="text" name="entityName" class="form-control" placeholder="Apartment, User..." value="@Model.EntityName">
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100">🔍 Filter</button>
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-all shadow-sm flex items-center justify-center gap-2">
+                    <span class="material-icons text-sm">search</span>
+                    Lọc dữ liệu
+                </button>
             </div>
         </form>
     </div>
 
-    <!-- Logs Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>User</th>
-                        <th>Action</th>
-                        <th>Entity</th>
-                        <th>Entity ID</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th>IP Address</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Logs?.Any() == true)
-                    {
-                        @foreach (var log in Model.Logs)
-                        {
-                            <tr>
-                                <td class="text-nowrap">
-                                    <small>@log.Timestamp.ToString("dd/MM/yyyy HH:mm:ss")</small>
-                                </td>
-                                <td>
-                                    <div class="fw-semibold">@log.UserName</div>
-                                    <small class="text-muted">@log.UserRole</small>
-                                </td>
-                                <td>
-                                    <span class="badge @GetActionBadgeClass(log.Action)">
-                                        @log.Action
-                                    </span>
-                                </td>
-                                <td>@log.EntityName</td>
-                                <td>@log.EntityId</td>
-                                <td>
-                                    <small>@log.Description</small>
-                                </td>
-                                <td>
-                                    @if (log.IsSuccess)
-                                    {
-                                        <span class="badge bg-success">✓ Success</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">✗ Failed</span>
-                                    }
-                                </td>
-                                <td>
-                                    <small>@log.IpAddress</small>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDetails(@log.LogId)">
-                                        Details
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="9" class="text-center py-4">
-                                <p class="text-muted mb-0">Không có log nào</p>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        @if (Model.TotalPages > 1)
-        {
-            <div class="p-3 border-top d-flex justify-content-between align-items-center">
-                <div>
-                    Showing page @Model.PageNumber of @Model.TotalPages
-                </div>
-                <nav>
-                    <ul class="pagination mb-0">
-                        <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
-                            <a class="page-link" href="?pageNumber=@(Model.PageNumber - 1)&fromDate=@Model.FromDate?.ToString("yyyy-MM-dd")&toDate=@Model.ToDate?.ToString("yyyy-MM-dd")&action=@Model.Action&entityName=@Model.EntityName">Previous</a>
-                        </li>
-                        @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
-                        {
-                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                <a class="page-link" href="?pageNumber=@i&fromDate=@Model.FromDate?.ToString("yyyy-MM-dd")&toDate=@Model.ToDate?.ToString("yyyy-MM-dd")&action=@Model.Action&entityName=@Model.EntityName">@i</a>
-                            </li>
-                        }
-                        <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
-                            <a class="page-link" href="?pageNumber=@(Model.PageNumber + 1)&fromDate=@Model.FromDate?.ToString("yyyy-MM-dd")&toDate=@Model.ToDate?.ToString("yyyy-MM-dd")&action=@Model.Action&entityName=@Model.EntityName">Next</a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        }
-    </div>
+    <!-- Logs Table - Using DataTable Component -->
+    @await Html.PartialAsync("Components/DataTable", new {
+        Title = "Activity Logs",
+        ShowSearch = false,
+        ShowPagination = true,
+        CurrentPage = Model.PageNumber,
+        TotalPages = Model.TotalPages,
+        TotalItems = Model.Logs.Count, // Note: Simplified
+        ItemsPerPage = Model.PageSize,
+        Columns = new object[] {
+            new { Header = "Thời gian", Field = "Timestamp", Align = "left", Type = "text", BadgeClassField = "" },
+            new { Header = "Người dùng", Field = "UserDisplay", Align = "left", Type = "user", BadgeClassField = "" },
+            new { Header = "Hành động", Field = "Action", Align = "left", Type = "badge", BadgeClassField = "ActionBadgeClass" },
+            new { Header = "Đối tượng", Field = "EntityDisplay", Align = "left", Type = "text", BadgeClassField = "" },
+            new { Header = "Mô tả", Field = "Description", Align = "left", Type = "text", BadgeClassField = "" },
+            new { Header = "Trạng thái", Field = "StatusDisplay", Align = "left", Type = "status_component", BadgeClassField = "" },
+            new { Header = "IP", Field = "IpAddress", Align = "left", Type = "text", BadgeClassField = "" }
+        },
+        Rows = Model.Logs.Select(log => new {
+            PrimaryId = log.LogId,
+            ActionType = "details",
+            Timestamp = log.Timestamp.ToString("dd/MM/yyyy HH:mm:ss"),
+            UserDisplay = new { Name = log.UserName, Subtitle = log.UserRole },
+            Action = log.Action,
+            ActionBadgeClass = GetActionBadgeClass(log.Action),
+            EntityDisplay = $"{log.EntityName} (ID: {log.EntityId})",
+            Description = log.Description,
+            StatusDisplay = new { 
+                Label = log.IsSuccess ? "Thành công" : "Thất bại",
+                Type = log.IsSuccess ? "success" : "danger",
+                Icon = log.IsSuccess ? "check_circle" : "cancel"
+            },
+            IpAddress = log.IpAddress
+        })
+    })
 </div>
 
-<!-- Modal for Log Details -->
-<div class="modal fade" id="logDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Log Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="logDetailsContent">
-                <!-- Content loaded via JavaScript -->
-            </div>
-        </div>
-    </div>
-</div>
+@await Html.PartialAsync("Components/Modal", new { 
+    Id = "logDetailsModal",
+    Title = "Log Details",
+    Size = "lg"
+})
 
 @section Scripts {
     <script>
         function viewDetails(logId) {
-            // TODO: Implement AJAX call to get log details
-            alert('View details for log: ' + logId);
+            // Hiển thị modal và có thể load dữ liệu qua AJAX nếu cần
+            const modal = document.getElementById('logDetailsModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('logDetailsModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
         }
     </script>
 }
@@ -174,13 +121,12 @@
     {
         return action switch
         {
-            "Create" => "bg-success",
-            "Update" => "bg-warning text-dark",
-            "Delete" => "bg-danger",
-            "Login" => "bg-info",
-            "Logout" => "bg-secondary",
-            _ => "bg-primary"
+            "Create" => "bg-green-100 text-green-800",
+            "Update" => "bg-amber-100 text-amber-800",
+            "Delete" => "bg-red-100 text-red-800",
+            "Login" => "bg-blue-100 text-blue-800",
+            "Logout" => "bg-slate-100 text-slate-800",
+            _ => "bg-slate-100 text-slate-800"
         };
     }
 }
-

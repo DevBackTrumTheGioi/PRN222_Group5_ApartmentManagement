@@ -14,8 +14,7 @@ public class Resident : User
     [MaxLength(20)]
     public string? IdentityCardNumber { get; set; }
 
-    [MaxLength(50)]
-    public string? ResidentType { get; set; }
+    public ResidentType? ResidentType { get; set; }
 
     [MaxLength(20)]
     public string? ResidencyStatus { get; set; }

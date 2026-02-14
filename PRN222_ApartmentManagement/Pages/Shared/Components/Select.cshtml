@@ -1,13 +1,20 @@
-﻿@{
-    var label = ViewBag.Label ?? "";
-    var cssClass = ViewBag.CssClass ?? "";
-    var isRequired = ViewBag.IsRequired ?? false;
+﻿@model dynamic
+@{
+    var model = (object)Model;
+    var dict = model?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(model));
+    
+    string label = dict?.ContainsKey("Label") == true ? dict["Label"]?.ToString() : "";
+    string name = dict?.ContainsKey("Name") == true ? dict["Name"]?.ToString() : "";
+    string cssClass = dict?.ContainsKey("CssClass") == true ? dict["CssClass"]?.ToString() : "";
+    string value = dict?.ContainsKey("Value") == true ? dict["Value"]?.ToString() : "";
+    bool isRequired = dict?.ContainsKey("IsRequired") == true && dict["IsRequired"] is bool b && b;
+    var items = dict?.ContainsKey("Items") == true ? dict["Items"] as System.Collections.IEnumerable : null;
 }
 
 <div class="@cssClass">
     @if (!string.IsNullOrEmpty(label))
     {
-        <label class="block text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-100 mb-1">
             @label
             @if (isRequired)
             {
@@ -16,8 +23,18 @@
         </label>
     }
     
-    <select class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-700 transition-all cursor-pointer">
-        @RenderBody()
+    <select name="@name" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 transition-all cursor-pointer text-sm">
+        @if (items != null)
+        {
+            @foreach (var item in items)
+            {
+                var itemDict = item?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(item));
+                string iText = itemDict?.ContainsKey("Text") == true ? itemDict["Text"]?.ToString() : "";
+                string iValue = itemDict?.ContainsKey("Value") == true ? itemDict["Value"]?.ToString() : "";
+                bool selected = iValue == value || (itemDict?.ContainsKey("Selected") == true && itemDict["Selected"] is bool s && s);
+                
+                <option value="@iValue" selected="@selected">@iText</option>
+            }
+        }
     </select>
 </div>
-

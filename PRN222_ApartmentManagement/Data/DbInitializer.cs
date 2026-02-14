@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 
 namespace PRN222_ApartmentManagement.Data;
 
@@ -75,7 +75,7 @@ public static class DbInitializer
             PasswordHash = "AQAAAAEAACcQAAAAEJ5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z==", // Default: admin123
             FullName = "System Administrator",
             Email = "admin@apartment.com",
-            Role = "Admin",
+            Role = Models.UserRole.Admin,
             IsActive = true,
             CreatedAt = DateTime.Now
         };

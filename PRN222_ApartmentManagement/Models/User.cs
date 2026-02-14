@@ -27,8 +27,7 @@ public class User
     [MaxLength(20)]
     public string? PhoneNumber { get; set; }
 
-    [MaxLength(50)]
-    public string? Role { get; set; }
+    public UserRole? Role { get; set; }
 
     public bool IsActive { get; set; } = true;
 

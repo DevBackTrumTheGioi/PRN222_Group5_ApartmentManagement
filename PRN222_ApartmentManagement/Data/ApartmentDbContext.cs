@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Models;
 
 namespace PRN222_ApartmentManagement.Data;
@@ -57,6 +57,16 @@ public class ApartmentDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>()
+            .Property(u => u.Role)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Resident>()
+            .Property(r => r.ResidentType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
 
         modelBuilder.Entity<User>()
             .UseTptMappingStrategy();
@@ -262,4 +272,3 @@ public class ApartmentDbContext : DbContext
             .OnDelete(DeleteBehavior.NoAction);
     }
 }
-

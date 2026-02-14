@@ -198,7 +198,7 @@ public class ActivityLogService : IActivityLogService
             {
                 UserId = overrideUserId ?? currentUser?.UserId,
                 UserName = overrideUserName ?? currentUser?.FullName ?? "System",
-                UserRole = currentUser?.Role ?? "System",
+                UserRole = currentUser?.Role?.ToString() ?? "System",
                 Action = action,
                 EntityName = entityName,
                 EntityId = entityId,

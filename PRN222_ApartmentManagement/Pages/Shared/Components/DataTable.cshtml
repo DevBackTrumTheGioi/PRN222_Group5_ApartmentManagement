@@ -103,18 +103,29 @@
                                                         <p class="font-semibold text-slate-900">@userDict?["Name"]</p>
                                                         @if (userDict?.ContainsKey("Subtitle") == true)
                                                         {
-                                                            <p class="text-xs text-slate-500">@userDict["Subtitle"]</p>
+                                                            <p class="text-xs text-slate-500 text-slate-500">@userDict["Subtitle"]</p>
                                                         }
                                                     </div>
                                                 </div>
                                             }
                                             else if (type == "badge")
                                             {
-                                                var badgeValue = value?.ToString() ?? "";
-                                                var badgeVariant = badgeValue.ToLower() == "admin" ? "primary" : "default";
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @(badgeVariant == "primary" ? "bg-primary-100 text-primary-700" : "bg-slate-100 text-slate-600")">
-                                                    @badgeValue
+                                                var colDictLocal = col?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(col)?.ToString());
+                                                string badgeClassField = colDictLocal?.ContainsKey("BadgeClassField") == true ? colDictLocal["BadgeClassField"] : "";
+                                                
+                                                string badgeClass = "bg-slate-100 text-slate-600";
+                                                if (!string.IsNullOrEmpty(badgeClassField))
+                                                {
+                                                    badgeClass = rowDict?.ContainsKey(badgeClassField) == true ? rowDict[badgeClassField]?.ToString() : badgeClass;
+                                                }
+
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @badgeClass">
+                                                    @value
                                                 </span>
+                                            }
+                                            else if (type == "status_component")
+                                            {
+                                                @await Html.PartialAsync("Components/StatusBadge", value)
                                             }
                                             else if (type == "status")
                                             {
@@ -136,12 +147,27 @@
                                 {
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex items-center justify-end gap-2">
-                                            <button class="p-1 hover:text-primary-600 transition-colors text-slate-400">
-                                                <span class="material-icons text-xl">edit</span>
-                                            </button>
-                                            <button class="p-1 hover:text-red-500 transition-colors text-slate-400">
-                                                <span class="material-icons text-xl">delete_outline</span>
-                                            </button>
+                                            @{
+                                                var rowDictLocal = row?.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(row));
+                                                var primaryId = rowDictLocal?.ContainsKey("PrimaryId") == true ? rowDictLocal["PrimaryId"] : null;
+                                                var actionType = rowDictLocal?.ContainsKey("ActionType") == true ? rowDictLocal["ActionType"]?.ToString() : "default";
+
+                                                if (actionType == "details")
+                                                {
+                                                    <button class="text-primary-600 hover:text-primary-900 font-semibold text-sm transition-colors" onclick="viewDetails(@primaryId)">
+                                                        Chi tiết
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="p-1 hover:text-primary-600 transition-colors text-slate-400">
+                                                        <span class="material-icons text-xl">edit</span>
+                                                    </button>
+                                                    <button class="p-1 hover:text-red-500 transition-colors text-slate-400">
+                                                        <span class="material-icons text-xl">delete_outline</span>
+                                                    </button>
+                                                }
+                                            }
                                         </div>
                                     </td>
                                 }
@@ -181,4 +207,3 @@
         }
     </div>
 </div>
-
