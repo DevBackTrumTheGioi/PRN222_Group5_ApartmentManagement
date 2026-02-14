@@ -80,6 +80,7 @@ builder.Services.AddDbContext<ApartmentDbContext>(options =>
 
 // Register Activity Log Service
 builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
+builder.Services.AddScoped<ISettingService, SettingService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 

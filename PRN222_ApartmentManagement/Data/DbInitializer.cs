@@ -46,6 +46,9 @@ public static class DbInitializer
                     logger.LogInformation("Database is up to date");
                 }
             }
+
+            // Always ensure default settings exist
+            await SeedSettingsAsync(context, logger);
         }
         catch (Exception ex)
         {
@@ -152,6 +155,27 @@ public static class DbInitializer
         await context.SaveChangesAsync();
 
         logger.LogInformation("Initial data seeded successfully");
+    }
+
+    /// <summary>
+    /// Seed default system settings into database
+    /// </summary>
+    private static async Task SeedSettingsAsync(ApartmentDbContext context, ILogger logger)
+    {
+        if (await context.SystemSettings.AnyAsync()) return;
+
+        logger.LogInformation("Seeding default system settings...");
+
+        var settings = new List<Models.SystemSetting>
+        {
+            new Models.SystemSetting { SettingKey = "ApartmentName", SettingValue = "ApartmentMS", Description = "Tên chung cư hiển thị trên hệ thống" },
+            new Models.SystemSetting { SettingKey = "ApartmentLogo", SettingValue = "apartment", Description = "Tên Icon Material hiển thị ở Logo" },
+            new Models.SystemSetting { SettingKey = "ApartmentAddress", SettingValue = "123 Đường ABC, Quận XYZ, TP. HCM", Description = "Địa chỉ chung cư" },
+            new Models.SystemSetting { SettingKey = "ApartmentContact", SettingValue = "0123.456.789", Description = "Số điện thoại liên hệ" }
+        };
+
+        context.SystemSettings.AddRange(settings);
+        await context.SaveChangesAsync();
     }
 
     /// <summary>
