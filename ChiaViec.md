@@ -335,9 +335,9 @@ ALTER TABLE Announcements ADD Source nvarchar(20) DEFAULT 'BQL';  -- 'BQL', 'BQT
 #### 5.1 Quản lý tiện ích (Admin)
 | STT | Chức năng | Mô tả | Vai trò liên quan |
 |:---:|:----------|:------|:------------------|
-| 1 | Xem danh sách tiện ích | Gym, Pool, BBQ, Meeting Room | Admin |
-| 2 | Thêm/Sửa tiện ích | CRUD amenities | Admin |
-| 3 | Cấu hình giá/giờ | Thiết lập phí sử dụng | Admin |
+| 1 | Xem danh sách tiện ích | Gym, Pool, BBQ, Meeting Room | BQL_Manager       |
+| 2 | Thêm/Sửa tiện ích | CRUD amenities | BQL_Manager             |
+| 3 | Cấu hình giá/giờ | Thiết lập phí sử dụng | BQL_Manager             |
 
 #### 5.2 Đặt tiện ích (Cư dân)
 | STT | Chức năng | Mô tả                                                                | Vai trò liên quan |
@@ -354,13 +354,13 @@ ALTER TABLE Announcements ADD Source nvarchar(20) DEFAULT 'BQL';  -- 'BQL', 'BQT
 > - **Amenity (Tiện ích)**: Cơ sở vật chất cố định như Gym, Pool, BBQ - cư dân đặt lịch sử dụng
 > - **Service (Dịch vụ)**: Dịch vụ theo yêu cầu như giặt ủi, dọn vệ sinh, sửa chữa - cư dân đặt và nhân viên thực hiện
 
-| STT | Chức năng | Mô tả | Vai trò liên quan |
-|:---:|:----------|:------|:------------------|
+| STT | Chức năng | Mô tả | Vai trò liên quan  |
+|:---:|:----------|:------|:-------------------|
 | 9 | Xem danh sách loại dịch vụ | Danh sách ServiceTypes (Giặt ủi, Dọn vệ sinh, Sửa chữa nhỏ...) | Admin, BQL_Manager |
-| 10 | Thêm/Sửa loại dịch vụ | CRUD ServiceTypes cho dịch vụ theo yêu cầu | Admin |
-| 11 | Cấu hình giá dịch vụ | Thiết lập đơn giá cho từng loại dịch vụ | Admin |
-| 12 | Bật/Tắt dịch vụ | Kích hoạt hoặc tạm ngưng dịch vụ | Admin |
-| 13 | Xem thống kê dịch vụ | Dashboard: số lượng đơn, doanh thu, dịch vụ phổ biến | BQL_Manager |
+| 10 | Thêm/Sửa loại dịch vụ | CRUD ServiceTypes cho dịch vụ theo yêu cầu | BQL_Manager        |
+| 11 | Cấu hình giá dịch vụ | Thiết lập đơn giá cho từng loại dịch vụ | BQL_Manager              |
+| 12 | Bật/Tắt dịch vụ | Kích hoạt hoặc tạm ngưng dịch vụ | BQL_Manager              |
+| 13 | Xem thống kê dịch vụ | Dashboard: số lượng đơn, doanh thu, dịch vụ phổ biến | BQL_Manager        |
 
 #### 5.4 Đặt dịch vụ (Cư dân)
 | STT | Chức năng | Mô tả | Vai trò liên quan |

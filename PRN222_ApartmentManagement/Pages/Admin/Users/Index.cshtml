@@ -59,6 +59,8 @@
     <!-- Users DataTable Component -->
     @await Html.PartialAsync("Components/DataTable", new {
         Title = "Danh sách người dùng",
+        EditUrl = "/Admin/Users/Edit",
+        DeleteHandler = "Delete",
         Columns = new object[] {
             new { Header = "Họ tên / Username", Field = "User", Type = "user" },
             new { Header = "Liên hệ", Field = "Contact", Type = "text" },
@@ -67,7 +69,8 @@
         },
         Rows = Model.TableRows,
         ShowSearch = false, // Already have custom search above
-        ShowActions = true
+        ShowActions = true,
+        TotalItems = Model.TableRows.Count,
     })
 
     <div class="hidden">
