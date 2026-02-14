@@ -1,0 +1,166 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Resident.FaceAuth.TestModel
+@{
+    ViewData["Title"] = "Test Xác thực khuôn mặt";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Face Auth - ApartmentMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-slate-900 min-h-screen flex flex-col items-center justify-center p-4">
+    
+    <div class="max-w-xl w-full text-center space-y-6">
+        <div class="space-y-2">
+            <h1 class="text-3xl font-bold text-white">Hệ thống nhận diện</h1>
+            <p class="text-slate-400">Vui lòng nhìn vào camera để xác thực danh tính</p>
+        </div>
+
+        <div class="relative bg-black rounded-3xl overflow-hidden aspect-square shadow-2xl border-4 border-slate-800">
+            <video id="video" autoplay muted playsinline class="w-full h-full object-cover scale-x-[-1]"></video>
+            <canvas id="overlay" class="absolute top-0 left-0 w-full h-full scale-x-[-1]"></canvas>
+            
+            <div id="scanLine" class="absolute top-0 left-0 w-full h-1 bg-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.5)] z-10 hidden"></div>
+
+            <div id="loadingStatus" class="absolute inset-0 flex items-center justify-center bg-slate-900/90 text-white z-20">
+                <div class="flex flex-col items-center">
+                    <span class="material-icons animate-spin text-5xl text-emerald-500 mb-4">sync</span>
+                    <p class="text-lg font-medium">Đang khởi tạo AI...</p>
+                </div>
+            </div>
+
+            <!-- Result Overlay -->
+            <div id="resultOverlay" class="absolute inset-0 flex items-center justify-center z-30 hidden bg-emerald-500/20 backdrop-blur-sm">
+                <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center">
+                    <span class="material-icons text-6xl text-emerald-500 mb-2">check_circle</span>
+                    <h2 class="text-2xl font-bold text-slate-900" id="residentName">Xin chào!</h2>
+                    <p class="text-slate-500">Xác thực thành công</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="statusText" class="text-emerald-400 font-mono text-sm tracking-widest uppercase">
+            Sẵn sàng quét...
+        </div>
+
+        <div class="flex gap-4 justify-center">
+            <a href="/" class="px-6 py-2 bg-slate-800 text-slate-300 rounded-full hover:bg-slate-700 transition-all text-sm font-medium">Quay lại</a>
+            <button onclick="location.reload()" class="px-6 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 transition-all text-sm font-medium">Thử lại</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        const video = document.getElementById('video');
+        const overlay = document.getElementById('overlay');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const statusText = document.getElementById('statusText');
+        const scanLine = document.getElementById('scanLine');
+        const resultOverlay = document.getElementById('resultOverlay');
+
+        // Fetch registered faces from API
+        async function loadRegisteredDescriptors() {
+            const response = await fetch('?handler=RegisteredFaces');
+            const data = await response.json();
+            return data.map(item => {
+                const descriptors = [new Float32Array(JSON.parse(item.descriptor))];
+                return new faceapi.LabeledFaceDescriptors(item.name, descriptors);
+            });
+        }
+
+        async function init() {
+            try {
+                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                ]);
+
+                const labeledDescriptors = await loadRegisteredDescriptors();
+                const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+
+                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                video.srcObject = stream;
+                
+                loadingStatus.classList.add('hidden');
+                scanLine.classList.remove('hidden');
+                
+                // Animation for scan line
+                let pos = 0;
+                setInterval(() => {
+                    pos = (pos + 2) % 100;
+                    scanLine.style.top = pos + '%';
+                }, 20);
+
+                startRecognition(faceMatcher);
+            } catch (err) {
+                console.error(err);
+                loadingStatus.innerHTML = `<p class="text-red-400 p-4">Lỗi: Cần camera và dữ liệu mẫu để chạy test.</p>`;
+            }
+        }
+
+        function startRecognition(faceMatcher) {
+            const displaySize = { width: video.clientWidth, height: video.clientHeight };
+            faceapi.matchDimensions(overlay, displaySize);
+
+            const interval = setInterval(async () => {
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+
+                const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                const ctx = overlay.getContext('2d');
+                ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+                if (detections.length > 0) {
+                    const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
+                    
+                    results.forEach((result, i) => {
+                        const box = resizedDetections[i].detection.box;
+                        const label = result.toString();
+                        
+                        // Draw custom UI
+                        ctx.strokeStyle = result.label === 'unknown' ? '#ef4444' : '#10b981';
+                        ctx.lineWidth = 4;
+                        ctx.strokeRect(box.x, box.y, box.width, box.height);
+                        
+                        statusText.innerText = result.label === 'unknown' ? 'KHÔNG XÁC ĐỊNH' : `ĐÃ NHẬN DIỆN: ${result.label}`;
+
+                        if (result.label !== 'unknown' && result.distance < 0.45) {
+                            // Success!
+                            clearInterval(interval);
+                            resultOverlay.classList.remove('hidden');
+                            
+                            // Log to DB via AJAX 
+                            fetch('?handler=LogAuth', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ""
+                                },
+                                body: JSON.stringify({ 
+                                    name: result.label, 
+                                    score: 1 - result.distance,
+                                    success: true 
+                                })
+                            });
+                        }
+                    });
+                } else {
+                    statusText.innerText = 'ĐANG TÌM KHUÔN MẶT...';
+                }
+            }, 500);
+        }
+
+        init();
+    </script>
+</body>
+</html>
+

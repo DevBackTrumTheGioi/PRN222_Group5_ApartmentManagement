@@ -1,0 +1,154 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Resident.FaceAuth.RegisterModel
+@{
+    ViewData["Title"] = "Đăng ký khuôn mặt";
+    ViewData["CurrentPage"] = "faceauth";
+}
+
+<div class="max-w-4xl mx-auto p-6">
+    <div class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-slate-900">Đăng ký nhận diện khuôn mặt</h1>
+        <p class="text-slate-600 mt-2">Vui lòng nhìn thẳng vào camera để hệ thống thu thập dữ liệu sinh trắc học của bạn.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Camera View -->
+        <div class="relative bg-black rounded-2xl overflow-hidden aspect-video shadow-xl border-4 border-slate-200">
+            <video id="video" autoplay muted playsinline class="w-full h-full object-cover"></video>
+            <canvas id="overlay" class="absolute top-0 left-0 w-full h-full"></canvas>
+            
+            <div id="loadingStatus" class="absolute inset-0 flex items-center justify-center bg-slate-900/80 text-white z-10">
+                <div class="flex flex-col items-center">
+                    <span class="material-icons animate-spin text-4xl mb-2">sync</span>
+                    <p>Đang khởi tạo camera...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions & Status -->
+        <div class="flex flex-col justify-between">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                    <span class="material-icons text-emerald-500">info</span>
+                    Hướng dẫn thực hiện
+                </h3>
+                <ul class="text-sm text-slate-600 space-y-3">
+                    <li class="flex items-start gap-2">
+                        <span class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold mt-0.5">1</span>
+                        Đảm bảo môi trường đủ ánh sáng.
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold mt-0.5">2</span>
+                        Bỏ kính râm, khẩu trang hoặc mũ che mặt.
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold mt-0.5">3</span>
+                        Nhìn thẳng vào tâm khung hình cho đến khi vòng tròn chuyển màu xanh.
+                    </li>
+                </ul>
+
+                <div id="statusAlert" class="hidden p-4 rounded-xl text-sm font-medium"></div>
+            </div>
+
+            <div class="mt-6 flex flex-col gap-3">
+                <button id="captureBtn" disabled class="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg hover:bg-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    <span class="material-icons">photo_camera</span>
+                    Xác nhận khuôn mặt
+                </button>
+                <a asp-page="./Status" class="text-center text-sm text-slate-500 hover:text-slate-800 transition-colors">Để sau, quay lại trạng thái</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="registerForm" method="post">
+    <input type="hidden" id="faceDescriptor" name="FaceDescriptorString" />
+</form>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        const video = document.getElementById('video');
+        const overlay = document.getElementById('overlay');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const captureBtn = document.getElementById('captureBtn');
+        const statusAlert = document.getElementById('statusAlert');
+        const faceDescriptorInput = document.getElementById('faceDescriptor');
+        const registerForm = document.getElementById('registerForm');
+
+        let currentDescriptor = null;
+
+        async function init() {
+            try {
+                // Load models from CDN or local
+                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                ]);
+
+                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                video.srcObject = stream;
+                
+                loadingStatus.classList.add('hidden');
+                startDetection();
+            } catch (err) {
+                console.error(err);
+                loadingStatus.innerHTML = `<p class="text-red-400 p-4 text-center">Lỗi: Không thể truy cập camera hoặc tải model AI.</p>`;
+            }
+        }
+
+        function startDetection() {
+            const displaySize = { width: video.clientWidth, height: video.clientHeight };
+            faceapi.matchDimensions(overlay, displaySize);
+
+            setInterval(async () => {
+                const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
+
+                const ctx = overlay.getContext('2d');
+                ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+                if (detections) {
+                    const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                    
+                    // Draw face box
+                    ctx.strokeStyle = '#10b981'; // emerald-500
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(
+                        resizedDetections.detection.box.x, 
+                        resizedDetections.detection.box.y, 
+                        resizedDetections.detection.box.width, 
+                        resizedDetections.detection.box.height
+                    );
+
+                    currentDescriptor = detections.descriptor;
+                    captureBtn.disabled = false;
+                    showAlert('Khuôn mặt hợp lệ. Sẵn sàng đăng ký!', 'success');
+                } else {
+                    currentDescriptor = null;
+                    captureBtn.disabled = true;
+                    showAlert('Vui lòng đưa mặt vào khung hình.', 'warning');
+                }
+            }, 200);
+        }
+
+        function showAlert(msg, type) {
+            statusAlert.innerText = msg;
+            statusAlert.className = `p-4 rounded-xl text-sm font-medium ${type === 'success' ? 'bg-emerald-50 text-emerald-700 block' : 'bg-amber-50 text-amber-700 block'}`;
+        }
+
+        captureBtn.addEventListener('click', () => {
+            if (currentDescriptor) {
+                // Convert Float32Array to string
+                faceDescriptorInput.value = JSON.stringify(Array.from(currentDescriptor));
+                registerForm.submit();
+            }
+        });
+
+        init();
+    </script>
+}
+

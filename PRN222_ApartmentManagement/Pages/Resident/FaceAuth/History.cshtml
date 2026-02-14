@@ -1,0 +1,80 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Resident.FaceAuth.HistoryModel
+@{
+    ViewData["Title"] = "Lịch sử xác thực khuôn mặt";
+    ViewData["CurrentPage"] = "faceauth";
+}
+
+<div class="max-w-4xl mx-auto p-6">
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Lịch sử xác thực</h1>
+            <p class="text-slate-500">Xem lại các lần đăng nhập và nhận diện bằng khuôn mặt.</p>
+        </div>
+        <a asp-page="./Status" class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+            <span class="material-icons text-lg mr-1">arrow_back</span>
+            Về trạng thái
+        </a>
+    </div>
+
+    <!-- History Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 border-b border-slate-200">
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Thời gian</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Độ khớp</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Thiết bị / IP</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                @if (Model.Histories.Any())
+                {
+                    @foreach (var history in Model.Histories)
+                    {
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <p class="text-sm font-medium text-slate-900">@history.AuthTime.ToString("dd/MM/yyyy")</p>
+                                <p class="text-xs text-slate-500">@history.AuthTime.ToString("HH:mm:ss")</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                @if (history.IsSuccess)
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                        Thành công
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        Thất bại
+                                    </span>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-slate-600">@((history.ConfidenceScore * 100).ToString("F1"))%</div>
+                                <div class="w-24 h-1.5 bg-slate-100 rounded-full mt-1 overflow-hidden">
+                                    <div class="h-full @(history.ConfidenceScore > 0.8 ? "bg-emerald-500" : "bg-amber-500")" style="width: @(history.ConfidenceScore * 100)%"></div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-sm text-slate-600 truncate max-w-[200px]" title="@history.DeviceInfo">@history.DeviceInfo</p>
+                                <p class="text-xs text-slate-400">@history.IpAddress</p>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="px-6 py-12 text-center text-slate-400 italic">
+                            Chưa có dữ liệu lịch sử xác thực.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

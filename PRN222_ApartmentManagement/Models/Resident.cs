@@ -1,4 +1,4 @@
-﻿﻿﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -29,6 +29,12 @@ public class Resident : User
     [MaxLength(500)]
     public string? Note { get; set; }
 
+    /// <summary>
+    /// Chuỗi JSON chứa face descriptor (vector 128 số) từ face-api.js
+    /// </summary>
+    public string? FaceDescriptor { get; set; }
+
+    public bool IsFaceRegistered { get; set; } = false;
 
     // Navigation properties
     public virtual Apartment? Apartment { get; set; }
@@ -40,4 +46,3 @@ public class Resident : User
     public virtual ICollection<ContractMember> ContractMembers { get; set; } = new List<ContractMember>();
     public virtual ICollection<ServiceOrder> ServiceOrders { get; set; } = new List<ServiceOrder>();
 }
-

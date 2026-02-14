@@ -1,0 +1,86 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Resident.FaceAuth.StatusModel
+@{
+    ViewData["Title"] = "Trạng thái xác thực khuôn mặt";
+    ViewData["CurrentPage"] = "faceauth";
+}
+
+<div class="max-w-3xl mx-auto p-6">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-slate-900">Xác thực khuôn mặt</h1>
+        <p class="text-slate-500">Quản lý và cập nhật dữ liệu sinh trắc học của bạn.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Status Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 rounded-full @(Model.Resident.IsFaceRegistered ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-400") flex items-center justify-center">
+                        <span class="material-icons text-3xl">@(Model.Resident.IsFaceRegistered ? "face" : "face_retouching_off")</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900">Trạng thái dữ liệu</h3>
+                        <p class="text-sm @(Model.Resident.IsFaceRegistered ? "text-emerald-600" : "text-slate-500")">
+                            @(Model.Resident.IsFaceRegistered ? "Đã đăng ký" : "Chưa đăng ký")
+                        </p>
+                    </div>
+                </div>
+
+                @if (Model.Resident.IsFaceRegistered)
+                {
+                    <div class="space-y-4">
+                        <div class="text-sm text-slate-600 flex justify-between">
+                            <span>Ngày đăng ký:</span>
+                            <span class="font-medium text-slate-900">@(Model.Resident.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</span>
+                        </div>
+                        <a asp-page="./Register" class="block w-full py-2.5 bg-slate-800 text-white text-center rounded-lg font-medium hover:bg-slate-900 transition-colors">
+                            Cập nhật khuôn mặt mới
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-4">
+                        <p class="text-sm text-slate-500">Bạn chưa đăng ký khuôn mặt. Đăng ký ngay để sử dụng các tính năng nhận diện tại chung cư.</p>
+                        <a asp-page="./Register" class="block w-full py-2.5 bg-emerald-600 text-white text-center rounded-lg font-medium hover:bg-emerald-700 transition-colors">
+                            Đăng ký ngay
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- History Summary -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+            <div>
+                <h3 class="font-bold text-slate-900 mb-4">Hoạt động gần đây</h3>
+                <div class="space-y-4">
+                    @if (Model.RecentHistories.Any())
+                    {
+                        @foreach (var history in Model.RecentHistories)
+                        {
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons text-sm @(history.IsSuccess ? "text-emerald-500" : "text-red-500")">
+                                    @(history.IsSuccess ? "check_circle" : "cancel")
+                                </span>
+                                <div class="flex-1">
+                                    <p class="text-sm text-slate-800">@(history.IsSuccess ? "Xác thực thành công" : "Xác thực thất bại")</p>
+                                    <p class="text-xs text-slate-400">@history.AuthTime.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-sm text-slate-400 italic">Chưa có lịch sử xác thực.</p>
+                    }
+                </div>
+            </div>
+            <a asp-page="./History" class="mt-4 text-emerald-600 font-semibold text-sm hover:underline">
+                Xem tất cả lịch sử →
+            </a>
+        </div>
+    </div>
+</div>
+
