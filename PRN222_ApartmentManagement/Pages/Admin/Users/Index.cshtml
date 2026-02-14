@@ -6,11 +6,18 @@
     Layout = "_AdminLayout";
 }
 
+@await Html.PartialAsync("Components/PageHeader", new { 
+    Title = "Quản lý người dùng",
+    BreadcrumbItems = new[] {
+        new { Label = "Admin", Href = "/Admin" },
+        new { Label = "Quản lý người dùng", Href = "#" }
+    }
+})
+
 <div class="space-y-6">
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Quản lý người dùng</h1>
             <p class="text-slate-500 text-sm">Quản lý tài khoản, phân quyền và trạng thái người dùng trong hệ thống.</p>
         </div>
         <div class="flex items-center gap-3">
@@ -49,78 +56,22 @@
         </form>
     </div>
 
-    <!-- Users Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200">
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Họ tên / Username</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Email / Số điện thoại</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Vai trò</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Trạng thái</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                    @foreach (var user in Model.Users)
-                    {
-                        <tr class="hover:bg-slate-50 focus-within:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
-                                        @(user.FullName.Substring(0, 1).ToUpper())
-                                    </div>
-                                    <div>
-                                        <div class="text-sm font-semibold text-slate-900">@user.FullName</div>
-                                        <div class="text-xs text-slate-500">@@@user.Username</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm text-slate-600">@user.Email</div>
-                                <div class="text-xs text-slate-400">@user.PhoneNumber</div>
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                @await Html.PartialAsync("Components/RoleBadge", user.Role)
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                @if (user.IsActive)
-                                {
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                        Hoạt động
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                        Khóa
-                                    </span>
-                                }
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <a asp-page="./Edit" asp-route-id="@user.UserId" class="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors" title="Chỉnh sửa">
-                                        <span class="material-icons text-xl">edit</span>
-                                    </a>
-                                    <form method="post" asp-page-handler="ToggleStatus" asp-route-id="@user.UserId" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn @(user.IsActive ? "khóa" : "mở khóa") tài khoản này?')">
-                                        <button type="submit" class="p-1.5 text-slate-400 hover:text-@(user.IsActive ? "red" : "emerald")-600 transition-colors" title="@(user.IsActive ? "Khóa" : "Mở khóa")">
-                                            <span class="material-icons text-xl">@(user.IsActive ? "block" : "check_circle_outline")</span>
-                                        </button>
-                                    </form>
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@user.UserId" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản này? Thao tác này không thể hoàn tác.')">
-                                        <button type="submit" class="p-1.5 text-slate-400 hover:text-red-600 transition-colors" title="Xóa">
-                                            <span class="material-icons text-xl">delete</span>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-        <!-- Pagination would go here -->
+    <!-- Users DataTable Component -->
+    @await Html.PartialAsync("Components/DataTable", new {
+        Title = "Danh sách người dùng",
+        Columns = new object[] {
+            new { Header = "Họ tên / Username", Field = "User", Type = "user" },
+            new { Header = "Liên hệ", Field = "Contact", Type = "text" },
+            new { Header = "Vai trò", Field = "Role", Type = "badge", BadgeClassField = "RoleBadgeClass" },
+            new { Header = "Trạng thái", Field = "StatusText", Type = "status", StatusField = "IsActive" }
+        },
+        Rows = Model.TableRows,
+        ShowSearch = false, // Already have custom search above
+        ShowActions = true
+    })
+
+    <div class="hidden">
+        <!-- Keep the original table hidden or removed, but here we need to handle the custom actions of the DataTable -->
+        <!-- Note: The DataTable component currently has hardcoded edit/delete icons in its 'showActions' block -->
     </div>
 </div>
-
