@@ -53,6 +53,7 @@ public class ApartmentDbContext : DbContext
 
     // Activity Log
     public DbSet<ActivityLog> ActivityLogs { get; set; }
+    public DbSet<SystemSetting> SystemSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -270,5 +271,9 @@ public class ApartmentDbContext : DbContext
             .WithMany(i => i.ServiceOrders)
             .HasForeignKey(so => so.InvoiceId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<SystemSetting>()
+            .HasIndex(s => s.SettingKey)
+            .IsUnique();
     }
 }

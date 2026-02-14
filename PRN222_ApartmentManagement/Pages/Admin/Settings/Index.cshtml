@@ -1,0 +1,80 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Admin.Settings.IndexModel
+@{
+    ViewData["Title"] = "Cấu hình hệ thống";
+}
+
+<div class="p-6 max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-slate-800">Cấu hình hệ thống</h1>
+        <p class="text-slate-600">Thay đổi thông tin cơ bản của chung cư và giao diện hệ thống.</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg flex items-center gap-3">
+            <span class="material-icons">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Tên chung cư</label>
+                        <input type="text" name="Settings[ApartmentName]" value="@Model.Settings["ApartmentName"]" 
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Logo chung cư (Ảnh)</label>
+                        <div class="flex items-center gap-4">
+                            @if (!string.IsNullOrEmpty(Model.Settings["ApartmentLogo"]) && Model.Settings["ApartmentLogo"].StartsWith("/"))
+                            {
+                                <img src="@Model.Settings["ApartmentLogo"]" alt="Logo" class="w-12 h-12 rounded shadow-sm object-cover" />
+                            }
+                            else
+                            {
+                                <div class="w-12 h-12 bg-emerald-500 rounded flex items-center justify-center text-white">
+                                    <span class="material-icons">@Model.Settings["ApartmentLogo"]</span>
+                                </div>
+                            }
+                            <input type="file" name="LogoFile" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
+                            <input type="hidden" name="Settings[ApartmentLogo]" value="@Model.Settings["ApartmentLogo"]" />
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2">Tải ảnh lên để thay thế logo hiện tại hoặc icon.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Địa chỉ chung cư</label>
+                    <input type="text" name="Settings[ApartmentAddress]" value="@Model.Settings["ApartmentAddress"]" 
+                           class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Số điện thoại liên hệ</label>
+                    <input type="text" name="Settings[ApartmentContact]" value="@Model.Settings["ApartmentContact"]" 
+                           class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                    Lưu cấu hình
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <div class="mt-8 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg flex items-start gap-3 text-sm">
+        <span class="material-icons">info</span>
+        <div>
+            <strong>Gợi ý:</strong> Bạn có thể tìm các tên biểu tượng Material Icons tại 
+            <a href="https://fonts.google.com/icons?icon.set=Material+Icons" target="_blank" class="underline font-bold">đây</a> 
+            để thay đổi logo.
+        </div>
+    </div>
+</div>
+

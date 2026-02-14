@@ -5,7 +5,7 @@
     var icon = ViewBag.Icon ?? "";
 }
 
-<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" id="modalOverlay">
+<div class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" id="modalOverlay">
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full mx-4">
         <div class="p-6">
             @if (!string.IsNullOrEmpty(icon) || !string.IsNullOrEmpty(title))
@@ -55,4 +55,3 @@
         </div>
     </div>
 </div>
-

@@ -1,0 +1,32 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Admin.SeedDataModel
+@{
+    ViewData["Title"] = "Seed Data";
+}
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Database Seeding Tool</h2>
+        </div>
+        <div class="card-body">
+            <p class="lead">Click the button below to seed the database with initial users and service types.</p>
+            <div class="alert alert-warning">
+                <strong>Warning:</strong> This will add default accounts for all roles if they don't exist.
+                Password for all new accounts will be: <code>123456</code>
+            </div>
+            
+            @if (Model.Message != null)
+            {
+                <div class="alert alert-info">
+                    @Model.Message
+                </div>
+            }
+
+            <form method="post">
+                <button type="submit" class="btn btn-danger btn-lg">Run Seed Data Now</button>
+            </form>
+        </div>
+    </div>
+</div>
+
