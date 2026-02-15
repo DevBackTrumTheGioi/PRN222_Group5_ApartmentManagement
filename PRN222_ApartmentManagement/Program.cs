@@ -14,18 +14,31 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages(options =>
 {
+    options.Conventions.AllowAnonymousToPage("/Index");
     options.Conventions.AuthorizeFolder("/");
     options.Conventions.AllowAnonymousToPage("/Account/Login");
     options.Conventions.AllowAnonymousToPage("/Account/ForgotPassword");
     options.Conventions.AllowAnonymousToPage("/Account/AccessDenied");
     options.Conventions.AllowAnonymousToPage("/Admin/SeedData");
     options.Conventions.AllowAnonymousToPage("/Error");
+    
+    // Role-based folder authorization
     options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
+    options.Conventions.AuthorizeFolder("/BQL_Manager", "BQLManagerOnly");
+    options.Conventions.AuthorizeFolder("/BQL_Staff", "BQLStaffOnly");
+    options.Conventions.AuthorizeFolder("/Resident", "ResidentOnly");
+    options.Conventions.AuthorizeFolder("/BQT_Head", "BQTHeadOnly");
+    options.Conventions.AuthorizeFolder("/BQT_Member", "BQTMemberOnly");
 });
 
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("BQLManagerOnly", policy => policy.RequireRole("BQL_Manager"));
+    options.AddPolicy("BQLStaffOnly", policy => policy.RequireRole("BQL_Staff"));
+    options.AddPolicy("ResidentOnly", policy => policy.RequireRole("Resident"));
+    options.AddPolicy("BQTHeadOnly", policy => policy.RequireRole("BQT_Head"));
+    options.AddPolicy("BQTMemberOnly", policy => policy.RequireRole("BQT_Member"));
 });
 
 // Configure Authentication

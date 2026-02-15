@@ -77,6 +77,20 @@ public class LoginModel : PageModel
                     Expires = DateTimeOffset.UtcNow.AddMinutes(60)
                 });
 
+                if (string.IsNullOrEmpty(returnUrl) || returnUrl == "/" || returnUrl == Url.Content("~/"))
+                {
+                    return user.Role switch
+                    {
+                        Models.UserRole.Admin => RedirectToPage("/Admin/Index"),
+                        Models.UserRole.BQL_Manager => RedirectToPage("/BQL_Manager/Index"),
+                        Models.UserRole.BQL_Staff => RedirectToPage("/BQL_Staff/Index"),
+                        Models.UserRole.Resident => RedirectToPage("/Resident/Index"),
+                        Models.UserRole.BQT_Head => RedirectToPage("/BQT_Head/Index"),
+                        Models.UserRole.BQT_Member => RedirectToPage("/BQT_Member/Index"),
+                        _ => LocalRedirect(returnUrl ?? "~/")
+                    };
+                }
+
                 return LocalRedirect(returnUrl);
             }
 
