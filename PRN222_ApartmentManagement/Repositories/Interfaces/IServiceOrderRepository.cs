@@ -1,4 +1,5 @@
 ﻿using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Repositories.Interfaces;
 

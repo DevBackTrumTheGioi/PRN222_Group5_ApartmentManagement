@@ -116,18 +116,6 @@ public class ServiceOrder
 }
 
 /// <summary>
-/// Enum for ServiceOrder status
-/// </summary>
-public enum ServiceOrderStatus
-{
-    Pending = 0,
-    Confirmed = 1,
-    InProgress = 2,
-    Completed = 3,
-    Cancelled = 4
-}
-
-/// <summary>
 /// Enum for requested time slots
 /// </summary>
 public enum TimeSlot

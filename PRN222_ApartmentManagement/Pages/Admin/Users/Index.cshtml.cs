@@ -27,6 +27,15 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)]
     public string? RoleFilter { get; set; }
 
+    [BindProperty(SupportsGet = true)]
+    public int PageIndex { get; set; } = 1;
+
+    [BindProperty(SupportsGet = true)]
+    public int PageSize { get; set; } = 10;
+
+    public int TotalItems { get; set; }
+    public int TotalPages { get; set; }
+
     public async Task OnGetAsync()
     {
         var query = _context.Users.Where(u => !u.IsDeleted);
@@ -43,7 +52,16 @@ public class IndexModel : PageModel
             query = query.Where(u => u.Role == role);
         }
 
-        Users = await query.OrderByDescending(u => u.CreatedAt).ToListAsync();
+        TotalItems = await query.CountAsync();
+        TotalPages = (int)Math.Ceiling(TotalItems / (double)PageSize);
+
+        if (PageIndex < 1) PageIndex = 1;
+        if (PageIndex > TotalPages && TotalPages > 0) PageIndex = TotalPages;
+
+        Users = await query.OrderByDescending(u => u.CreatedAt)
+                           .Skip((PageIndex - 1) * PageSize)
+                           .Take(PageSize)
+                           .ToListAsync();
 
         TableRows = Users.Select(u => (object)new {
             PrimaryId = u.UserId,

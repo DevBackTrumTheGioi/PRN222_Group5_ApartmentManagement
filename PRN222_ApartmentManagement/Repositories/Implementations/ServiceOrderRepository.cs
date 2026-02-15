@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Repositories.Interfaces;
 using PRN222_ApartmentManagement.Services;
 
