@@ -40,7 +40,7 @@ public class ServiceOrderRepository : GenericRepository<ServiceOrder>, IServiceO
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<ServiceOrder>> GetByStatusAsync(int status)
+    public async Task<IEnumerable<ServiceOrder>> GetByStatusAsync(ServiceOrderStatus status)
     {
         return await _dbSet
             .Include(so => so.ServiceType)

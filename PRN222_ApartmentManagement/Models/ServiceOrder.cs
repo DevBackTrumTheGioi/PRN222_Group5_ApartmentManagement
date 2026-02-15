@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -53,7 +54,7 @@ public class ServiceOrder
     /// <summary>
     /// 0: Pending, 1: Confirmed, 2: InProgress, 3: Completed, 4: Cancelled
     /// </summary>
-    public int Status { get; set; } = 0;
+    public ServiceOrderStatus Status { get; set; } = ServiceOrderStatus.Pending;
 
     [ForeignKey("AssignedStaff")]
     public int? AssignedTo { get; set; }
