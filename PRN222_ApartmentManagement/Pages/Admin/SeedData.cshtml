@@ -1,32 +1,57 @@
 ﻿@page
 @model PRN222_ApartmentManagement.Pages.Admin.SeedDataModel
 @{
-    ViewData["Title"] = "Seed Data";
+    ViewData["Title"] = "Khởi tạo dữ liệu mẫu";
+    Layout = "_AdminLayout";
+    ViewData["CurrentPage"] = "settings";
+    ViewData["PageHeader"] = new { 
+        Title = "Khởi tạo dữ liệu mẫu",
+        BreadcrumbItems = new[] {
+            new { Label = "Admin", Href = "/Admin" },
+            new { Label = "Khởi tạo dữ liệu", Href = "#" }
+        }
+    };
 }
 
-<div class="container mt-5">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">Database Seeding Tool</h2>
-        </div>
-        <div class="card-body">
-            <p class="lead">Click the button below to seed the database with initial users and service types.</p>
-            <div class="alert alert-warning">
-                <strong>Warning:</strong> This will add default accounts for all roles if they don't exist.
-                Password for all new accounts will be: <code>123456</code>
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-6">
+            <p class="text-slate-600 mb-6">
+                Công cụ này cho phép khởi tạo dữ liệu mẫu thực tế cho toàn bộ hệ thống (Cư dân, Căn hộ, Hợp đồng, Hóa đơn, ...). 
+                Hữu ích cho việc kiểm thử tính năng và demo giao diện.
+            </p>
+
+            <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-6">
+                <div class="flex gap-3">
+                    <span class="material-icons text-amber-600">warning</span>
+                    <div>
+                        <strong class="text-amber-800 text-sm block mb-1">Lưu ý quan trọng:</strong>
+                        <ul class="text-xs text-amber-700 list-disc list-inside space-y-1">
+                            <li>Hệ thống chỉ thêm dữ liệu nếu các bảng đang trống (tránh trùng lặp).</li>
+                            <li>Mật khẩu cho tất cả tài khoản mẫu là: <code class="bg-amber-100 px-1 rounded font-bold">123456</code></li>
+                            <li>Quá trình này có thể mất vài giây tùy thuộc vào tốc độ ổ đĩa.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
             
             @if (Model.Message != null)
             {
-                <div class="alert alert-info">
-                    @Model.Message
+                <div class="p-4 @(Model.Message.StartsWith("Lỗi") ? "bg-red-50 border-red-200 text-red-700" : "bg-emerald-50 border-emerald-200 text-emerald-700") border rounded-lg mb-6 flex items-center gap-3">
+                    <span class="material-icons">@(Model.Message.StartsWith("Lỗi") ? "error" : "check_circle")</span>
+                    <span class="text-sm font-medium">@Model.Message</span>
                 </div>
             }
 
-            <form method="post">
-                <button type="submit" class="btn btn-danger btn-lg">Run Seed Data Now</button>
+            <form method="post" class="flex justify-center">
+                <button type="submit" class="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-bold shadow-lg flex items-center gap-2">
+                    <span class="material-icons">storage</span>
+                    Kích hoạt Seed Data ngay
+                </button>
             </form>
+        </div>
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 text-center">
+            <p class="text-xs text-slate-400 italic">Dữ liệu được tạo dựa trên kịch bản chung cư thực tế tại Việt Nam năm 2026.</p>
         </div>
     </div>
 </div>
-

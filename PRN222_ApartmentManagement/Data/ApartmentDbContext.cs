@@ -40,6 +40,7 @@ public class ApartmentDbContext : DbContext
 
     // Facility entities
     public DbSet<Visitor> Visitors { get; set; }
+    public DbSet<AmenityType> AmenityTypes { get; set; }
     public DbSet<Amenity> Amenities { get; set; }
     public DbSet<AmenityBooking> AmenityBookings { get; set; }
 
@@ -167,6 +168,11 @@ public class ApartmentDbContext : DbContext
             .Property(c => c.Status)
             .HasConversion<string>()
             .HasMaxLength(20);
+
+        modelBuilder.Entity<ContractMember>()
+            .Property(cm => cm.MemberRole)
+            .HasConversion<string>()
+            .HasMaxLength(50);
 
         modelBuilder.Entity<ContractMember>()
             .Property(cm => cm.SignatureStatus)

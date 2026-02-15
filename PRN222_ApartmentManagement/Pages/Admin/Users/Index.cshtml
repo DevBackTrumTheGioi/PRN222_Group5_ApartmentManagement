@@ -54,9 +54,13 @@
             new { Header = "Trạng thái", Field = "StatusText", Type = "status", StatusField = "IsActive" }
         },
         Rows = Model.TableRows,
-        ShowSearch = false, // Already have custom search above
+        ShowSearch = false,
         ShowActions = true,
-        TotalItems = Model.TableRows.Count,
+        TotalItems = Model.TotalItems,
+        TotalPages = Model.TotalPages,
+        CurrentPage = Model.PageIndex,
+        ItemsPerPage = Model.PageSize,
+        OnPageChange = "changePage"
     })
 
     <div class="hidden">
