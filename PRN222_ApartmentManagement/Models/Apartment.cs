@@ -1,4 +1,4 @@
-﻿﻿﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -39,7 +39,7 @@ public class Apartment
     public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
-    public virtual ICollection<Resident> Residents { get; set; } = new List<Resident>();
+    public virtual ICollection<User> Residents { get; set; } = new List<User>();
     public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
     public virtual ICollection<Visitor> Visitors { get; set; } = new List<Visitor>();
@@ -48,4 +48,3 @@ public class Apartment
     public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
     public virtual ICollection<ServiceOrder> ServiceOrders { get; set; } = new List<ServiceOrder>();
 }
-

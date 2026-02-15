@@ -17,7 +17,7 @@ public class ResidentCard
     public string? CardType { get; set; }
 
     [Required]
-    [ForeignKey("Resident")]
+    [ForeignKey("User")]
     public int ResidentId { get; set; }
 
     [ForeignKey("Vehicle")]
@@ -40,7 +40,6 @@ public class ResidentCard
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual Resident Resident { get; set; } = null!;
+    public virtual User Resident { get; set; } = null!;
     public virtual Vehicle? Vehicle { get; set; }
 }
-

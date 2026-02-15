@@ -25,7 +25,7 @@ public class ServiceOrder
     public int ApartmentId { get; set; }
 
     [Required]
-    [ForeignKey("Resident")]
+    [ForeignKey("User")]
     public int ResidentId { get; set; }
 
     [Required]
@@ -107,7 +107,7 @@ public class ServiceOrder
 
     // Navigation properties
     public virtual Apartment Apartment { get; set; } = null!;
-    public virtual Resident Resident { get; set; } = null!;
+    public virtual User Resident { get; set; } = null!;
     public virtual ServiceType ServiceType { get; set; } = null!;
     public virtual User? AssignedStaff { get; set; }
     public virtual User? CompletedByUser { get; set; }
@@ -135,4 +135,3 @@ public enum TimeSlot
     Afternoon,  // 13:00 - 17:00
     Evening     // 18:00 - 21:00
 }
-

@@ -18,7 +18,7 @@ public class Request
     public int ApartmentId { get; set; }
 
     [Required]
-    [ForeignKey("Resident")]
+    [ForeignKey("User")]
     public int ResidentId { get; set; }
 
     [MaxLength(50)]
@@ -44,8 +44,7 @@ public class Request
     public DateTime? ResolvedAt { get; set; }
 
     public virtual Apartment Apartment { get; set; } = null!;
-    public virtual Resident Resident { get; set; } = null!;
+    public virtual User Resident { get; set; } = null!;
     public virtual User? AssignedUser { get; set; }
     public virtual ICollection<RequestAttachment> RequestAttachments { get; set; } = new List<RequestAttachment>();
 }
-

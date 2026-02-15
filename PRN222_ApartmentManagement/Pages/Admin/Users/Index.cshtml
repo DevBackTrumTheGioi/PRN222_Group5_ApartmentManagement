@@ -4,30 +4,16 @@
     ViewData["Title"] = "Quản lý người dùng";
     ViewData["CurrentPage"] = "users";
     Layout = "_AdminLayout";
+    ViewData["PageHeader"] = new { 
+        Title = "Quản lý người dùng",
+        BreadcrumbItems = new[] {
+            new { Label = "Admin", Href = "/Admin" },
+            new { Label = "Quản lý người dùng", Href = "#" }
+        }
+    };
 }
 
-@await Html.PartialAsync("Components/PageHeader", new { 
-    Title = "Quản lý người dùng",
-    BreadcrumbItems = new[] {
-        new { Label = "Admin", Href = "/Admin" },
-        new { Label = "Quản lý người dùng", Href = "#" }
-    }
-})
-
 <div class="space-y-6">
-    <!-- Page Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <p class="text-slate-500 text-sm">Quản lý tài khoản, phân quyền và trạng thái người dùng trong hệ thống.</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <a asp-page="./Create" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm">
-                <span class="material-icons text-white text-lg">add</span>
-                Thêm người dùng mới
-            </a>
-        </div>
-    </div>
-
     <!-- Filters & Search -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
         <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">

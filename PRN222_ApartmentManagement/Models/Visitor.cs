@@ -25,7 +25,7 @@ public class Visitor
     public int ApartmentId { get; set; }
 
     [Required]
-    [ForeignKey("RegisteredByResident")]
+    [ForeignKey("RegisteredByUser")]
     public int RegisteredBy { get; set; }
 
     [Required]
@@ -48,6 +48,5 @@ public class Visitor
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public virtual Apartment Apartment { get; set; } = null!;
-    public virtual Resident RegisteredByResident { get; set; } = null!;
+    public virtual User RegisteredByUser { get; set; } = null!;
 }
-

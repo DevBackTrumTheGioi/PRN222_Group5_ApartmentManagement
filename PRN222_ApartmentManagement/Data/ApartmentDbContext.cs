@@ -15,7 +15,6 @@ public class ApartmentDbContext : DbContext
 
     // Core entities
     public DbSet<Apartment> Apartments { get; set; }
-    public DbSet<Resident> Residents { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<ResidentCard> ResidentCards { get; set; }
@@ -65,16 +64,10 @@ public class ApartmentDbContext : DbContext
             .HasConversion<string>()
             .HasMaxLength(50);
 
-        modelBuilder.Entity<Resident>()
-            .Property(r => r.ResidentType)
+        modelBuilder.Entity<User>()
+            .Property(u => u.ResidentType)
             .HasConversion<string>()
             .HasMaxLength(50);
-
-        modelBuilder.Entity<User>()
-            .UseTptMappingStrategy();
-
-        modelBuilder.Entity<Resident>()
-            .ToTable("Residents");
 
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Username)
@@ -85,8 +78,8 @@ public class ApartmentDbContext : DbContext
             .IsUnique()
             .HasFilter("[Email] IS NOT NULL");
 
-        modelBuilder.Entity<Resident>()
-            .HasIndex(r => r.IdentityCardNumber)
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.IdentityCardNumber)
             .IsUnique()
             .HasFilter("[IdentityCardNumber] IS NOT NULL");
 
@@ -122,15 +115,15 @@ public class ApartmentDbContext : DbContext
             .IsUnique();
 
         // Configure relationships with specific navigation properties
-        modelBuilder.Entity<Resident>()
-            .HasOne(r => r.Apartment)
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Apartment)
             .WithMany(a => a.Residents)
-            .HasForeignKey(r => r.ApartmentId)
+            .HasForeignKey(u => u.ApartmentId)
             .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<ResidentCard>()
             .HasOne(rc => rc.Resident)
-            .WithMany(r => r.ResidentCards)
+            .WithMany(u => u.ResidentCards)
             .HasForeignKey(rc => rc.ResidentId)
             .OnDelete(DeleteBehavior.Cascade);
 
@@ -142,7 +135,7 @@ public class ApartmentDbContext : DbContext
 
         modelBuilder.Entity<Vehicle>()
             .HasOne(v => v.Resident)
-            .WithMany(r => r.Vehicles)
+            .WithMany(u => u.Vehicles)
             .HasForeignKey(v => v.ResidentId)
             .OnDelete(DeleteBehavior.Cascade);
 
@@ -185,7 +178,7 @@ public class ApartmentDbContext : DbContext
 
         modelBuilder.Entity<Request>()
             .HasOne(r => r.Resident)
-            .WithMany(res => res.Requests)
+            .WithMany(u => u.Requests)
             .HasForeignKey(r => r.ResidentId)
             .OnDelete(DeleteBehavior.NoAction);
 
@@ -208,8 +201,56 @@ public class ApartmentDbContext : DbContext
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Visitor>()
-            .HasOne(v => v.RegisteredByResident)
-            .WithMany(r => r.RegisteredVisitors)
+            .HasOne(v => v.Apartment)
+            .WithMany(a => a.Visitors)
+            .HasForeignKey(v => v.ApartmentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Visitor>()
+            .HasOne(v => v.RegisteredByUser)
+            .WithMany(u => u.RegisteredVisitors)
+            .HasForeignKey(v => v.RegisteredBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<AmenityBooking>()
+            .HasOne(ab => ab.Resident)
+            .WithMany(u => u.AmenityBookings)
+            .HasForeignKey(ab => ab.ResidentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ContractMember>()
+            .HasOne(cm => cm.Resident)
+            .WithMany(u => u.ContractMembers)
+            .HasForeignKey(cm => cm.ResidentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.Resident)
+            .WithMany(u => u.ServiceOrders)
+            .HasForeignKey(so => so.ResidentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<FaceAuthHistory>()
+            .HasOne(fah => fah.Resident)
+            .WithMany()
+            .HasForeignKey(fah => fah.ResidentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Announcement>()
+            .HasOne(a => a.Creator)
+            .WithMany(u => u.Announcements)
+            .HasForeignKey(a => a.CreatedBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Document>()
+            .HasOne(d => d.Uploader)
+            .WithMany(u => u.Documents)
+            .HasForeignKey(d => d.UploadedBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Visitor>()
+            .HasOne(v => v.RegisteredByUser)
+            .WithMany(u => u.RegisteredVisitors)
             .HasForeignKey(v => v.RegisteredBy)
             .OnDelete(DeleteBehavior.NoAction);
 
@@ -245,7 +286,7 @@ public class ApartmentDbContext : DbContext
 
         modelBuilder.Entity<ServiceOrder>()
             .HasOne(so => so.Resident)
-            .WithMany(r => r.ServiceOrders)
+            .WithMany(u => u.ServiceOrders)
             .HasForeignKey(so => so.ResidentId)
             .OnDelete(DeleteBehavior.NoAction);
 

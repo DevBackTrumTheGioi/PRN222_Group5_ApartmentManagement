@@ -50,16 +50,49 @@ public class CreateModel : PageModel
         public UserRole Role { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        // Resident specific fields
+        [DataType(DataType.Date)]
+        public DateTime? DateOfBirth { get; set; }
+
+        [StringLength(20)]
+        public string? IdentityCardNumber { get; set; }
+
+        public ResidentType? ResidentType { get; set; }
+
+        [StringLength(20)]
+        public string? ResidencyStatus { get; set; }
+
+        public int? ApartmentId { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? MoveInDate { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? MoveOutDate { get; set; }
+
+        [StringLength(500)]
+        public string? Note { get; set; }
     }
 
-    public void OnGet()
+    public List<Apartment> Apartments { get; set; } = new();
+
+    public async Task OnGetAsync()
     {
+        Apartments = await _context.Apartments
+            .Where(a => a.Status != "Maintenance")
+            .OrderBy(a => a.ApartmentNumber)
+            .ToListAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         if (!ModelState.IsValid)
         {
+            Apartments = await _context.Apartments
+                .Where(a => a.Status != "Maintenance")
+                .OrderBy(a => a.ApartmentNumber)
+                .ToListAsync();
             return Page();
         }
 
@@ -86,7 +119,16 @@ public class CreateModel : PageModel
             PhoneNumber = Input.PhoneNumber,
             Role = Input.Role,
             IsActive = Input.IsActive,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.Now,
+            // Resident fields
+            DateOfBirth = Input.DateOfBirth,
+            IdentityCardNumber = Input.IdentityCardNumber,
+            ResidentType = Input.ResidentType,
+            ResidencyStatus = Input.ResidencyStatus,
+            ApartmentId = Input.ApartmentId,
+            MoveInDate = Input.MoveInDate,
+            MoveOutDate = Input.MoveOutDate,
+            Note = Input.Note
         };
 
         _context.Users.Add(user);

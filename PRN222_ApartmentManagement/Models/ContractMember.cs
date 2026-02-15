@@ -14,7 +14,7 @@ public class ContractMember
     public int ContractId { get; set; }
 
     [Required]
-    [ForeignKey("Resident")]
+    [ForeignKey("User")]
     public int ResidentId { get; set; }
 
     [MaxLength(50)]
@@ -34,6 +34,5 @@ public class ContractMember
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public virtual Contract Contract { get; set; } = null!;
-    public virtual Resident Resident { get; set; } = null!;
+    public virtual User Resident { get; set; } = null!;
 }
-

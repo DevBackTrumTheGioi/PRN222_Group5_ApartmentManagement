@@ -100,7 +100,6 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
 builder.Services.AddScoped<IRequestRepository, RequestRepository>();
 builder.Services.AddScoped<IRequestAttachmentRepository, RequestAttachmentRepository>();
-builder.Services.AddScoped<IResidentRepository, ResidentRepository>();
 builder.Services.AddScoped<IResidentCardRepository, ResidentCardRepository>();
 builder.Services.AddScoped<IServicePriceRepository, ServicePriceRepository>();
 builder.Services.AddScoped<IServiceTypeRepository, ServiceTypeRepository>();

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_ApartmentManagement.Data;
+using PRN222_ApartmentManagement.Models;
 
 namespace PRN222_ApartmentManagement.Pages.Resident.FaceAuth;
 
@@ -36,19 +37,18 @@ public class RegisterModel : PageModel
             return RedirectToPage("/Account/Login");
         }
 
-        var resident = await _context.Residents.FindAsync(userId);
-        if (resident == null)
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null || user.Role != UserRole.Resident)
         {
             return NotFound();
         }
 
-        resident.FaceDescriptor = FaceDescriptorString;
-        resident.IsFaceRegistered = true;
-        resident.UpdatedAt = DateTime.Now;
+        user.FaceDescriptor = FaceDescriptorString;
+        user.IsFaceRegistered = true;
+        user.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
 
         return RedirectToPage("./Status");
     }
 }
-

@@ -259,8 +259,8 @@ public static class ValidationUtils
     {
         var validations = new List<(bool, string)>
         {
-            (!IsNullOrEmpty(fullName), "Họ tên không được để trống"),
-            (IsValidLength(fullName, 2, 200), "Họ tên phải từ 2-200 ký tự"),
+            (!string.IsNullOrEmpty(fullName), "Họ tên không được để trống"),
+            (fullName != null && fullName.Length >= 2 && fullName.Length <= 200, "Họ tên phải từ 2-200 ký tự"),
         };
 
         if (dateOfBirth.HasValue)
@@ -325,4 +325,3 @@ public static class ValidationUtils
         return (errors.Count == 0, errors);
     }
 }
-

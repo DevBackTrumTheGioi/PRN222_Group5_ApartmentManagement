@@ -1,28 +1,52 @@
-﻿<!DOCTYPE html>
+﻿@{
+Layout = null;
+var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
+}
+
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PRN222_ApartmentManagement</title>
+    <title>@ViewData["Title"] - Apartment Management</title>
+    <!-- Tailwind CSS Only -->
     <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 antialiased">
-    <!-- Sidebar -->
-    <partial name="Components/Sidebar" />
-    
-    <!-- Main Content -->
-    <div style="margin-left: 256px; min-height: 100vh;">
-        <main class="p-6">
-            @RenderBody()
-        </main>
+<!-- Fixed Sidebar -->
+<partial name="Components/Sidebar" />
+
+<!-- Main Content Area - offset by sidebar width (256px = 16rem = w-64) -->
+<div style="margin-left: 256px; min-height: 100vh;" class="flex flex-col">
+    <!-- Dashboard Header / Tool Bar -->
+    <div class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4">
+        @if (ViewData["PageHeader"] != null)
+        {
+        @await Html.PartialAsync("Components/PageHeader", ViewData["PageHeader"])
+        }
+        else
+        {
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">@ViewData["Title"]</h1>
+        </div>
+        }
     </div>
 
+    <main class="p-6">
+        @RenderBody()
+    </main>
+</div>
 
-    @await RenderSectionAsync("Scripts", required: false)
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

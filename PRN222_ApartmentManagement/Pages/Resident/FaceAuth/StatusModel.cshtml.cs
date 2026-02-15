@@ -18,7 +18,7 @@ public class StatusModel : PageModel
         _context = context;
     }
 
-    public Models.Resident Resident { get; set; } = null!;
+    public User Resident { get; set; } = null!;
     public List<FaceAuthHistory> RecentHistories { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
@@ -29,13 +29,13 @@ public class StatusModel : PageModel
             return RedirectToPage("/Account/Login");
         }
 
-        var resident = await _context.Residents.FindAsync(userId);
-        if (resident == null)
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null || user.Role != UserRole.Resident)
         {
             return NotFound();
         }
 
-        Resident = resident;
+        Resident = user;
         RecentHistories = await _context.FaceAuthHistories
             .Where(h => h.ResidentId == userId)
             .OrderByDescending(h => h.AuthTime)
@@ -45,4 +45,3 @@ public class StatusModel : PageModel
         return Page();
     }
 }
-

@@ -4,14 +4,16 @@
     ViewData["Title"] = "Cấu hình hệ thống";
     ViewData["CurrentPage"] = "settings";
     Layout = "_AdminLayout";
+    ViewData["PageHeader"] = new { 
+        Title = "Cấu hình hệ thống",
+        BreadcrumbItems = new[] {
+            new { Label = "Admin", Href = "/Admin" },
+            new { Label = "Cấu hình hệ thống", Href = "#" }
+        }
+    };
 }
 
-<div class="p-6 max-w-4xl mx-auto">
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-slate-800">Cấu hình hệ thống</h1>
-        <p class="text-slate-600">Thay đổi thông tin cơ bản của chung cư và giao diện hệ thống.</p>
-    </div>
-
+<div class="max-w-4xl mx-auto space-y-6">
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg flex items-center gap-3">

@@ -33,6 +33,7 @@ public class ServiceOrderRepository : GenericRepository<ServiceOrder>, IServiceO
         return await _dbSet
             .Include(so => so.ServiceType)
             .Include(so => so.Apartment)
+            .Include(so => so.Resident)
             .Where(so => so.ResidentId == residentId)
             .OrderByDescending(so => so.CreatedAt)
             .ToListAsync();
@@ -135,4 +136,3 @@ public class ServiceOrderRepository : GenericRepository<ServiceOrder>, IServiceO
             .FirstOrDefaultAsync(so => so.ServiceOrderId == serviceOrderId);
     }
 }
-

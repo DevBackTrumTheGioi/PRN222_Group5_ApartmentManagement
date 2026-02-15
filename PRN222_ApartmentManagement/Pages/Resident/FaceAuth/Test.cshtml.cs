@@ -25,8 +25,8 @@ public class TestModel : PageModel
 
     public async Task<JsonResult> OnGetRegisteredFacesAsync()
     {
-        var faces = await _context.Residents
-            .Where(r => r.IsFaceRegistered && r.FaceDescriptor != null)
+        var faces = await _context.Users
+            .Where(r => r.IsFaceRegistered && r.FaceDescriptor != null && r.Role == UserRole.Resident)
             .Select(r => new { name = r.FullName, descriptor = r.FaceDescriptor })
             .ToListAsync();
 
@@ -35,12 +35,12 @@ public class TestModel : PageModel
 
     public async Task<IActionResult> OnPostLogAuthAsync([FromBody] AuthLogRequest request)
     {
-        var resident = await _context.Residents.FirstOrDefaultAsync(r => r.FullName == request.Name);
-        if (resident != null)
+        var user = await _context.Users.FirstOrDefaultAsync(r => r.FullName == request.Name && r.Role == UserRole.Resident);
+        if (user != null)
         {
             var history = new FaceAuthHistory
             {
-                ResidentId = resident.UserId,
+                ResidentId = user.UserId,
                 AuthTime = DateTime.Now,
                 IsSuccess = request.Success,
                 ConfidenceScore = request.Score,
@@ -62,4 +62,3 @@ public class TestModel : PageModel
         public bool Success { get; set; }
     }
 }
-

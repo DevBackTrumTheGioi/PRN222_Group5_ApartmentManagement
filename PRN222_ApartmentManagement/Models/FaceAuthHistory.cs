@@ -13,7 +13,7 @@ public class FaceAuthHistory
     public int ResidentId { get; set; }
 
     [ForeignKey("ResidentId")]
-    public virtual Resident Resident { get; set; } = null!;
+    public virtual User Resident { get; set; } = null!;
 
     public DateTime AuthTime { get; set; } = DateTime.Now;
 
@@ -27,4 +27,3 @@ public class FaceAuthHistory
     [MaxLength(200)]
     public string? DeviceInfo { get; set; }
 }
-
