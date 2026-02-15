@@ -1,5 +1,6 @@
-﻿﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -16,8 +17,7 @@ public class Document
     [MaxLength(500)]
     public string? Description { get; set; }
 
-    [MaxLength(50)]
-    public string? DocumentType { get; set; }
+    public DocumentType? DocumentType { get; set; }
 
     [Required]
     [MaxLength(255)]
@@ -41,4 +41,3 @@ public class Document
 
     public virtual User Uploader { get; set; } = null!;
 }
-

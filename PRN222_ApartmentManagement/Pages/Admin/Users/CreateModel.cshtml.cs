@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Services.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.Admin.Users;
@@ -80,7 +81,7 @@ public class CreateModel : PageModel
     public async Task OnGetAsync()
     {
         Apartments = await _context.Apartments
-            .Where(a => a.Status != "Maintenance")
+            .Where(a => a.Status != ApartmentStatus.Maintenance)
             .OrderBy(a => a.ApartmentNumber)
             .ToListAsync();
     }
@@ -90,7 +91,7 @@ public class CreateModel : PageModel
         if (!ModelState.IsValid)
         {
             Apartments = await _context.Apartments
-                .Where(a => a.Status != "Maintenance")
+                .Where(a => a.Status != ApartmentStatus.Maintenance)
                 .OrderBy(a => a.ApartmentNumber)
                 .ToListAsync();
             return Page();

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -28,8 +29,7 @@ public class Apartment
     [MaxLength(50)]
     public string? ApartmentType { get; set; }
 
-    [MaxLength(20)]
-    public string Status { get; set; } = "Available";
+    public ApartmentStatus Status { get; set; } = ApartmentStatus.Available;
 
     [MaxLength(500)]
     public string? Description { get; set; }
