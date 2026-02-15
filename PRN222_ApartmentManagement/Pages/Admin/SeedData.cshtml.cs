@@ -26,7 +26,7 @@ public class SeedDataModel : PageModel
             string connectionString = _configuration.GetConnectionString("DefaultConnection") 
                 ?? throw new InvalidOperationException("Connection string not found.");
             
-            // await DataSeeder.SeedAsync(connectionString);
+            await DataSeeder.SeedAsync(connectionString);
             Message = "Database seeded successfully!";
         }
         catch (Exception ex)

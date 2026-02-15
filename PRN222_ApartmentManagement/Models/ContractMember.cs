@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -17,10 +18,9 @@ public class ContractMember
     [ForeignKey("User")]
     public int ResidentId { get; set; }
 
-    public UserRole? MemberRole { get; set; }
+    public MemberRole? MemberRole { get; set; }
 
-    [MaxLength(20)]
-    public string SignatureStatus { get; set; } = "Pending";
+    public SignatureStatus SignatureStatus { get; set; } = SignatureStatus.Pending;
 
     [Column(TypeName = "date")]
     public DateTime? SignedDate { get; set; }
