@@ -28,8 +28,8 @@ public class ServiceType
     public DateTime? UpdatedAt { get; set; }
 
     public virtual ICollection<ServicePrice> ServicePrices { get; set; } = new List<ServicePrice>();
-    public virtual ICollection<MeterReading> MeterReadings { get; set; } = new List<MeterReading>();
     public virtual ICollection<InvoiceDetail> InvoiceDetails { get; set; } = new List<InvoiceDetail>();
     public virtual ICollection<ApartmentService> ApartmentServices { get; set; } = new List<ApartmentService>();
+    public virtual ICollection<ServiceOrder> ServiceOrders { get; set; } = new List<ServiceOrder>();
 }
 

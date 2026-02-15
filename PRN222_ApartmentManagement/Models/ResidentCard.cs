@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -13,11 +14,10 @@ public class ResidentCard
     [MaxLength(50)]
     public string CardNumber { get; set; } = string.Empty;
 
-    [MaxLength(50)]
-    public string? CardType { get; set; }
+    public CardType? CardType { get; set; }
 
     [Required]
-    [ForeignKey("Resident")]
+    [ForeignKey("User")]
     public int ResidentId { get; set; }
 
     [ForeignKey("Vehicle")]
@@ -30,8 +30,7 @@ public class ResidentCard
     [Column(TypeName = "date")]
     public DateTime? ExpiryDate { get; set; }
 
-    [MaxLength(20)]
-    public string Status { get; set; } = "Active";
+    public CardStatus Status { get; set; } = CardStatus.Active;
 
     [MaxLength(500)]
     public string? Notes { get; set; }
@@ -40,7 +39,6 @@ public class ResidentCard
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual Resident Resident { get; set; } = null!;
+    public virtual User Resident { get; set; } = null!;
     public virtual Vehicle? Vehicle { get; set; }
 }
-

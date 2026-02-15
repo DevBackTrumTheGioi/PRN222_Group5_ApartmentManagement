@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -38,7 +39,7 @@ public class Invoice
     [Column(TypeName = "decimal(18,2)")]
     public decimal PaidAmount { get; set; } = 0;
 
-    public int Status { get; set; } = 0;
+    public InvoiceStatus Status { get; set; } = InvoiceStatus.Unpaid;
 
     [MaxLength(50)]
     public string? PaymentMethod { get; set; }
@@ -60,5 +61,5 @@ public class Invoice
     public virtual User Creator { get; set; } = null!;
     public virtual ICollection<InvoiceDetail> InvoiceDetails { get; set; } = new List<InvoiceDetail>();
     public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
+    public virtual ICollection<ServiceOrder> ServiceOrders { get; set; } = new List<ServiceOrder>();
 }
-

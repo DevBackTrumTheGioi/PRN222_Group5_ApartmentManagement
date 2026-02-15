@@ -1,4 +1,4 @@
-﻿﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -10,7 +10,7 @@ public class Vehicle
     public int VehicleId { get; set; }
 
     [Required]
-    [ForeignKey("Resident")]
+    [ForeignKey("User")]
     public int ResidentId { get; set; }
 
     [MaxLength(50)]
@@ -38,7 +38,6 @@ public class Vehicle
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    public virtual Resident Resident { get; set; } = null!;
+    public virtual User Resident { get; set; } = null!;
     public virtual ICollection<ResidentCard> ResidentCards { get; set; } = new List<ResidentCard>();
 }
-

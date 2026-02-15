@@ -1,5 +1,6 @@
-﻿﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -28,8 +29,7 @@ public class Apartment
     [MaxLength(50)]
     public string? ApartmentType { get; set; }
 
-    [MaxLength(20)]
-    public string Status { get; set; } = "Available";
+    public ApartmentStatus Status { get; set; } = ApartmentStatus.Available;
 
     [MaxLength(500)]
     public string? Description { get; set; }
@@ -39,14 +39,12 @@ public class Apartment
     public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
-    public virtual ICollection<Resident> Residents { get; set; } = new List<Resident>();
+    public virtual ICollection<User> Residents { get; set; } = new List<User>();
     public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
     public virtual ICollection<Visitor> Visitors { get; set; } = new List<Visitor>();
-    public virtual ICollection<Parcel> Parcels { get; set; } = new List<Parcel>();
     public virtual ICollection<AmenityBooking> AmenityBookings { get; set; } = new List<AmenityBooking>();
-    public virtual ICollection<MeterReading> MeterReadings { get; set; } = new List<MeterReading>();
     public virtual ICollection<ApartmentService> ApartmentServices { get; set; } = new List<ApartmentService>();
     public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
+    public virtual ICollection<ServiceOrder> ServiceOrders { get; set; } = new List<ServiceOrder>();
 }
-

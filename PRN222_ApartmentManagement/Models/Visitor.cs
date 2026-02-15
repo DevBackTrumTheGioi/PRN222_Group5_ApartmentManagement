@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -25,7 +26,7 @@ public class Visitor
     public int ApartmentId { get; set; }
 
     [Required]
-    [ForeignKey("RegisteredByResident")]
+    [ForeignKey("RegisteredByUser")]
     public int RegisteredBy { get; set; }
 
     [Required]
@@ -39,8 +40,7 @@ public class Visitor
     [MaxLength(255)]
     public string? QRCode { get; set; }
 
-    [MaxLength(20)]
-    public string Status { get; set; } = "Pending";
+    public VisitorStatus Status { get; set; } = VisitorStatus.Pending;
 
     [MaxLength(500)]
     public string? Notes { get; set; }
@@ -48,6 +48,5 @@ public class Visitor
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public virtual Apartment Apartment { get; set; } = null!;
-    public virtual Resident RegisteredByResident { get; set; } = null!;
+    public virtual User RegisteredByUser { get; set; } = null!;
 }
-

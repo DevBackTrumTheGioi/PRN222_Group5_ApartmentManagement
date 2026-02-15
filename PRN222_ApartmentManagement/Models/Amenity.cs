@@ -1,4 +1,4 @@
-﻿﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -13,8 +13,10 @@ public class Amenity
     [MaxLength(100)]
     public string AmenityName { get; set; } = string.Empty;
 
-    [MaxLength(50)]
-    public string? AmenityType { get; set; }
+    public int? AmenityTypeId { get; set; }
+
+    [ForeignKey("AmenityTypeId")]
+    public virtual AmenityType? AmenityType { get; set; }
 
     [MaxLength(200)]
     public string? Location { get; set; }
@@ -35,4 +37,3 @@ public class Amenity
 
     public virtual ICollection<AmenityBooking> AmenityBookings { get; set; } = new List<AmenityBooking>();
 }
-

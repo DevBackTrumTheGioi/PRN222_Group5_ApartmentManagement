@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Models;
 
 namespace PRN222_ApartmentManagement.Data;
@@ -15,7 +15,6 @@ public class ApartmentDbContext : DbContext
 
     // Core entities
     public DbSet<Apartment> Apartments { get; set; }
-    public DbSet<Resident> Residents { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<ResidentCard> ResidentCards { get; set; }
@@ -23,7 +22,7 @@ public class ApartmentDbContext : DbContext
     // Service entities
     public DbSet<ServiceType> ServiceTypes { get; set; }
     public DbSet<ServicePrice> ServicePrices { get; set; }
-    public DbSet<MeterReading> MeterReadings { get; set; }
+    public DbSet<ServiceOrder> ServiceOrders { get; set; }
     public DbSet<ApartmentService> ApartmentServices { get; set; }
 
     // Invoice entities
@@ -41,7 +40,6 @@ public class ApartmentDbContext : DbContext
 
     // Facility entities
     public DbSet<Visitor> Visitors { get; set; }
-    public DbSet<Parcel> Parcels { get; set; }
     public DbSet<Amenity> Amenities { get; set; }
     public DbSet<AmenityBooking> AmenityBookings { get; set; }
 
@@ -54,16 +52,22 @@ public class ApartmentDbContext : DbContext
 
     // Activity Log
     public DbSet<ActivityLog> ActivityLogs { get; set; }
+    public DbSet<SystemSetting> SystemSettings { get; set; }
+    public DbSet<FaceAuthHistory> FaceAuthHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<User>()
-            .UseTptMappingStrategy();
+            .Property(u => u.Role)
+            .HasConversion<string>()
+            .HasMaxLength(50);
 
-        modelBuilder.Entity<Resident>()
-            .ToTable("Residents");
+        modelBuilder.Entity<User>()
+            .Property(u => u.ResidentType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
 
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Username)
@@ -74,10 +78,100 @@ public class ApartmentDbContext : DbContext
             .IsUnique()
             .HasFilter("[Email] IS NOT NULL");
 
-        modelBuilder.Entity<Resident>()
-            .HasIndex(r => r.IdentityCardNumber)
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.IdentityCardNumber)
             .IsUnique()
             .HasFilter("[IdentityCardNumber] IS NOT NULL");
+
+        modelBuilder.Entity<Announcement>()
+            .Property(a => a.AnnouncementType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Announcement>()
+            .Property(a => a.Priority)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Document>()
+            .Property(d => d.DocumentType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Request>()
+            .Property(r => r.RequestType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Request>()
+            .Property(r => r.Priority)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Request>()
+            .Property(r => r.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<ResidentCard>()
+            .Property(rc => rc.CardType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<ResidentCard>()
+            .Property(rc => rc.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .Property(so => so.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Visitor>()
+            .Property(v => v.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Invoice>()
+            .Property(i => i.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.NotificationType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.ReferenceType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.Priority)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Apartment>()
+            .Property(a => a.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Contract>()
+            .Property(c => c.ContractType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Contract>()
+            .Property(c => c.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<ContractMember>()
+            .Property(cm => cm.SignatureStatus)
+            .HasConversion<string>()
+            .HasMaxLength(20);
 
         modelBuilder.Entity<ResidentCard>()
             .HasIndex(rc => rc.CardNumber)
@@ -105,25 +199,21 @@ public class ApartmentDbContext : DbContext
             .IsUnique()
             .HasFilter("[QRCode] IS NOT NULL");
 
-        modelBuilder.Entity<Parcel>()
-            .HasIndex(p => p.TrackingNumber)
-            .IsUnique()
-            .HasFilter("[TrackingNumber] IS NOT NULL");
 
         modelBuilder.Entity<Contract>()
             .HasIndex(c => c.ContractNumber)
             .IsUnique();
 
         // Configure relationships with specific navigation properties
-        modelBuilder.Entity<Resident>()
-            .HasOne(r => r.Apartment)
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Apartment)
             .WithMany(a => a.Residents)
-            .HasForeignKey(r => r.ApartmentId)
+            .HasForeignKey(u => u.ApartmentId)
             .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<ResidentCard>()
             .HasOne(rc => rc.Resident)
-            .WithMany(r => r.ResidentCards)
+            .WithMany(u => u.ResidentCards)
             .HasForeignKey(rc => rc.ResidentId)
             .OnDelete(DeleteBehavior.Cascade);
 
@@ -135,26 +225,15 @@ public class ApartmentDbContext : DbContext
 
         modelBuilder.Entity<Vehicle>()
             .HasOne(v => v.Resident)
-            .WithMany(r => r.Vehicles)
+            .WithMany(u => u.Vehicles)
             .HasForeignKey(v => v.ResidentId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<MeterReading>()
-            .HasOne(mr => mr.Staff)
-            .WithMany(u => u.MeterReadings)
-            .HasForeignKey(mr => mr.StaffId)
-            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Invoice>()
             .HasOne(i => i.Creator)
             .WithMany(u => u.CreatedInvoices)
             .HasForeignKey(i => i.CreatedBy)
-            .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<InvoiceDetail>()
-            .HasOne(id => id.MeterReading)
-            .WithMany(mr => mr.InvoiceDetails)
-            .HasForeignKey(id => id.MeterReadingId)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<InvoiceDetail>()
@@ -168,6 +247,12 @@ public class ApartmentDbContext : DbContext
             .WithMany(sp => sp.InvoiceDetails)
             .HasForeignKey(id => id.ServicePriceId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<InvoiceDetail>()
+            .HasOne(id => id.ServiceOrder)
+            .WithMany()
+            .HasForeignKey(id => id.ServiceOrderId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<PaymentTransaction>()
             .HasOne(pt => pt.Creator)
@@ -183,7 +268,7 @@ public class ApartmentDbContext : DbContext
 
         modelBuilder.Entity<Request>()
             .HasOne(r => r.Resident)
-            .WithMany(res => res.Requests)
+            .WithMany(u => u.Requests)
             .HasForeignKey(r => r.ResidentId)
             .OnDelete(DeleteBehavior.NoAction);
 
@@ -206,22 +291,59 @@ public class ApartmentDbContext : DbContext
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Visitor>()
-            .HasOne(v => v.RegisteredByResident)
-            .WithMany(r => r.RegisteredVisitors)
+            .HasOne(v => v.Apartment)
+            .WithMany(a => a.Visitors)
+            .HasForeignKey(v => v.ApartmentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Visitor>()
+            .HasOne(v => v.RegisteredByUser)
+            .WithMany(u => u.RegisteredVisitors)
             .HasForeignKey(v => v.RegisteredBy)
             .OnDelete(DeleteBehavior.NoAction);
 
-        modelBuilder.Entity<Parcel>()
-            .HasOne(p => p.ReceivedByUser)
-            .WithMany(u => u.ReceivedParcels)
-            .HasForeignKey(p => p.ReceivedBy)
+        modelBuilder.Entity<AmenityBooking>()
+            .HasOne(ab => ab.Resident)
+            .WithMany(u => u.AmenityBookings)
+            .HasForeignKey(ab => ab.ResidentId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        modelBuilder.Entity<Parcel>()
-            .HasOne(p => p.PickedUpByResident)
-            .WithMany(r => r.PickedUpParcels)
-            .HasForeignKey(p => p.PickedUpBy)
-            .OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<ContractMember>()
+            .HasOne(cm => cm.Resident)
+            .WithMany(u => u.ContractMembers)
+            .HasForeignKey(cm => cm.ResidentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.Resident)
+            .WithMany(u => u.ServiceOrders)
+            .HasForeignKey(so => so.ResidentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<FaceAuthHistory>()
+            .HasOne(fah => fah.Resident)
+            .WithMany()
+            .HasForeignKey(fah => fah.ResidentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Announcement>()
+            .HasOne(a => a.Creator)
+            .WithMany(u => u.Announcements)
+            .HasForeignKey(a => a.CreatedBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Document>()
+            .HasOne(d => d.Uploader)
+            .WithMany(u => u.Documents)
+            .HasForeignKey(d => d.UploadedBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Visitor>()
+            .HasOne(v => v.RegisteredByUser)
+            .WithMany(u => u.RegisteredVisitors)
+            .HasForeignKey(v => v.RegisteredBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
 
 
         modelBuilder.Entity<Contract>()
@@ -237,13 +359,53 @@ public class ApartmentDbContext : DbContext
             .OnDelete(DeleteBehavior.NoAction);
 
         // Configure computed columns
-        modelBuilder.Entity<MeterReading>()
-            .Property(mr => mr.Consumption)
-            .HasComputedColumnSql("[CurrentReading] - [PreviousReading]", stored: true);
-
         modelBuilder.Entity<InvoiceDetail>()
             .Property(id => id.Amount)
             .HasComputedColumnSql("[Quantity] * [UnitPrice]", stored: true);
+
+        // ServiceOrder configurations
+        modelBuilder.Entity<ServiceOrder>()
+            .HasIndex(so => so.OrderNumber)
+            .IsUnique();
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.Apartment)
+            .WithMany(a => a.ServiceOrders)
+            .HasForeignKey(so => so.ApartmentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.Resident)
+            .WithMany(u => u.ServiceOrders)
+            .HasForeignKey(so => so.ResidentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.ServiceType)
+            .WithMany(st => st.ServiceOrders)
+            .HasForeignKey(so => so.ServiceTypeId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.AssignedStaff)
+            .WithMany(u => u.AssignedServiceOrders)
+            .HasForeignKey(so => so.AssignedTo)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.CompletedByUser)
+            .WithMany(u => u.CompletedServiceOrders)
+            .HasForeignKey(so => so.CompletedBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .HasOne(so => so.Invoice)
+            .WithMany(i => i.ServiceOrders)
+            .HasForeignKey(so => so.InvoiceId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<SystemSetting>()
+            .HasIndex(s => s.SettingKey)
+            .IsUnique();
     }
 }
-

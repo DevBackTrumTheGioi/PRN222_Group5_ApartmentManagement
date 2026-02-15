@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -20,11 +21,9 @@ public class Notification
     [Required]
     public string Content { get; set; } = string.Empty;
 
-    [MaxLength(50)]
-    public string? NotificationType { get; set; }
+    public NotificationType NotificationType { get; set; } = NotificationType.Other;
 
-    [MaxLength(50)]
-    public string? ReferenceType { get; set; }
+    public ReferenceType ReferenceType { get; set; } = ReferenceType.None;
 
     public int? ReferenceId { get; set; }
 
@@ -32,10 +31,9 @@ public class Notification
 
     public DateTime? ReadAt { get; set; }
 
-    public int Priority { get; set; } = 1;
+    public NotificationPriority Priority { get; set; } = NotificationPriority.Normal;
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public virtual User User { get; set; } = null!;
 }
-

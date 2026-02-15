@@ -1,0 +1,66 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Admin.Users.IndexModel
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    ViewData["CurrentPage"] = "users";
+    Layout = "_AdminLayout";
+    ViewData["PageHeader"] = new { 
+        Title = "Quản lý người dùng",
+        BreadcrumbItems = new[] {
+            new { Label = "Admin", Href = "/Admin" },
+            new { Label = "Quản lý người dùng", Href = "#" }
+        }
+    };
+}
+
+<div class="space-y-6">
+    <!-- Filters & Search -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-2 relative">
+                <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" name="SearchTerm" value="@Model.SearchTerm" placeholder="Tìm kiếm theo tên, username hoặc email..." 
+                       class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all text-sm" />
+            </div>
+            <div>
+                <select name="RoleFilter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all text-sm">
+                    <option value="">Tất cả vai trò</option>
+                    @foreach (var role in Enum.GetValues<PRN222_ApartmentManagement.Models.UserRole>())
+                    {
+                        <option value="@role" selected="@(Model.RoleFilter == role.ToString())">@role</option>
+                    }
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors font-medium text-sm">
+                    Lọc
+                </button>
+                <a asp-page="./Index" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm">
+                    Xóa
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users DataTable Component -->
+    @await Html.PartialAsync("Components/DataTable", new {
+        Title = "Danh sách người dùng",
+        EditUrl = "/Admin/Users/Edit",
+        DeleteHandler = "Delete",
+        Columns = new object[] {
+            new { Header = "Họ tên / Username", Field = "User", Type = "user" },
+            new { Header = "Liên hệ", Field = "Contact", Type = "text" },
+            new { Header = "Vai trò", Field = "Role", Type = "badge", BadgeClassField = "RoleBadgeClass" },
+            new { Header = "Trạng thái", Field = "StatusText", Type = "status", StatusField = "IsActive" }
+        },
+        Rows = Model.TableRows,
+        ShowSearch = false, // Already have custom search above
+        ShowActions = true,
+        TotalItems = Model.TableRows.Count,
+    })
+
+    <div class="hidden">
+        <!-- Keep the original table hidden or removed, but here we need to handle the custom actions of the DataTable -->
+        <!-- Note: The DataTable component currently has hardcoded edit/delete icons in its 'showActions' block -->
+    </div>
+</div>

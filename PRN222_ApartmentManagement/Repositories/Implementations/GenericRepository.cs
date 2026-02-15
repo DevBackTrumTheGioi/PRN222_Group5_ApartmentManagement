@@ -60,7 +60,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
         var entityList = entities.ToList(); // Materialize to avoid multiple enumeration
         await _dbSet.AddRangeAsync(entityList);
-        await _context.SaveChangesAsync();
 
         // Log bulk CREATE
         try
