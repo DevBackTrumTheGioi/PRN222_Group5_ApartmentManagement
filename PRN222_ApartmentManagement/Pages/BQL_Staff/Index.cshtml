@@ -2,10 +2,120 @@
 @model PRN222_ApartmentManagement.Pages.BQL_Staff.IndexModel
 @{
     ViewData["Title"] = "BQL Staff Dashboard";
+    ViewData["Subtitle"] = "Khu vực làm việc nhân viên";
 }
 
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-4">Chào mừng Nhân viên BQL</h1>
-    <p>Đây là trang tổng quan dành cho nhân viên Ban Quản Lý.</p>
+<div class="space-y-6">
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
+                    <span class="material-icons">assignment</span>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Yêu cầu được giao</p>
+                    <h3 class="text-2xl font-bold">@Model.DashboardData.AssignedRequests</h3>
+                </div>
+            </div>
+            <div class="mt-4 flex gap-4 text-xs font-medium">
+                <span class="text-amber-600">Mới: @Model.DashboardData.PendingRequests</span>
+                <span class="text-blue-600">Đang xử lý: @Model.DashboardData.InProgressRequests</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                    <span class="material-icons">people</span>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Khách dự kiến hôm nay</p>
+                    <h3 class="text-2xl font-bold">@Model.DashboardData.TodayExpectedVisitors</h3>
+                </div>
+            </div>
+            <div class="mt-4 text-xs">
+                <a href="/Visitors" class="text-emerald-600 font-medium hover:underline">Quản lý khách ra vào</a>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                    <span class="material-icons">event_note</span>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Tiện ích hôm nay</p>
+                    <h3 class="text-2xl font-bold">@Model.DashboardData.TodayAmenityBookings</h3>
+                </div>
+            </div>
+            <div class="mt-4 text-xs">
+                <a href="/Amenities/Bookings" class="text-blue-600 font-medium hover:underline">Xem lịch đặt chỗ</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Tasks List -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="text-lg font-bold">Yêu cầu cần xử lý</h3>
+            <a href="/Requests/Assigned" class="text-emerald-600 text-sm font-semibold hover:underline">Xem tất cả</a>
+        </div>
+        <div class="p-0">
+            @if (!Model.DashboardData.MyRecentRequests.Any())
+            {
+                <div class="p-10 text-center text-slate-400">
+                    <span class="material-icons text-5xl mb-2">done_all</span>
+                    <p>Không có yêu cầu nào được giao cho bạn.</p>
+                </div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
+                                <th class="px-6 py-3">Mã số</th>
+                                <th class="px-6 py-3">Tiêu đề</th>
+                                <th class="px-6 py-3">Vị trí</th>
+                                <th class="px-6 py-3">Độ ưu tiên</th>
+                                <th class="px-6 py-3">Trạng thái</th>
+                                <th class="px-6 py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach (var request in Model.DashboardData.MyRecentRequests)
+                            {
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm font-medium text-slate-900">#@request.RequestNumber</td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">@request.Title</td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">Phòng @request.Apartment?.ApartmentNumber</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="px-2 py-1 rounded text-[10px] font-bold uppercase
+                                            @(request.Priority == PRN222_ApartmentManagement.Models.Enums.RequestPriority.High ? "bg-red-50 text-red-600" : 
+                                              request.Priority == PRN222_ApartmentManagement.Models.Enums.RequestPriority.Normal ? "bg-blue-50 text-blue-600" : "bg-slate-50 text-slate-600")">
+                                            @request.Priority
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium 
+                                            @(request.Status == PRN222_ApartmentManagement.Models.Enums.RequestStatus.Pending ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800")">
+                                            <span class="w-1.5 h-1.5 rounded-full @(request.Status == PRN222_ApartmentManagement.Models.Enums.RequestStatus.Pending ? "bg-amber-500" : "bg-blue-500")"></span>
+                                            @request.Status
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <a href="/Requests/Details/@request.RequestId" class="text-slate-400 hover:text-emerald-600">
+                                            <span class="material-icons">navigate_next</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 

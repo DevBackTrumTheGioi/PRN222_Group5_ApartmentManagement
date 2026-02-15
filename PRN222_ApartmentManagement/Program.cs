@@ -121,6 +121,9 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IVisitorRepository, VisitorRepository>();
 builder.Services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
 
+// Register Services
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 var app = builder.Build();
 
 // Automatically create database if it doesn't exist
