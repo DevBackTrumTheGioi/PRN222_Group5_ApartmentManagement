@@ -3,13 +3,13 @@
 Kế hoạch này mô tả việc tạo dữ liệu mẫu thực tế cho toàn bộ các bảng trong hệ thống, theo đúng thứ tự phụ thuộc (dependency order) để đảm bảo Foreign Key hợp lệ.
 
 ### TL;DR
-Tạo/cập nhật file `DataSeeder.cs` trong thư mục `Utils` để seed dữ liệu mẫu tiếng Việt cho 20+ bảng, bao gồm: Users (6 vai trò), Apartments (20 căn hộ), Residents, Contracts, Vehicles, Invoices, Requests, Amenities, Visitors, v.v. Dữ liệu phải trông thực tế như một chung cư thật tại Việt Nam.
+Tạo/cập nhật file `DataSeeder.cs` trong thư mục `Utils` để seed dữ liệu mẫu tiếng Việt cho 20+ bảng, bao gồm: Users (6 vai trò, bao gồm cả Resident), Apartments (20 căn hộ), Contracts, Vehicles, Invoices, Requests, Amenities, Visitors, v.v. Dữ liệu phải trông thực tế như một chung cư thật tại Việt Nam.
 
 ---
 
 ### Steps
 
-#### 1. Seed bảng `Users` (Không phải Resident)
+#### 1. Seed bảng `Users` (Managerial Roles)
 Tạo 8-10 user thuộc các vai trò quản lý:
 
 | Username | Họ tên | Email | Vai trò |
@@ -55,30 +55,30 @@ Tạo 20 căn hộ thuộc 2 tòa nhà (Block A và Block B):
 
 ---
 
-#### 3. Seed bảng `Residents`
-Tạo 35-40 cư dân với thông tin thực tế:
+#### 3. Seed bảng `Users` (Resident Roles)
+Tạo 35-40 cư dân dưới dạng các `User` với `Role = Resident` (hoặc `BQT_Head`, `BQT_Member` tùy trường hợp) và các thông tin định danh cư trú:
 
-| Họ tên | CCCD | Ngày sinh | Căn hộ | Loại cư dân | SĐT |
-|--------|------|-----------|--------|-------------|-----|
-| Nguyễn Văn Hùng | 079085012345 | 15/03/1985 | A-0101 | Owner | 0901234567 |
-| Trần Thị Lan | 079090123456 | 22/07/1990 | A-0101 | Member | 0912345678 |
-| Lê Hoàng Nam | 079088234567 | 10/11/1988 | A-0102 | Owner | 0923456789 |
-| Phạm Thị Hoa | 079092345678 | 05/05/1992 | A-0102 | Member | 0934567890 |
-| Lê Minh Khoa | 079075456789 | 28/01/1975 | A-0201 | Owner | 0945678901 |
-| Nguyễn Thị Thu | 079080567890 | 14/09/1980 | A-0201 | Member | 0956789012 |
-| Lê Minh Tuấn | 079005678901 | 20/06/2005 | A-0201 | Member | 0967890123 |
-| Võ Văn Tâm | 079082678901 | 03/12/1982 | A-0202 | Tenant | 0978901234 |
-| Đặng Thị Mai | 079095789012 | 17/04/1995 | A-0301 | Owner | 0989012345 |
-| Bùi Quốc Việt | 079078890123 | 25/08/1978 | A-0302 | Owner | 0990123456 |
-| Bùi Thị Ngọc | 079082901234 | 11/02/1982 | A-0302 | Member | 0901234568 |
-| Bùi Gia Bảo | 079010012345 | 30/10/2010 | A-0302 | Member | - |
-| Hoàng Văn Dũng | 079070123456 | 08/06/1970 | A-0401 | Owner | 0912345679 |
-| Hoàng Thị Liên | 079075234567 | 19/03/1975 | A-0401 | Member | 0923456780 |
-| Trịnh Công Minh | 079065345678 | 12/12/1965 | A-0501 | Owner | 0934567891 |
-| Trịnh Thị Hương | 079068456789 | 27/07/1968 | A-0501 | Member | 0945678902 |
+| Họ tên | CCCD | Ngày sinh | Căn hộ | Vai trò | SĐT |
+|--------|------|-----------|--------|---------|-----|
+| Nguyễn Văn Hùng | 079085012345 | 15/03/1985 | A-0101 | Resident | 0901234567 |
+| Trần Thị Lan | 079090123456 | 22/07/1990 | A-0101 | Resident | 0912345678 |
+| Lê Hoàng Nam | 079088234567 | 10/11/1988 | A-0102 | Resident | 0923456789 |
+| Phạm Thị Hoa | 079092345678 | 05/05/1992 | A-0102 | Resident | 0934567890 |
+| Lê Minh Khoa | 079075456789 | 28/01/1975 | A-0201 | Resident | 0945678901 |
+| Nguyễn Thị Thu | 079080567890 | 14/09/1980 | A-0201 | Resident | 0956789012 |
+| Lê Minh Tuấn | 079005678901 | 20/06/2005 | A-0201 | Resident | 0967890123 |
+| Võ Văn Tâm | 079082678901 | 03/12/1982 | A-0202 | Resident | 0978901234 |
+| Đặng Thị Mai | 079095789012 | 17/04/1995 | A-0301 | Resident | 0989012345 |
+| Bùi Quốc Việt | 079078890123 | 25/08/1978 | A-0302 | Resident | 0990123456 |
+| Bùi Thị Ngọc | 079082901234 | 11/02/1982 | A-0302 | Resident | 0901234568 |
+| Bùi Gia Bảo | 079010012345 | 30/10/2010 | A-0302 | Resident | - |
+| Hoàng Văn Dũng | 079070123456 | 08/06/1970 | A-0401 | Resident | 0912345679 |
+| Hoàng Thị Liên | 079075234567 | 19/03/1975 | A-0401 | Resident | 0923456780 |
+| Trịnh Công Minh | 079065345678 | 12/12/1965 | A-0501 | Resident | 0934567891 |
+| Trịnh Thị Hương | 079068456789 | 27/07/1968 | A-0501 | Resident | 0945678902 |
 | ... | ... | ... | ... | ... | ... |
 
-*(Tiếp tục với 20+ cư dân khác cho các căn hộ Block B)*
+*(Tiếp tục với 20+ cư dân khác cho các căn hộ Block B. Ghi chú: Một số cư dân có thể trùng với các user BQT đã tạo ở bước 1)*
 
 ---
 
@@ -109,9 +109,9 @@ Tạo 18 hợp đồng:
 ---
 
 #### 5. Seed bảng `ContractMembers`
-Gắn cư dân vào hợp đồng với vai trò:
+Gắn user (Resident) vào hợp đồng với vai trò:
 
-| Hợp đồng | Cư dân | Vai trò |
+| Hợp đồng | User | Vai trò |
 |----------|--------|---------|
 | HD-2024-001 | Nguyễn Văn Hùng | Chủ hợp đồng |
 | HD-2024-001 | Trần Thị Lan | Thành viên |
@@ -124,7 +124,7 @@ Gắn cư dân vào hợp đồng với vai trò:
 #### 6. Seed bảng `Vehicles`
 Tạo 30 phương tiện:
 
-| Biển số | Loại xe | Màu sắc | Hãng | Cư dân | Trạng thái |
+| Biển số | Loại xe | Màu sắc | Hãng | User (Resident) | Trạng thái |
 |---------|---------|---------|------|--------|------------|
 | 51A-123.45 | Ô tô | Trắng | Toyota Camry | Nguyễn Văn Hùng | Active |
 | 59B1-234.56 | Xe máy | Đen | Honda SH | Trần Thị Lan | Active |
@@ -143,7 +143,7 @@ Tạo 30 phương tiện:
 #### 7. Seed bảng `ResidentCards`
 Tạo 45 thẻ cư dân:
 
-| Mã thẻ | Cư dân | Loại thẻ | Ngày cấp | Ngày hết hạn | Trạng thái |
+| Mã thẻ | User (Resident) | Loại thẻ | Ngày cấp | Ngày hết hạn | Trạng thái |
 |--------|--------|----------|----------|--------------|------------|
 | CARD-A0101-001 | Nguyễn Văn Hùng | Chủ hộ | 01/03/2024 | 01/03/2029 | Active |
 | CARD-A0101-002 | Trần Thị Lan | Thành viên | 01/03/2024 | 01/03/2029 | Active |
@@ -212,17 +212,13 @@ Tạo 8 tiện ích:
 #### 11. Seed bảng `AmenityBookings`
 Tạo 25 lượt đặt tiện ích:
 
-| Tiện ích | Cư dân | Ngày đặt | Giờ bắt đầu | Giờ kết thúc | Trạng thái |
+| Tiện ích | User (Resident) | Ngày đặt | Giờ bắt đầu | Giờ kết thúc | Trạng thái |
 |----------|--------|----------|-------------|--------------|------------|
 | Phòng BBQ | Nguyễn Văn Hùng | 10/02/2026 | 18:00 | 21:00 | Completed |
 | Sân Tennis | Lê Hoàng Nam | 12/02/2026 | 07:00 | 08:00 | Completed |
 | Phòng họp A | Bùi Quốc Việt | 14/02/2026 | 14:00 | 16:00 | Confirmed |
 | Hồ bơi | Đặng Thị Mai | 15/02/2026 | 08:00 | 10:00 | Confirmed |
 | Phòng BBQ | Trịnh Công Minh | 16/02/2026 | 17:00 | 20:00 | Confirmed |
-| Phòng họp B | Hoàng Văn Dũng | 18/02/2026 | 09:00 | 11:00 | Pending |
-| Sân Tennis | Võ Văn Tâm | 08/02/2026 | 06:00 | 07:00 | Completed |
-| Hồ bơi | Lê Minh Khoa | 05/02/2026 | 16:00 | 17:00 | Completed |
-| Phòng BBQ | Lê Hoàng Nam | 20/02/2026 | 18:00 | 21:00 | Pending |
 | ... | ... | ... | ... | ... | ... |
 
 ---
@@ -318,16 +314,11 @@ Tạo 12 thông báo:
 #### 17. Seed bảng `Visitors`
 Tạo 25 lượt đăng ký khách:
 
-| Tên khách | CCCD | Căn hộ | Mục đích | Ngày đến | Giờ vào | Giờ ra | Trạng thái |
-|-----------|------|--------|----------|----------|---------|--------|------------|
-| Nguyễn Văn An | 079095111222 | A-0101 | Thăm người thân | 14/02/2026 | 09:30 | 11:45 | Đã ra |
-| Trần Thị Bích | 079088222333 | A-0201 | Thăm bạn bè | 14/02/2026 | 14:00 | - | Đang ở |
-| Lê Văn Cường | 079090333444 | A-0302 | Giao hàng Shopee | 13/02/2026 | 10:15 | 10:20 | Đã ra |
-| Phạm Thị Dung | 079085444555 | B-0101 | Thăm người thân | 13/02/2026 | 15:00 | 18:30 | Đã ra |
-| Hoàng Văn Em | 079092555666 | A-0401 | Sửa chữa điều hòa | 12/02/2026 | 08:00 | 12:00 | Đã ra |
-| Vũ Thị Phương | 079088666777 | B-0201 | Giao hàng Lazada | 12/02/2026 | 11:30 | 11:35 | Đã ra |
-| Đỗ Văn Giang | 079078777888 | A-0501 | Thợ sửa ống nước | 11/02/2026 | 14:00 | 17:00 | Đã ra |
-| ... | ... | ... | ... | ... | ... | ... | ... |
+| Tên khách | CCCD | Căn hộ | Mục đích | Ngày đến | Đăng ký bởi (User) | Trạng thái |
+|-----------|------|--------|----------|----------|---------|------------|
+| Nguyễn Văn An | 079095111222 | A-0101 | Thăm người thân | 14/02/2026 | Nguyễn Văn Hùng | Đã ra |
+| Trần Thị Bích | 079088222333 | A-0201 | Thăm bạn bè | 14/02/2026 | Lê Minh Khoa | Đang ở |
+| ... | ... | ... | ... | ... | ... | ... |
 
 ---
 
@@ -348,16 +339,10 @@ Tạo 80 thông báo cá nhân:
 #### 19. Seed bảng `ServiceOrders`
 Tạo 18 đơn đặt dịch vụ:
 
-| Mã đơn | Căn hộ | Cư dân | Dịch vụ | Ngày đặt | Ngày thực hiện | Trạng thái | Đánh giá |
+| Mã đơn | Căn hộ | User (Resident) | Dịch vụ | Ngày đặt | Ngày thực hiện | Trạng thái | Đánh giá |
 |--------|--------|--------|---------|----------|----------------|------------|----------|
 | SO-202602-001 | A-0101 | Nguyễn Văn Hùng | Dọn vệ sinh | 10/02/2026 | 11/02/2026 | Hoàn thành | 5 sao |
 | SO-202602-002 | A-0201 | Lê Minh Khoa | Giặt ủi | 11/02/2026 | 12/02/2026 | Hoàn thành | 4 sao |
-| SO-202602-003 | A-0302 | Bùi Quốc Việt | Sửa chữa nhỏ | 12/02/2026 | 13/02/2026 | Hoàn thành | 5 sao |
-| SO-202602-004 | B-0101 | Đinh Văn Phong | Dọn vệ sinh | 13/02/2026 | 14/02/2026 | Đang xử lý | - |
-| SO-202602-005 | A-0401 | Hoàng Văn Dũng | Giặt ủi | 13/02/2026 | - | Chờ xử lý | - |
-| SO-202602-006 | B-0201 | Cao Minh Quân | Chuyển đồ | 14/02/2026 | - | Chờ xử lý | - |
-| SO-202602-007 | A-0501 | Trịnh Công Minh | Nấu ăn tại nhà | 08/02/2026 | 08/02/2026 | Hoàn thành | 5 sao |
-| SO-202602-008 | A-0602 | Phan Thị Yến | Trông trẻ | 09/02/2026 | 09/02/2026 | Hoàn thành | 4 sao |
 | ... | ... | ... | ... | ... | ... | ... | ... |
 
 ---
@@ -392,9 +377,9 @@ Tạo 100 log hoạt động:
 ---
 
 #### 22. Seed bảng `FaceAuthHistory`
-Tạo 25 lịch sử xác thực (cho các cư dân đã đăng ký face):
+Tạo 25 lịch sử xác thực (cho các user đã đăng ký face):
 
-| Cư dân | Thời gian | Kết quả | Độ khớp | IP | Thiết bị |
+| User | Thời gian | Kết quả | Độ khớp | IP | Thiết bị |
 |--------|-----------|---------|---------|----|---------| 
 | Nguyễn Văn Hùng | 14/02/2026 07:45 | Thành công | 95.2% | 192.168.1.100 | Cổng chính |
 | Lê Hoàng Nam | 14/02/2026 08:00 | Thành công | 92.8% | 192.168.1.100 | Cổng chính |
@@ -409,7 +394,7 @@ Tạo 25 lịch sử xác thực (cho các cư dân đã đăng ký face):
 
 1. **Thứ tự thực hiện:** Phải seed theo đúng thứ tự dependency:
    ```
-   Users → Apartments → Residents → Contracts → ContractMembers 
+   Users (All Roles) → Apartments → Contracts → ContractMembers 
    → Vehicles → ResidentCards → ServiceTypes → ServicePrices 
    → Amenities → AmenityBookings → Invoices → InvoiceDetails 
    → PaymentTransactions → Requests → Announcements → Visitors 
@@ -419,9 +404,9 @@ Tạo 25 lịch sử xác thực (cho các cư dân đã đăng ký face):
 
 2. **Tính nhất quán dữ liệu:**
    - Tổng tiền hóa đơn = Σ chi tiết
-   - Xe phải thuộc cư dân đang ở căn hộ có trạng thái Occupied
+   - Xe phải thuộc user đang ở căn hộ có trạng thái Occupied
    - Hợp đồng Active chỉ có 1 per căn hộ
-   - Thẻ cư dân chỉ cấp cho cư dân có hợp đồng Active
+   - Thẻ cư dân chỉ cấp cho user có hợp đồng Active và có Role liên quan đến cư trú
 
 3. **Dữ liệu thực tế Việt Nam:**
    - Tên: Họ + Tên đệm + Tên (Nguyễn Văn Hùng, Trần Thị Lan...)
@@ -429,4 +414,3 @@ Tạo 25 lịch sử xác thực (cho các cư dân đã đăng ký face):
    - Biển số xe: Theo format thực tế (51A-123.45 cho ô tô, 59B1-234.56 cho xe máy)
    - Số điện thoại: 10 số, bắt đầu 09x, 08x, 07x, 03x
    - Giá cả: Theo mức giá thực tế tại TP.HCM năm 2026
-

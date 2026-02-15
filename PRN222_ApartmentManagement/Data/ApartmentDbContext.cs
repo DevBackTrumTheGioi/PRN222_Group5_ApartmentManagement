@@ -40,6 +40,7 @@ public class ApartmentDbContext : DbContext
 
     // Facility entities
     public DbSet<Visitor> Visitors { get; set; }
+    public DbSet<AmenityType> AmenityTypes { get; set; }
     public DbSet<Amenity> Amenities { get; set; }
     public DbSet<AmenityBooking> AmenityBookings { get; set; }
 
