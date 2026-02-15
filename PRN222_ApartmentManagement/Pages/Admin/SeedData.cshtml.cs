@@ -27,13 +27,14 @@ public class SeedDataModel : PageModel
                 ?? throw new InvalidOperationException("Connection string not found.");
             
             // await DataSeeder.SeedAsync(connectionString);
-            Message = "Dữ liệu mẫu đã được khởi tạo thành công!";
+            Message = "Database seeded successfully!";
         }
         catch (Exception ex)
         {
-            Message = $"Lỗi: {ex.Message}";
+            Message = $"Error: {ex.Message}";
         }
 
         return Page();
     }
 }
+

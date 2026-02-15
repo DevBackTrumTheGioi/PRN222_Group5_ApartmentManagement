@@ -1,5 +1,6 @@
-﻿﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -16,10 +17,9 @@ public class Announcement
     [Required]
     public string Content { get; set; } = string.Empty;
 
-    [MaxLength(50)]
-    public string? AnnouncementType { get; set; }
+    public AnnouncementType? AnnouncementType { get; set; }
 
-    public int Priority { get; set; } = 1;
+    public AnnouncementPriority Priority { get; set; } = AnnouncementPriority.Normal;
 
     [Required]
     public DateTime PublishedDate { get; set; }
@@ -40,4 +40,3 @@ public class Announcement
 
     public virtual User Creator { get; set; } = null!;
 }
-

@@ -17,8 +17,7 @@ public class ContractMember
     [ForeignKey("User")]
     public int ResidentId { get; set; }
 
-    [MaxLength(50)]
-    public string? MemberRole { get; set; }
+    public UserRole? MemberRole { get; set; }
 
     [MaxLength(20)]
     public string SignatureStatus { get; set; } = "Pending";

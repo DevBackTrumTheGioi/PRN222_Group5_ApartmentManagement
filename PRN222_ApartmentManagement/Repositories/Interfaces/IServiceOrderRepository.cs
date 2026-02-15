@@ -20,7 +20,7 @@ public interface IServiceOrderRepository : IGenericRepository<ServiceOrder>
     /// <summary>
     /// Get service orders by status
     /// </summary>
-    Task<IEnumerable<ServiceOrder>> GetByStatusAsync(int status);
+    Task<IEnumerable<ServiceOrder>> GetByStatusAsync(ServiceOrderStatus status);
 
     /// <summary>
     /// Get service orders assigned to a staff member

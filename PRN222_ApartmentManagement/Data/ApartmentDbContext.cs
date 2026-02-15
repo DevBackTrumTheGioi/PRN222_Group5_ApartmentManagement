@@ -84,6 +84,96 @@ public class ApartmentDbContext : DbContext
             .IsUnique()
             .HasFilter("[IdentityCardNumber] IS NOT NULL");
 
+        modelBuilder.Entity<Announcement>()
+            .Property(a => a.AnnouncementType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Announcement>()
+            .Property(a => a.Priority)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Document>()
+            .Property(d => d.DocumentType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Request>()
+            .Property(r => r.RequestType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Request>()
+            .Property(r => r.Priority)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Request>()
+            .Property(r => r.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<ResidentCard>()
+            .Property(rc => rc.CardType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<ResidentCard>()
+            .Property(rc => rc.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<ServiceOrder>()
+            .Property(so => so.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Visitor>()
+            .Property(v => v.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Invoice>()
+            .Property(i => i.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.NotificationType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.ReferenceType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.Priority)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Apartment>()
+            .Property(a => a.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Contract>()
+            .Property(c => c.ContractType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Contract>()
+            .Property(c => c.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<ContractMember>()
+            .Property(cm => cm.SignatureStatus)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
         modelBuilder.Entity<ResidentCard>()
             .HasIndex(rc => rc.CardNumber)
             .IsUnique();

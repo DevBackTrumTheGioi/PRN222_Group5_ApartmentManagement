@@ -1,5 +1,6 @@
-﻿﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models;
 
@@ -17,8 +18,7 @@ public class Contract
     [ForeignKey("Apartment")]
     public int ApartmentId { get; set; }
 
-    [MaxLength(50)]
-    public string? ContractType { get; set; }
+    public ContractType? ContractType { get; set; }
 
     [Required]
     [Column(TypeName = "date")]
@@ -33,8 +33,7 @@ public class Contract
     [Column(TypeName = "decimal(18,2)")]
     public decimal? DepositAmount { get; set; }
 
-    [MaxLength(20)]
-    public string Status { get; set; } = "Draft";
+    public ContractStatus Status { get; set; } = ContractStatus.Draft;
 
     public string? Terms { get; set; }
 
@@ -63,4 +62,3 @@ public class Contract
     public virtual User Creator { get; set; } = null!;
     public virtual ICollection<ContractMember> ContractMembers { get; set; } = new List<ContractMember>();
 }
-
