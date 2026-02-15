@@ -1,11 +1,173 @@
 ﻿@page
 @model PRN222_ApartmentManagement.Pages.Resident.IndexModel
 @{
-    ViewData["Title"] = "Resident Dashboard";
-    ViewData["CurrentPage"] = "Thông tin chung";
+    ViewData["Title"] = "Không gian cư dân";
+    ViewData["Subtitle"] = "Chào mừng bạn trở về nhà";
 }
 
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-4">Chào mừng Cư dân</h1>
-    <p>Đây là trang tổng quan dành cho cư dân.</p>
+<div class="space-y-8">
+    <!-- Welcome Section & Apartment Info -->
+    <div class="bg-gradient-to-r from-emerald-600 to-teal-500 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h2 class="text-3xl font-bold mb-2">Chào @(User.FindFirst("FullName")?.Value)!</h2>
+            <p class="text-emerald-50 mb-6 max-w-lg">Cập nhật những thông tin mới nhất về căn hộ của bạn ngay tại đây.</p>
+            
+            <div class="flex flex-wrap gap-4">
+                <div class="bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 flex items-center gap-3">
+                    <span class="material-icons">home</span>
+                    <div>
+                        <p class="text-[10px] uppercase font-bold tracking-wider opacity-70">Căn hộ</p>
+                        <p class="font-bold">@(Model.DashboardData.Apartment?.ApartmentNumber ?? "N/A")</p>
+                    </div>
+                </div>
+                <div class="bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 flex items-center gap-3">
+                    <span class="material-icons">location_city</span>
+                    <div>
+                        <p class="text-[10px] uppercase font-bold tracking-wider opacity-70">Tầng</p>
+                        <p class="font-bold">@(Model.DashboardData.Apartment?.Floor ?? 0)</p>
+                    </div>
+                </div>
+                <div class="bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 flex items-center gap-3">
+                    <span class="material-icons">square_foot</span>
+                    <div>
+                        <p class="text-[10px] uppercase font-bold tracking-wider opacity-70">Diện tích</p>
+                        <p class="font-bold">@(Model.DashboardData.Apartment?.Area ?? 0) m²</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Decoration -->
+        <span class="material-icons absolute -right-4 -bottom-4 text-[200px] opacity-10 rotate-12">home</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Stats Column -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Finance Card -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                        <span class="material-icons text-emerald-600">account_balance_wallet</span>
+                        Tình hình phí quản lý
+                    </h3>
+                    <a href="/Invoices" class="text-emerald-600 text-sm font-semibold hover:underline">Chi tiết hóa đơn</a>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-100">
+                        <p class="text-sm text-slate-500 mb-1">Cần thanh toán</p>
+                        <h4 class="text-2xl font-black text-rose-600">@Model.DashboardData.TotalUnpaidAmount.ToString("N0") <span class="text-lg font-bold">đ</span></h4>
+                        <p class="text-xs text-slate-400 mt-2">Dựa trên @Model.DashboardData.UnpaidInvoices hóa đơn chưa thanh toán</p>
+                    </div>
+                    <div class="flex flex-col justify-center gap-3">
+                        <a href="/Payments" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <span class="material-icons text-xl">credit_card</span>
+                            Thanh toán ngay
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Requests -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                        <span class="material-icons text-emerald-600">support_agent</span>
+                        Yêu cầu hỗ trợ gần đây
+                    </h3>
+                    <a href="/Requests/Create" class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-all">Gửi yêu cầu mới</a>
+                </div>
+                <div class="p-0">
+                    @if (!Model.DashboardData.RecentRequests.Any())
+                    {
+                        <div class="p-12 text-center">
+                            <span class="material-icons text-slate-200 text-5xl mb-3">inbox</span>
+                            <p class="text-slate-400">Bạn chưa gửi yêu cầu hỗ trợ nào</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="divide-y divide-slate-100">
+                            @foreach (var req in Model.DashboardData.RecentRequests)
+                            {
+                                <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                                            <span class="material-icons text-slate-400 text-xl">build</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-900 mb-0.5">@req.Title</p>
+                                            <p class="text-xs text-slate-500">Mã yêu cầu: #@req.RequestNumber</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider 
+                                            @(req.Status == PRN222_ApartmentManagement.Models.Enums.RequestStatus.Pending ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700")">
+                                            @req.Status
+                                        </span>
+                                        <p class="text-[10px] text-slate-400 mt-1">@req.CreatedAt.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Column -->
+        <div class="space-y-8">
+            <!-- Announcements -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                        <span class="material-icons text-emerald-600">campaign</span>
+                        Thông báo mới
+                    </h3>
+                </div>
+                <div class="p-4 space-y-4">
+                    @foreach (var announcement in Model.DashboardData.RecentAnnouncements)
+                    {
+                        <div class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase">BQL</span>
+                                <span class="text-[10px] text-slate-400">@announcement.CreatedAt.ToString("dd/MM")</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">@announcement.Title</h4>
+                            <p class="text-xs text-slate-500 mt-1 line-clamp-2">@(announcement.Content?.Length > 50 ? announcement.Content.Substring(0, 50) + "..." : announcement.Content)</p>
+                        </div>
+                    }
+                    <a href="/Announcements" class="block text-center py-2 text-sm font-semibold text-slate-500 hover:text-emerald-600 transition-colors">Xem tất cả thông báo</a>
+                </div>
+            </div>
+
+            <!-- Quick Links / Shortcuts -->
+            <div class="grid grid-cols-2 gap-4">
+                <a href="/Amenities/Book" class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-2 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-icons">event_available</span>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700">Đặt tiện ích</span>
+                </a>
+                <a href="/Services/Order" class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-2 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-icons">cleaning_services</span>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700">Dịch vụ</span>
+                </a>
+                <a href="/Visitors/Register" class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-2 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-icons">person_add</span>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700">Mời khách</span>
+                </a>
+                <a href="/Account/Profile" class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-2 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-icons">account_circle</span>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700">Hồ sơ</span>
+                </a>
+            </div>
+        </div>
+    </div>
 </div>

@@ -1,11 +1,72 @@
 ﻿@page
 @model PRN222_ApartmentManagement.Pages.BQT_Member.IndexModel
 @{
-    ViewData["Title"] = "BQT Member Dashboard";
+    ViewData["Title"] = "Giám sát BQT";
+    ViewData["Subtitle"] = "Theo dõi hoạt động tòa nhà";
 }
 
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-4">Chào mừng Thành viên BQT</h1>
-    <p>Đây là trang tổng quan dành cho Thành viên Ban Quản Trị.</p>
+<div class="space-y-6">
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                    <span class="material-icons">payments</span>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Công nợ hiện tại</p>
+                    <h3 class="text-2xl font-bold">@Model.DashboardData.TotalOutstandingDebt.ToString("N0") <span class="text-sm font-normal">đ</span></h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
+                    <span class="material-icons">feedback</span>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Khiếu nại đang có</p>
+                    <h3 class="text-2xl font-bold">@Model.DashboardData.PendingComplaints</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                    <span class="material-icons">people</span>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Tổng cư dân</p>
+                    <h3 class="text-2xl font-bold">@Model.DashboardData.TotalResidents</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center">
+                    <span class="material-icons">domain</span>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Số hộ dân</p>
+                    <h3 class="text-2xl font-bold">@Model.DashboardData.TotalApartments</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports View Section -->
+    <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center">
+        <span class="material-icons text-slate-200 text-6xl mb-4">visibility</span>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">Chế độ xem giám sát</h3>
+        <p class="text-slate-500 max-w-md mx-auto mb-6">Bạn có quyền xem tất cả báo cáo vận hành và tài chính của tòa nhà. Quyền phê duyệt và thay đổi thuộc về Trưởng Ban Quản Trị.</p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="/BQT/Reports/Finance" class="px-6 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Báo cáo tài chính</a>
+            <a href="/BQT/Complaints" class="px-6 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Xem khiếu nại</a>
+            <a href="/Announcements" class="px-6 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Thông báo chung</a>
+        </div>
+    </div>
 </div>
 
