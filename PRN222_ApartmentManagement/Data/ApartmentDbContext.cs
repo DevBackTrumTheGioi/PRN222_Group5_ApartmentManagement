@@ -174,6 +174,11 @@ public class ApartmentDbContext : DbContext
             .HasConversion<string>()
             .HasMaxLength(20);
 
+        modelBuilder.Entity<ContractMember>()
+            .Property(cm => cm.MemberRole)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
         modelBuilder.Entity<ResidentCard>()
             .HasIndex(rc => rc.CardNumber)
             .IsUnique();
