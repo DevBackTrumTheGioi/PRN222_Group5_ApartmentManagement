@@ -170,14 +170,14 @@ public class ApartmentDbContext : DbContext
             .HasMaxLength(20);
 
         modelBuilder.Entity<ContractMember>()
-            .Property(cm => cm.MemberRole)
-            .HasConversion<string>()
-            .HasMaxLength(50);
-
-        modelBuilder.Entity<ContractMember>()
             .Property(cm => cm.SignatureStatus)
             .HasConversion<string>()
             .HasMaxLength(20);
+
+        modelBuilder.Entity<ContractMember>()
+            .Property(cm => cm.MemberRole)
+            .HasConversion<string>()
+            .HasMaxLength(50);
 
         modelBuilder.Entity<ResidentCard>()
             .HasIndex(rc => rc.CardNumber)
