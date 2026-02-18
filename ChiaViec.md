@@ -324,7 +324,7 @@ ALTER TABLE Announcements ADD Source nvarchar(20) DEFAULT 'BQL';  -- 'BQL', 'BQT
 
 ---
 
-## 👤 MODULE 5 - Tiện ích & Dich vụ
+## 👤 MODULE 5 - Tiện ích & Dich vụ  
 
 ### Module: Đặt tiện ích, Quản lý dịch vụ, Khách thăm
 
