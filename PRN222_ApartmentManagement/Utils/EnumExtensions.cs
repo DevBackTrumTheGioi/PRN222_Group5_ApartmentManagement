@@ -8,7 +8,7 @@ namespace PRN222_ApartmentManagement.Utils;
 public static class EnumExtensions
 {
     public static string GetDisplayName(this Enum enumValue)
-    {
+    { 
         var displayAttribute = enumValue.GetType()
             .GetMember(enumValue.ToString())
             .FirstOrDefault()
