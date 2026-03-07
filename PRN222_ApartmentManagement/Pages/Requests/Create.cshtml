@@ -1,0 +1,237 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Requests.CreateModel
+@{
+    ViewData["Title"] = "Gửi yêu cầu hỗ trợ";
+    ViewData["Subtitle"] = "Mô tả vấn đề của bạn, chúng tôi sẽ hỗ trợ sớm nhất";
+}
+
+<div class="max-w-3xl mx-auto space-y-6">
+
+    <!-- Back link -->
+    <a asp-page="MyRequests" class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+        <span class="material-icons text-lg mr-1">arrow_back</span>
+        Quay lại danh sách yêu cầu
+    </a>
+
+    <!-- Success / Error TempData -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <form method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        @Html.AntiForgeryToken()
+
+        <div class="p-6 space-y-6">
+
+            <!-- Validation summary -->
+            @if (!ModelState.IsValid)
+            {
+                <div class="flex gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <span class="material-icons text-red-500 mt-0.5 text-lg shrink-0">error_outline</span>
+                    <div asp-validation-summary="All" class="text-sm text-red-600 space-y-1"></div>
+                </div>
+            }
+
+            <!-- Section: Thông tin cơ bản -->
+            <div>
+                <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span class="material-icons text-emerald-600 text-base">info</span>
+                    Thông tin yêu cầu
+                </h3>
+
+                <div class="space-y-5">
+                    <!-- Tiêu đề -->
+                    <div class="space-y-1.5">
+                        <label asp-for="Input.Title" class="text-sm font-medium text-slate-700">
+                            Tiêu đề <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="Input.Title"
+                               placeholder="VD: Rò rỉ đường ống nước tầng 3, hỏng bóng đèn hành lang..."
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm placeholder-slate-400" />
+                        <span asp-validation-for="Input.Title" class="text-red-500 text-xs"></span>
+                    </div>
+
+                    <!-- Loại yêu cầu & Mức độ ưu tiên -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-1.5">
+                            <label asp-for="Input.RequestType" class="text-sm font-medium text-slate-700">
+                                Loại yêu cầu
+                            </label>
+                            <select asp-for="Input.RequestType"
+                                    asp-items="Model.RequestTypeOptions"
+                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm bg-white">
+                                <option value="">-- Chọn loại yêu cầu --</option>
+                            </select>
+                            <span asp-validation-for="Input.RequestType" class="text-red-500 text-xs"></span>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label asp-for="Input.Priority" class="text-sm font-medium text-slate-700">
+                                Mức độ ưu tiên
+                            </label>
+                            <select asp-for="Input.Priority"
+                                    asp-items="Model.PriorityOptions"
+                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm bg-white">
+                            </select>
+                            <span asp-validation-for="Input.Priority" class="text-red-500 text-xs"></span>
+                        </div>
+                    </div>
+
+                    <!-- Mô tả -->
+                    <div class="space-y-1.5">
+                        <label asp-for="Input.Description" class="text-sm font-medium text-slate-700">
+                            Mô tả chi tiết
+                        </label>
+                        <textarea asp-for="Input.Description"
+                                  rows="5"
+                                  placeholder="Mô tả rõ vấn đề: vị trí, thời gian xảy ra, mức độ ảnh hưởng..."
+                                  class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm placeholder-slate-400 resize-none"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t border-slate-100"></div>
+
+            <!-- Section: Đính kèm -->
+            <div>
+                <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-2">
+                    <span class="material-icons text-emerald-600 text-base">attach_file</span>
+                    Tệp đính kèm
+                </h3>
+                <p class="text-xs text-slate-400 mb-4">Tối đa 5 tệp · Mỗi tệp ≤ 5MB · Chấp nhận: JPG, PNG, GIF, WEBP, PDF</p>
+
+                <!-- Drop zone -->
+                <div id="dropzone"
+                     class="relative border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-emerald-400 hover:bg-emerald-50/30 transition-all cursor-pointer group">
+                    <input type="file"
+                           name="Attachments"
+                           id="fileInput"
+                           multiple
+                           accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                    <span class="material-icons text-4xl text-slate-300 group-hover:text-emerald-400 transition-colors mb-2">cloud_upload</span>
+                    <p class="text-sm font-medium text-slate-600">Kéo thả tệp vào đây hoặc <span class="text-emerald-600 underline">chọn tệp</span></p>
+                    <p class="text-xs text-slate-400 mt-1">JPG, PNG, GIF, WEBP, PDF</p>
+                </div>
+
+                <span asp-validation-for="Attachments" class="text-red-500 text-xs mt-1 block"></span>
+
+                <!-- Preview grid -->
+                <div id="previewGrid" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 hidden"></div>
+            </div>
+
+        </div>
+
+        <!-- Footer actions -->
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3">
+            <p class="text-xs text-slate-400">
+                <span class="material-icons text-xs align-text-top">lock</span>
+                Yêu cầu sẽ được gửi đến Ban Quản Lý để xử lý
+            </p>
+            <div class="flex gap-3">
+                <a asp-page="MyRequests" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                    Hủy
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-semibold shadow-sm">
+                    <span class="material-icons text-base">send</span>
+                    Gửi yêu cầu
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const fileInput = document.getElementById('fileInput');
+            const previewGrid = document.getElementById('previewGrid');
+            const dropzone = document.getElementById('dropzone');
+            const MAX_FILES = 5;
+            const MAX_SIZE_MB = 5;
+
+            const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+
+            fileInput.addEventListener('change', function () {
+                renderPreviews(this.files);
+            });
+
+            // Drag & drop highlight
+            dropzone.addEventListener('dragover', e => {
+                e.preventDefault();
+                dropzone.classList.add('border-emerald-400', 'bg-emerald-50/30');
+            });
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('border-emerald-400', 'bg-emerald-50/30');
+            });
+            dropzone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropzone.classList.remove('border-emerald-400', 'bg-emerald-50/30');
+                if (e.dataTransfer?.files?.length) {
+                    const dt = new DataTransfer();
+                    Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+                    fileInput.files = dt.files;
+                    renderPreviews(fileInput.files);
+                }
+            });
+
+            function renderPreviews(files) {
+                previewGrid.innerHTML = '';
+
+                if (!files || files.length === 0) {
+                    previewGrid.classList.add('hidden');
+                    return;
+                }
+
+                previewGrid.classList.remove('hidden');
+
+                const shown = Math.min(files.length, MAX_FILES);
+                for (let i = 0; i < shown; i++) {
+                    const file = files[i];
+                    const isValid = ALLOWED_TYPES.includes(file.type) && file.size <= MAX_SIZE_MB * 1024 * 1024;
+
+                    const card = document.createElement('div');
+                    card.className = `relative rounded-xl overflow-hidden border ${isValid ? 'border-slate-200' : 'border-red-300 bg-red-50'} group`;
+
+                    if (file.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.className = 'w-full h-24 object-cover';
+                        img.src = URL.createObjectURL(file);
+                        card.appendChild(img);
+                    } else {
+                        // PDF icon
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'w-full h-24 flex flex-col items-center justify-center bg-slate-50 gap-1';
+                        placeholder.innerHTML = `<span class="material-icons text-3xl text-red-400">picture_as_pdf</span>`;
+                        card.appendChild(placeholder);
+                    }
+
+                    const info = document.createElement('div');
+                    info.className = 'px-2 py-1.5 bg-white';
+                    info.innerHTML = `
+                        <p class="text-xs font-medium text-slate-700 truncate">${file.name}</p>
+                        <p class="text-[10px] ${isValid ? 'text-slate-400' : 'text-red-500'}">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    `;
+                    card.appendChild(info);
+
+                    previewGrid.appendChild(card);
+                }
+
+                // If more than MAX_FILES selected, show warning
+                if (files.length > MAX_FILES) {
+                    const warn = document.createElement('div');
+                    warn.className = 'col-span-full text-xs text-red-500 flex items-center gap-1 mt-1';
+                    warn.innerHTML = `<span class="material-icons text-xs">warning</span> Chỉ ${MAX_FILES} tệp đầu tiên được chấp nhận.`;
+                    previewGrid.appendChild(warn);
+                }
+            }
+        })();
+    </script>
+}

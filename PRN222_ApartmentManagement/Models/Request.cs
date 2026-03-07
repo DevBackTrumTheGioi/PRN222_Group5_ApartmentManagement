@@ -19,7 +19,7 @@ public class Request
   public int ApartmentId { get; set; }
 
   [Required]
-  [ForeignKey("User")]
+  [ForeignKey("Resident")]
   public int ResidentId { get; set; }
 
   public RequestType? RequestType { get; set; }
@@ -37,6 +37,14 @@ public class Request
   [ForeignKey("AssignedUser")]
   public int? AssignedTo { get; set; }
 
+  [ForeignKey("EscalatedToUser")]
+  public int? EscalatedTo { get; set; }
+
+  public DateTime? EscalatedAt { get; set; }
+
+  [MaxLength(500)]
+  public string? EscalationReason { get; set; }
+
   public DateTime CreatedAt { get; set; } = DateTime.Now;
 
   public DateTime? UpdatedAt { get; set; }
@@ -46,5 +54,6 @@ public class Request
   public virtual Apartment Apartment { get; set; } = null!;
   public virtual User Resident { get; set; } = null!;
   public virtual User? AssignedUser { get; set; }
+  public virtual User? EscalatedToUser { get; set; }
   public virtual ICollection<RequestAttachment> RequestAttachments { get; set; } = new List<RequestAttachment>();
 }

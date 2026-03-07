@@ -284,6 +284,12 @@ public class ApartmentDbContext : DbContext
             .HasForeignKey(r => r.AssignedTo)
             .OnDelete(DeleteBehavior.NoAction);
 
+        modelBuilder.Entity<Request>()
+            .HasOne(r => r.EscalatedToUser)
+            .WithMany()
+            .HasForeignKey(r => r.EscalatedTo)
+            .OnDelete(DeleteBehavior.NoAction);
+
         modelBuilder.Entity<Announcement>()
             .HasOne(a => a.Creator)
             .WithMany(u => u.Announcements)
