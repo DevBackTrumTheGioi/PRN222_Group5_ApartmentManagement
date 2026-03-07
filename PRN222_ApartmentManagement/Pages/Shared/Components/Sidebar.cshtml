@@ -5,7 +5,13 @@
     var apartmentName = await SettingService.GetSettingAsync("ApartmentName", "ApartmentMS");
     var apartmentLogo = await SettingService.GetSettingAsync("ApartmentLogo", "apartment");
     var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
-    
+
+    // choose amenity link based on role: admin/managers go to admin area, residents go to resident area
+    var amenityHref = 
+        (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("BQL_Manager") || User.IsInRole("BQT_Head")))
+            ? "/Admin/Amenities"
+            : "/Resident/Amenities";
+
     var menuGroups = new[]
     {
         new {
@@ -41,7 +47,7 @@
             IsCollapsible = true,
             Items = new[] {
                 new { Icon = "support_agent", Label = "Yêu cầu", Href = "/Requests", Key = "requests" },
-                new { Icon = "fitness_center", Label = "Tiện ích", Href = "/Amenities", Key = "amenities" }
+                new { Icon = "fitness_center", Label = "Tiện ích", Href = amenityHref, Key = "amenities" }
             }
         },
         new {
