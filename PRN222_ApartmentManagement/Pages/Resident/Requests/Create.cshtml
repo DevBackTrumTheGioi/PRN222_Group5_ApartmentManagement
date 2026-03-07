@@ -1,5 +1,5 @@
 ﻿@page
-@model PRN222_ApartmentManagement.Pages.Requests.CreateModel
+@model PRN222_ApartmentManagement.Pages.Resident.Requests.CreateModel
 @{
     ViewData["Title"] = "Gửi yêu cầu hỗ trợ";
     ViewData["Subtitle"] = "Mô tả vấn đề của bạn, chúng tôi sẽ hỗ trợ sớm nhất";
@@ -55,30 +55,17 @@
                         <span asp-validation-for="Input.Title" class="text-red-500 text-xs"></span>
                     </div>
 
-                    <!-- Loại yêu cầu & Mức độ ưu tiên -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div class="space-y-1.5">
-                            <label asp-for="Input.RequestType" class="text-sm font-medium text-slate-700">
-                                Loại yêu cầu
-                            </label>
-                            <select asp-for="Input.RequestType"
-                                    asp-items="Model.RequestTypeOptions"
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm bg-white">
-                                <option value="">-- Chọn loại yêu cầu --</option>
-                            </select>
-                            <span asp-validation-for="Input.RequestType" class="text-red-500 text-xs"></span>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <label asp-for="Input.Priority" class="text-sm font-medium text-slate-700">
-                                Mức độ ưu tiên
-                            </label>
-                            <select asp-for="Input.Priority"
-                                    asp-items="Model.PriorityOptions"
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm bg-white">
-                            </select>
-                            <span asp-validation-for="Input.Priority" class="text-red-500 text-xs"></span>
-                        </div>
+                    <!-- Loại yêu cầu -->
+                    <div class="space-y-1.5">
+                        <label asp-for="Input.RequestType" class="text-sm font-medium text-slate-700">
+                            Loại yêu cầu
+                        </label>
+                        <select asp-for="Input.RequestType"
+                                asp-items="Model.RequestTypeOptions"
+                                class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm bg-white">
+                            <option value="">-- Chọn loại yêu cầu --</option>
+                        </select>
+                        <span asp-validation-for="Input.RequestType" class="text-red-500 text-xs"></span>
                     </div>
 
                     <!-- Mô tả -->

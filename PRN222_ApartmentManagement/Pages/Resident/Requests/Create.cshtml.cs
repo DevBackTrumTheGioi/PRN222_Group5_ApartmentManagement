@@ -10,7 +10,7 @@ using PRN222_ApartmentManagement.Repositories.Interfaces;
 using PRN222_ApartmentManagement.Services.Interfaces;
 using PRN222_ApartmentManagement.Utils;
 
-namespace PRN222_ApartmentManagement.Pages.Requests;
+namespace PRN222_ApartmentManagement.Pages.Resident.Requests;
 
 [Authorize(Roles = "Resident")]
 public class CreateModel : PageModel
@@ -38,7 +38,6 @@ public class CreateModel : PageModel
     public List<IFormFile>? Attachments { get; set; }
 
     public SelectList RequestTypeOptions { get; set; } = null!;
-    public SelectList PriorityOptions { get; set; } = null!;
 
     public class InputModel
     {
@@ -49,9 +48,6 @@ public class CreateModel : PageModel
 
         [Display(Name = "Lo?i yêu c?u")]
         public RequestType? RequestType { get; set; }
-
-        [Display(Name = "M?c ?? ?u tiên")]
-        public RequestPriority Priority { get; set; } = RequestPriority.Normal;
 
         [Display(Name = "Mô t? chi ti?t")]
         public string? Description { get; set; }
@@ -97,7 +93,7 @@ public class CreateModel : PageModel
             ResidentId = userId,
             Title = Input.Title,
             RequestType = Input.RequestType,
-            Priority = Input.Priority,
+            Priority = RequestPriority.Normal,
             Description = Input.Description,
         };
 
@@ -150,13 +146,5 @@ public class CreateModel : PageModel
                 Text = e.GetDisplayName()
             }),
             "Value", "Text", Input.RequestType?.ToString());
-
-        PriorityOptions = new SelectList(
-            Enum.GetValues<RequestPriority>().Select(e => new
-            {
-                Value = e.ToString(),
-                Text = e.GetDisplayName()
-            }),
-            "Value", "Text", Input.Priority.ToString());
     }
 }
