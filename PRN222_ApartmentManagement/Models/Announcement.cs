@@ -30,6 +30,9 @@ public class Announcement
 
     public bool IsDeleted { get; set; } = false;
 
+    [MaxLength(20)]
+    public string Source { get; set; } = "BQL";  // "BQL" | "BQT" | "System"
+
     [Required]
     [ForeignKey("Creator")]
     public int CreatedBy { get; set; }
