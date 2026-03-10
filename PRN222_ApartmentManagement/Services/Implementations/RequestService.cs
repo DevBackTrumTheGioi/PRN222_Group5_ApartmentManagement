@@ -115,4 +115,97 @@ public class RequestService : IRequestService
 
         await _requestRepository.UpdateAsync(request);
     }
+
+    public async Task AddCommentAsync(int requestId, int authorId, string content)
+    {
+        var request = await _requestRepository.GetByIdAsync(requestId)
+            ?? throw new InvalidOperationException("Không tìm thấy yêu cầu.");
+
+        if (request.Status is RequestStatus.Completed or RequestStatus.Cancelled or RequestStatus.Rejected)
+            throw new InvalidOperationException("Không thể thêm bình luận vào yêu cầu đã đóng.");
+
+        var comment = new RequestComment
+        {
+            RequestId = requestId,
+            AuthorId = authorId,
+            Content = content.Trim(),
+            CreatedAt = DateTime.Now
+        };
+
+        _context.RequestComments.Add(comment);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdatePriorityAsync(int requestId, RequestPriority priority)
+    {
+        var request = await _requestRepository.GetByIdAsync(requestId)
+            ?? throw new InvalidOperationException("Không tìm thấy yêu cầu.");
+
+        request.Priority = priority;
+        request.UpdatedAt = DateTime.Now;
+
+        await _requestRepository.UpdateAsync(request);
+    }
+
+    public async Task<IEnumerable<Request>> GetAllRequestsAsync(
+        RequestStatus? status, RequestType? type, RequestPriority? priority, string? search)
+    {
+        var all = await _requestRepository.GetAllWithDetailsAsync();
+
+        if (status.HasValue)
+            all = all.Where(r => r.Status == status.Value);
+
+        if (type.HasValue)
+            all = all.Where(r => r.RequestType == type.Value);
+
+        if (priority.HasValue)
+            all = all.Where(r => r.Priority == priority.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var keyword = search.Trim().ToLower();
+            all = all.Where(r =>
+                r.RequestNumber.ToLower().Contains(keyword) ||
+                r.Title.ToLower().Contains(keyword) ||
+                (r.Resident?.FullName?.ToLower().Contains(keyword) ?? false) ||
+                (r.Apartment?.ApartmentNumber?.ToLower().Contains(keyword) ?? false));
+        }
+
+        return all;
+    }
+
+    public async Task EscalateAsync(int requestId, int escalatedToManagerId, string reason)
+    {
+        var request = await _requestRepository.GetByIdAsync(requestId)
+            ?? throw new InvalidOperationException("Không tìm thấy yêu cầu.");
+
+        if (request.EscalatedAt.HasValue)
+            throw new InvalidOperationException("Yêu cầu này đã được chuyển cấp trước đó.");
+
+        if (request.Status is RequestStatus.Completed or RequestStatus.Cancelled or RequestStatus.Rejected)
+            throw new InvalidOperationException("Không thể chuyển cấp yêu cầu đã đóng.");
+
+        var managerExists = await _context.Users
+            .AnyAsync(u => u.UserId == escalatedToManagerId
+                        && u.Role == UserRole.BQL_Manager
+                        && u.IsActive
+                        && !u.IsDeleted);
+
+        if (!managerExists)
+            throw new InvalidOperationException("Quản lý được chọn không hợp lệ hoặc không còn hoạt động.");
+
+        request.EscalatedTo = escalatedToManagerId;
+        request.EscalatedAt = DateTime.Now;
+        request.EscalationReason = reason.Trim();
+        request.UpdatedAt = DateTime.Now;
+
+        await _requestRepository.UpdateAsync(request);
+    }
+
+    public async Task<IEnumerable<Request>> GetEscalatedRequestsAsync()
+    {
+        var all = await _requestRepository.GetAllWithDetailsAsync();
+        return all.Where(r => r.EscalatedAt.HasValue)
+                  .OrderByDescending(r => r.EscalatedAt);
+    }
 }

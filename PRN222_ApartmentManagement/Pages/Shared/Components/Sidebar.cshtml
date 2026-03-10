@@ -40,7 +40,8 @@
             Icon = "room_service",
             IsCollapsible = true,
             Items = new[] {
-                new { Icon = "support_agent", Label = "Yêu cầu", Href = "/Requests", Key = "requests" },
+                new { Icon = "support_agent", Label = "Yêu cầu", Href = User.IsInRole("BQL_Manager") ? "/BQL_Manager/Requests" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "requests" },
+                new { Icon = "escalator_warning", Label = "Yêu cầu chuyển cấp", Href = User.IsInRole("BQL_Manager") ? "/BQL_Manager/Requests/Escalated" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "escalated" },
                 new { Icon = "fitness_center", Label = "Tiện ích", Href = "/Amenities", Key = "amenities" }
             }
         },

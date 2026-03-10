@@ -56,4 +56,5 @@ public class Request
   public virtual User? AssignedUser { get; set; }
   public virtual User? EscalatedToUser { get; set; }
   public virtual ICollection<RequestAttachment> RequestAttachments { get; set; } = new List<RequestAttachment>();
+  public virtual ICollection<RequestComment> Comments { get; set; } = new List<RequestComment>();
 }
