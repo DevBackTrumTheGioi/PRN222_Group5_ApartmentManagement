@@ -46,13 +46,15 @@ public class MyRequestsModel : PageModel
         CompletedCount = all.Count(r => r.Status == RequestStatus.Completed);
         ClosedCount = all.Count(r => r.Status == RequestStatus.Cancelled || r.Status == RequestStatus.Rejected);
 
-        Requests = all;
+        IEnumerable<Request> filtered = all;
 
         if (StatusFilter.HasValue)
-            Requests = Requests.Where(r => r.Status == StatusFilter.Value).ToList();
+            filtered = filtered.Where(r => r.Status == StatusFilter.Value);
 
         if (TypeFilter.HasValue)
-            Requests = Requests.Where(r => r.RequestType == TypeFilter.Value).ToList();
+            filtered = filtered.Where(r => r.RequestType == TypeFilter.Value);
+
+        Requests = filtered.ToList();
 
         return Page();
     }

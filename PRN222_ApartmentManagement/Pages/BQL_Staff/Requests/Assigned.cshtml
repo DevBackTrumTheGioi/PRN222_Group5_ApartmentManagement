@@ -223,6 +223,20 @@
                                         @req.Comments.Count bình luận
                                     </span>
                                 }
+                                @{
+                                    var isActiveReq = req.Status is RequestStatus.Pending or RequestStatus.InProgress;
+                                    var waitDays = (int)(DateTime.Now - req.CreatedAt).TotalDays;
+                                }
+                                @if (isActiveReq && waitDays >= 1)
+                                {
+                                    var waitBg = waitDays >= 7 ? "bg-red-50 text-red-600 border-red-200"
+                                                : waitDays >= 3 ? "bg-orange-50 text-orange-500 border-orange-200"
+                                                : "bg-amber-50 text-amber-500 border-amber-200";
+                                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium border @waitBg">
+                                        <span class="material-icons text-[9px]">hourglass_bottom</span>
+                                        Chờ @waitDays ngày
+                                    </span>
+                                }
                             </div>
                         </div>
 

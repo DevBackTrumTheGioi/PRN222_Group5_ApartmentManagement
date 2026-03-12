@@ -61,7 +61,11 @@ public class EscalatedModel : PageModel
                 (r.EscalationReason?.ToLower().Contains(keyword) ?? false));
         }
 
-        Requests = filtered.OrderByDescending(r => r.EscalatedAt).ToList();
+        Requests = filtered
+            .OrderBy(r => r.Status is RequestStatus.Completed or RequestStatus.Cancelled or RequestStatus.Rejected ? 1 : 0)
+            .ThenByDescending(r => (int)r.Priority)
+            .ThenBy(r => r.EscalatedAt)
+            .ToList();
         return Page();
     }
 

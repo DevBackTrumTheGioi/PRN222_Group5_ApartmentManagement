@@ -27,19 +27,19 @@ public class RequestService : IRequestService
     }
 
     public async Task<IEnumerable<Request>> GetMyRequestsAsync(int residentId)
-        => await _requestRepository.GetByResidentIdAsync(residentId);
+        => SortByUrgency(await _requestRepository.GetByResidentIdAsync(residentId));
 
     public async Task<Request?> GetRequestDetailAsync(int requestId)
         => await _requestRepository.GetWithDetailsAsync(requestId);
 
     public async Task<IEnumerable<Request>> GetAllRequestsAsync()
-        => await _requestRepository.GetAllWithDetailsAsync();
+        => SortByUrgency(await _requestRepository.GetAllWithDetailsAsync());
 
     public async Task<IEnumerable<Request>> GetAssignedRequestsAsync(int staffId)
-        => await _requestRepository.GetByAssignedToAsync(staffId);
+        => SortByUrgency(await _requestRepository.GetByAssignedToAsync(staffId));
 
     public async Task<IEnumerable<Request>> GetComplaintsAsync()
-        => await _requestRepository.GetComplaintsAsync();
+        => SortByUrgency(await _requestRepository.GetComplaintsAsync());
 
     public async Task<Request> CreateRequestAsync(Request request, List<IFormFile>? attachments)
     {
@@ -171,7 +171,7 @@ public class RequestService : IRequestService
                 (r.Apartment?.ApartmentNumber?.ToLower().Contains(keyword) ?? false));
         }
 
-        return all;
+        return SortByUrgency(all);
     }
 
     public async Task EscalateAsync(int requestId, int escalatedToManagerId, string reason)
@@ -205,7 +205,28 @@ public class RequestService : IRequestService
     public async Task<IEnumerable<Request>> GetEscalatedRequestsAsync()
     {
         var all = await _requestRepository.GetAllWithDetailsAsync();
-        return all.Where(r => r.EscalatedAt.HasValue)
-                  .OrderByDescending(r => r.EscalatedAt);
+        return all.Where(r => r.EscalatedAt.HasValue);
+    }
+
+    /// <summary>
+    /// Sắp xếp yêu cầu theo độ tồn đọng:
+    /// 1. Trạng thái active (Pending → InProgress) trước, closed xuống cuối
+    /// 2. Priority cao hơn trước (Emergency > High > Normal > Low)
+    /// 3. Ngày tạo cũ hơn trước (chờ lâu nhất lên đầu tiên)
+    /// </summary>
+    private static IEnumerable<Request> SortByUrgency(IEnumerable<Request> requests)
+    {
+        return requests
+            .OrderBy(r => r.Status switch
+            {
+                RequestStatus.Pending    => 0,
+                RequestStatus.InProgress => 1,
+                RequestStatus.Completed  => 2,
+                RequestStatus.Cancelled  => 3,
+                RequestStatus.Rejected   => 3,
+                _                        => 4
+            })
+            .ThenByDescending(r => (int)r.Priority)
+            .ThenBy(r => r.CreatedAt);
     }
 }

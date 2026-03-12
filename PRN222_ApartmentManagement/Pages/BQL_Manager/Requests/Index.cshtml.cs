@@ -1,4 +1,4 @@
-using System.Security.Claims;
+ï»¿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -49,7 +49,7 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        // Load stats t? toàn b? (tr??c filter)
+        // Load stats t? toÃ n b? (tr??c filter)
         var all = (await _requestService.GetAllRequestsAsync()).ToList();
         TotalCount = all.Count;
         PendingCount = all.Count(r => r.Status == RequestStatus.Pending);
@@ -61,7 +61,7 @@ public class IndexModel : PageModel
         var filtered = await _requestService.GetAllRequestsAsync(StatusFilter, TypeFilter, PriorityFilter, SearchQuery);
         Requests = filtered.ToList();
 
-        // Load danh sách Staff ?? phân công
+        // Load danh sÃ¡ch Staff ?? phÃ¢n cÃ´ng
         var allUsers = await _userRepository.GetAllAsync();
         StaffList = allUsers
             .Where(u => u.Role == UserRole.BQL_Staff && u.IsActive && !u.IsDeleted)
@@ -75,14 +75,14 @@ public class IndexModel : PageModel
     {
         if (requestId <= 0 || staffId <= 0)
         {
-            TempData["ErrorMessage"] = "Thông tin phân công không h?p l?.";
+            TempData["ErrorMessage"] = "ThÃ´ng tin phÃ¢n cÃ´ng khÃ´ng há»£p lá»‡.";
             return RedirectToPage();
         }
 
         try
         {
             await _requestService.AssignRequestAsync(requestId, staffId);
-            TempData["SuccessMessage"] = "Phân công yêu c?u thành công.";
+            TempData["SuccessMessage"] = "PhÃ¢n cÃ´ng yÃªu cáº§u thÃ nh cÃ´ng.";
         }
         catch (Exception ex)
         {
@@ -96,14 +96,14 @@ public class IndexModel : PageModel
     {
         if (requestId <= 0 || !Enum.IsDefined(typeof(RequestPriority), newPriority))
         {
-            TempData["ErrorMessage"] = "Thông tin không h?p l?.";
+            TempData["ErrorMessage"] = "ThÃ´ng tin khÃ´ng há»£p lá»‡.";
             return RedirectToPage(new { StatusFilter, TypeFilter, PriorityFilter, SearchQuery });
         }
 
         try
         {
             await _requestService.UpdatePriorityAsync(requestId, newPriority);
-            TempData["SuccessMessage"] = "?ã c?p nh?t m?c ?? ?u tiên.";
+            TempData["SuccessMessage"] = "ÄÃ£ cáº­p nháº­t má»©c Ä‘á»™ Æ°u tiÃªn.";
         }
         catch (Exception ex)
         {

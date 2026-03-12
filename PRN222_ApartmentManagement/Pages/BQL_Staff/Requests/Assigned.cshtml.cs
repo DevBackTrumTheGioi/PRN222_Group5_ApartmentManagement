@@ -71,7 +71,7 @@ public class AssignedModel : PageModel
                 (r.Resident?.FullName?.ToLower().Contains(keyword) ?? false));
         }
 
-        Requests = filtered.OrderByDescending(r => r.Priority).ThenBy(r => r.CreatedAt).ToList();
+        Requests = filtered.ToList();
 
         return Page();
     }
