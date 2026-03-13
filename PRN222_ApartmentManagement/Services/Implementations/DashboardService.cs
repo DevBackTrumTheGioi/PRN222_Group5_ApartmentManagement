@@ -90,11 +90,15 @@ public class DashboardService : IDashboardService
             
             TodayExpectedVisitors = await _context.Visitors.CountAsync(v => v.VisitDate.Date == today),
             
-            MyRecentRequests = await _context.Requests
+            MyRecentRequests = (await _context.Requests
                 .Where(r => r.AssignedTo == userId)
-                .OrderByDescending(r => r.CreatedAt)
+                .Include(r => r.Apartment)
+                .ToListAsync())
+                .OrderBy(r => r.Status is RequestStatus.Completed or RequestStatus.Cancelled or RequestStatus.Rejected ? 1 : 0)
+                .ThenByDescending(r => (int)r.Priority)
+                .ThenBy(r => r.CreatedAt)
                 .Take(5)
-                .ToListAsync()
+                .ToList()
         };
 
         return model;
