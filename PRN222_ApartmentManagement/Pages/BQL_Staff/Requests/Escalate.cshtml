@@ -1,0 +1,179 @@
+﻿@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.BQL_Staff.Requests.EscalateModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Chuyển cấp yêu cầu";
+    ViewData["Subtitle"] = "Chuyển yêu cầu phức tạp lên Quản lý BQL";
+    ViewData["CurrentPage"] = "assigned";
+
+    (string statusBg, string statusText, string statusIcon) = Model.Request.Status switch {
+        RequestStatus.Pending    => ("bg-amber-50 text-amber-700 border-amber-200",       "Chờ xử lý",  "schedule"),
+        RequestStatus.InProgress => ("bg-blue-50 text-blue-700 border-blue-200",          "Đang xử lý", "sync"),
+        RequestStatus.Completed  => ("bg-emerald-50 text-emerald-700 border-emerald-200", "Hoàn thành", "check_circle"),
+        RequestStatus.Cancelled  => ("bg-slate-50 text-slate-500 border-slate-200",       "Đã hủy",     "cancel"),
+        RequestStatus.Rejected   => ("bg-red-50 text-red-600 border-red-200",             "Từ chối",    "block"),
+        _ => ("bg-slate-50 text-slate-500 border-slate-200", Model.Request.Status.ToString(), "help")
+    };
+}
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+    <!-- Back link -->
+    <a asp-page="Assigned"
+       class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+        <span class="material-icons text-lg mr-1">arrow_back</span>
+        Quay lại danh sách việc được giao
+    </a>
+
+    <!-- Yêu cầu đang escalate -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Yêu cầu cần chuyển cấp</h3>
+        <div class="flex items-start gap-3">
+            <div class="shrink-0 w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center">
+                <span class="material-icons text-blue-600 text-lg">
+                    @(Model.Request.RequestType switch {
+                        RequestType.Repair    => "build",
+                        RequestType.Complaint => "report_problem",
+                        RequestType.Feedback  => "rate_review",
+                        RequestType.Service   => "room_service",
+                        RequestType.Security  => "security",
+                        _ => "help_outline"
+                    })
+                </span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <span class="text-xs font-mono text-slate-400">@Model.Request.RequestNumber</span>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border @statusBg">
+                        <span class="material-icons text-[11px]">@statusIcon</span>
+                        @statusText
+                    </span>
+                    @if (Model.Request.RequestType.HasValue)
+                    {
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            @Model.Request.RequestType.Value.GetDisplayName()
+                        </span>
+                    }
+                </div>
+                <p class="font-semibold text-slate-800">@Model.Request.Title</p>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs text-slate-400">
+                    <span class="flex items-center gap-1">
+                        <span class="material-icons text-xs">person</span>
+                        @(Model.Request.Resident?.FullName ?? "—")
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <span class="material-icons text-xs">home</span>
+                        Căn hộ @Model.Request.Apartment?.ApartmentNumber
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <span class="material-icons text-xs">calendar_today</span>
+                        @Model.Request.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form escalate -->
+    <div class="bg-white rounded-xl border border-orange-200 shadow-sm">
+        <!-- Header -->
+        <div class="flex items-center gap-3 px-6 py-4 border-b border-orange-100 bg-orange-50 rounded-t-xl">
+            <div class="w-10 h-10 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center">
+                <span class="material-icons text-orange-600">escalator_warning</span>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-orange-800">Chuyển cấp lên Quản lý</h2>
+                <p class="text-xs text-orange-600">Vui lòng chọn quản lý và cung cấp lý do chi tiết</p>
+            </div>
+        </div>
+
+        <form method="post" asp-route-id="@Model.Request.RequestId" class="p-6 space-y-5">
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                    <span class="material-icons text-red-500 mt-0.5 shrink-0">error</span>
+                    <div>
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <p>@error.ErrorMessage</p>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Chọn quản lý -->
+            <div class="space-y-1.5">
+                <label asp-for="Input.ManagerId"
+                       class="block text-sm font-medium text-slate-700">
+                    Quản lý nhận xử lý
+                    <span class="text-red-500">*</span>
+                </label>
+                @if (!Model.ManagerOptions.Any())
+                {
+                    <div class="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+                        <span class="material-icons text-base">warning</span>
+                        Hiện chưa có Quản lý BQL nào khả dụng.
+                    </div>
+                }
+                else
+                {
+                    <select asp-for="Input.ManagerId"
+                            asp-items="Model.ManagerOptions"
+                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white">
+                        <option value="">-- Chọn quản lý --</option>
+                    </select>
+                }
+                <span asp-validation-for="Input.ManagerId" class="text-xs text-red-500"></span>
+            </div>
+
+            <!-- Lý do -->
+            <div class="space-y-1.5">
+                <label asp-for="Input.Reason"
+                       class="block text-sm font-medium text-slate-700">
+                    Lý do chuyển cấp
+                    <span class="text-red-500">*</span>
+                </label>
+                <textarea asp-for="Input.Reason"
+                          rows="5"
+                          placeholder="Mô tả chi tiết vấn đề phức tạp, những gì bạn đã thử và lý do cần quản lý can thiệp..."
+                          class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-slate-400 resize-none"></textarea>
+                <div class="flex justify-between items-center">
+                    <span asp-validation-for="Input.Reason" class="text-xs text-red-500"></span>
+                    <span class="text-xs text-slate-400">Tối đa 500 ký tự</span>
+                </div>
+            </div>
+
+            <!-- Lưu ý -->
+            <div class="flex items-start gap-2.5 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <span class="material-icons text-amber-500 text-base mt-0.5 shrink-0">info</span>
+                <p class="text-xs text-amber-700 leading-relaxed">
+                    Sau khi chuyển cấp, quản lý được chọn sẽ nhận được thông báo và tiếp nhận xử lý yêu cầu này.
+                    Bạn vẫn có thể xem tiến trình tại trang <strong>Chi tiết yêu cầu</strong>.
+                </p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                <a asp-page="Assigned"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium transition-colors">
+                    <span class="material-icons text-base">close</span>
+                    Hủy
+                </a>
+                <button type="submit"
+                        @(!Model.ManagerOptions.Any() ? "disabled" : "")
+                        class="inline-flex items-center gap-2 px-5 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-200 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
+                    <span class="material-icons text-base">escalator_warning</span>
+                    Xác nhận chuyển cấp
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

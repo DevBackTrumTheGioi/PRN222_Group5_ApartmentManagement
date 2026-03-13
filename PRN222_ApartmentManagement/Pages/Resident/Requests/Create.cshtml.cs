@@ -41,15 +41,15 @@ public class CreateModel : PageModel
 
     public class InputModel
     {
-        [Required(ErrorMessage = "Vui l�ng nh?p ti�u ??.")]
-        [MaxLength(200, ErrorMessage = "Ti�u ?? kh�ng v??t qu� 200 k� t?.")]
-        [Display(Name = "Ti�u ??")]
+        [Required(ErrorMessage = "Vui lòng nhập tiêu đề.")]
+        [MaxLength(200, ErrorMessage = "Tiêu đề không vượt quá 200 ký tự.")]
+        [Display(Name = "Tiêu đề")]
         public string Title { get; set; } = string.Empty;
 
-        [Display(Name = "Lo?i y�u c?u")]
+        [Display(Name = "Loại yêu cầu")]
         public RequestType? RequestType { get; set; }
 
-        [Display(Name = "M� t? chi ti?t")]
+        [Display(Name = "Mô tả chi tiết")]
         public string? Description { get; set; }
     }
 
@@ -60,7 +60,7 @@ public class CreateModel : PageModel
 
         if (user == null || user.ApartmentId == null)
         {
-            TempData["ErrorMessage"] = "B?n ch?a ???c g�n c?n h?. Vui l�ng li�n h? Ban Qu?n L�.";
+            TempData["ErrorMessage"] = "Bạn chưa được gán căn hộ. Vui lòng liên hệ Ban Quản Lý.";
             return RedirectToPage("/Resident/Index");
         }
 
@@ -75,7 +75,7 @@ public class CreateModel : PageModel
 
         if (user == null || user.ApartmentId == null)
         {
-            TempData["ErrorMessage"] = "B?n ch?a ???c g�n c?n h?. Vui l�ng li�n h? Ban Qu?n L�.";
+            TempData["ErrorMessage"] = "Bạn chưa được gán căn hộ. Vui lòng liên hệ Ban Quản Lý.";
             return RedirectToPage("/Resident/Index");
         }
 
@@ -100,12 +100,12 @@ public class CreateModel : PageModel
         try
         {
             await _requestService.CreateRequestAsync(request, Attachments);
-            TempData["SuccessMessage"] = $"Y�u c?u #{request.RequestNumber} ?� ???c g?i th�nh c�ng.";
+            TempData["SuccessMessage"] = $"Yêu cầu #{request.RequestNumber} đã được gửi thành công.";
             return RedirectToPage("MyRequests");
         }
         catch (Exception)
         {
-            ModelState.AddModelError(string.Empty, "?� x?y ra l?i khi g?i y�u c?u. Vui l�ng th? l?i.");
+            ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại.");
             LoadSelectLists();
             return Page();
         }
@@ -117,7 +117,7 @@ public class CreateModel : PageModel
 
         if (Attachments.Count > 5)
         {
-            ModelState.AddModelError(nameof(Attachments), "T?i ?a 5 t?p ?�nh k�m.");
+            ModelState.AddModelError(nameof(Attachments), "Tối đa 5 tệp đính kèm.");
             return;
         }
 
@@ -126,13 +126,13 @@ public class CreateModel : PageModel
             if (file.Length > MaxFileSizeBytes)
             {
                 ModelState.AddModelError(nameof(Attachments),
-                    $"T?p '{file.FileName}' v??t qu� dung l??ng t?i ?a 5MB.");
+                    $"Tệp '{file.FileName}' vượt quá dung lượng tối đa 5MB.");
             }
 
             if (!AllowedContentTypes.Contains(file.ContentType))
             {
                 ModelState.AddModelError(nameof(Attachments),
-                    $"T?p '{file.FileName}' kh�ng h?p l?. Ch? ch?p nh?n ?nh (JPG, PNG, GIF, WEBP) v� PDF.");
+                    $"Tệp '{file.FileName}' không hợp lệ. Chỉ chấp nhận ảnh (JPG, PNG, GIF, WEBP) và PDF.");
             }
         }
     }

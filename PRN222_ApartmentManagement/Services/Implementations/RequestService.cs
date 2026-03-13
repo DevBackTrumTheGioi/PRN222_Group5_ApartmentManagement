@@ -27,19 +27,19 @@ public class RequestService : IRequestService
     }
 
     public async Task<IEnumerable<Request>> GetMyRequestsAsync(int residentId)
-        => await _requestRepository.GetByResidentIdAsync(residentId);
+        => SortByUrgency(await _requestRepository.GetByResidentIdAsync(residentId));
 
     public async Task<Request?> GetRequestDetailAsync(int requestId)
         => await _requestRepository.GetWithDetailsAsync(requestId);
 
     public async Task<IEnumerable<Request>> GetAllRequestsAsync()
-        => await _requestRepository.GetAllWithDetailsAsync();
+        => SortByUrgency(await _requestRepository.GetAllWithDetailsAsync());
 
     public async Task<IEnumerable<Request>> GetAssignedRequestsAsync(int staffId)
-        => await _requestRepository.GetByAssignedToAsync(staffId);
+        => SortByUrgency(await _requestRepository.GetByAssignedToAsync(staffId));
 
     public async Task<IEnumerable<Request>> GetComplaintsAsync()
-        => await _requestRepository.GetComplaintsAsync();
+        => SortByUrgency(await _requestRepository.GetComplaintsAsync());
 
     public async Task<Request> CreateRequestAsync(Request request, List<IFormFile>? attachments)
     {
@@ -114,5 +114,119 @@ public class RequestService : IRequestService
             request.ResolvedAt = DateTime.Now;
 
         await _requestRepository.UpdateAsync(request);
+    }
+
+    public async Task AddCommentAsync(int requestId, int authorId, string content)
+    {
+        var request = await _requestRepository.GetByIdAsync(requestId)
+            ?? throw new InvalidOperationException("Không tìm thấy yêu cầu.");
+
+        if (request.Status is RequestStatus.Completed or RequestStatus.Cancelled or RequestStatus.Rejected)
+            throw new InvalidOperationException("Không thể thêm bình luận vào yêu cầu đã đóng.");
+
+        var comment = new RequestComment
+        {
+            RequestId = requestId,
+            AuthorId = authorId,
+            Content = content.Trim(),
+            CreatedAt = DateTime.Now
+        };
+
+        _context.RequestComments.Add(comment);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdatePriorityAsync(int requestId, RequestPriority priority)
+    {
+        var request = await _requestRepository.GetByIdAsync(requestId)
+            ?? throw new InvalidOperationException("Không tìm thấy yêu cầu.");
+
+        request.Priority = priority;
+        request.UpdatedAt = DateTime.Now;
+
+        await _requestRepository.UpdateAsync(request);
+    }
+
+    public async Task<IEnumerable<Request>> GetAllRequestsAsync(
+        RequestStatus? status, RequestType? type, RequestPriority? priority, string? search)
+    {
+        var all = await _requestRepository.GetAllWithDetailsAsync();
+
+        if (status.HasValue)
+            all = all.Where(r => r.Status == status.Value);
+
+        if (type.HasValue)
+            all = all.Where(r => r.RequestType == type.Value);
+
+        if (priority.HasValue)
+            all = all.Where(r => r.Priority == priority.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var keyword = search.Trim().ToLower();
+            all = all.Where(r =>
+                r.RequestNumber.ToLower().Contains(keyword) ||
+                r.Title.ToLower().Contains(keyword) ||
+                (r.Resident?.FullName?.ToLower().Contains(keyword) ?? false) ||
+                (r.Apartment?.ApartmentNumber?.ToLower().Contains(keyword) ?? false));
+        }
+
+        return SortByUrgency(all);
+    }
+
+    public async Task EscalateAsync(int requestId, int escalatedToManagerId, string reason)
+    {
+        var request = await _requestRepository.GetByIdAsync(requestId)
+            ?? throw new InvalidOperationException("Không tìm thấy yêu cầu.");
+
+        if (request.EscalatedAt.HasValue)
+            throw new InvalidOperationException("Yêu cầu này đã được chuyển cấp trước đó.");
+
+        if (request.Status is RequestStatus.Completed or RequestStatus.Cancelled or RequestStatus.Rejected)
+            throw new InvalidOperationException("Không thể chuyển cấp yêu cầu đã đóng.");
+
+        var managerExists = await _context.Users
+            .AnyAsync(u => u.UserId == escalatedToManagerId
+                        && u.Role == UserRole.BQL_Manager
+                        && u.IsActive
+                        && !u.IsDeleted);
+
+        if (!managerExists)
+            throw new InvalidOperationException("Quản lý được chọn không hợp lệ hoặc không còn hoạt động.");
+
+        request.EscalatedTo = escalatedToManagerId;
+        request.EscalatedAt = DateTime.Now;
+        request.EscalationReason = reason.Trim();
+        request.UpdatedAt = DateTime.Now;
+
+        await _requestRepository.UpdateAsync(request);
+    }
+
+    public async Task<IEnumerable<Request>> GetEscalatedRequestsAsync()
+    {
+        var all = await _requestRepository.GetAllWithDetailsAsync();
+        return all.Where(r => r.EscalatedAt.HasValue);
+    }
+
+    /// <summary>
+    /// Sắp xếp yêu cầu theo độ tồn đọng:
+    /// 1. Trạng thái active (Pending → InProgress) trước, closed xuống cuối
+    /// 2. Priority cao hơn trước (Emergency > High > Normal > Low)
+    /// 3. Ngày tạo cũ hơn trước (chờ lâu nhất lên đầu tiên)
+    /// </summary>
+    private static IEnumerable<Request> SortByUrgency(IEnumerable<Request> requests)
+    {
+        return requests
+            .OrderBy(r => r.Status switch
+            {
+                RequestStatus.Pending    => 0,
+                RequestStatus.InProgress => 1,
+                RequestStatus.Completed  => 2,
+                RequestStatus.Cancelled  => 3,
+                RequestStatus.Rejected   => 3,
+                _                        => 4
+            })
+            .ThenByDescending(r => (int)r.Priority)
+            .ThenBy(r => r.CreatedAt);
     }
 }

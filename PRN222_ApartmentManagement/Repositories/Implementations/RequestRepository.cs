@@ -33,6 +33,8 @@ public class RequestRepository : GenericRepository<Request>, IRequestRepository
             .Include(r => r.AssignedUser)
             .Include(r => r.EscalatedToUser)
             .Include(r => r.RequestAttachments)
+            .Include(r => r.Comments.OrderBy(c => c.CreatedAt))
+                .ThenInclude(c => c.Author)
             .FirstOrDefaultAsync(r => r.RequestId == requestId);
     }
 
@@ -53,6 +55,7 @@ public class RequestRepository : GenericRepository<Request>, IRequestRepository
             .Include(r => r.Resident)
             .Include(r => r.Apartment)
             .Include(r => r.RequestAttachments)
+            .Include(r => r.Comments)
             .Where(r => r.AssignedTo == staffId)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
