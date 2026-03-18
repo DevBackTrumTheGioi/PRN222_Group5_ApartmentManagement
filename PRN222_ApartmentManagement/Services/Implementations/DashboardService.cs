@@ -87,13 +87,25 @@ public class DashboardService : IDashboardService
             AssignedRequests = await _context.Requests.CountAsync(r => r.AssignedTo == userId && r.Status != RequestStatus.Completed),
             PendingRequests = await _context.Requests.CountAsync(r => r.AssignedTo == userId && r.Status == RequestStatus.Pending),
             InProgressRequests = await _context.Requests.CountAsync(r => r.AssignedTo == userId && r.Status == RequestStatus.InProgress),
-            
+            CompletedTodayRequests = await _context.Requests.CountAsync(r => r.AssignedTo == userId && r.Status == RequestStatus.Completed && r.CreatedAt.Date == today),
+
             TodayExpectedVisitors = await _context.Visitors.CountAsync(v => v.VisitDate.Date == today),
-            
+            TodayCheckedInVisitors = await _context.Visitors.CountAsync(v => v.VisitDate.Date == today && v.Status == VisitorStatus.CheckedOut),
+
             MyRecentRequests = await _context.Requests
                 .Where(r => r.AssignedTo == userId)
                 .OrderByDescending(r => r.CreatedAt)
                 .Take(5)
+                .ToListAsync(),
+
+            // Tiện ích hôm nay
+            TodayAmenityBookings = await _context.AmenityBookings.CountAsync(b => b.BookingDate == today && b.Status != "Cancelled"),
+            TodayCheckedInBookings = await _context.AmenityBookings.CountAsync(b => b.BookingDate == today && b.Status == "CheckedIn"),
+
+            // Danh sách khách hôm nay
+            TodayVisitorsList = await _context.Visitors
+                .Where(v => v.VisitDate.Date == today)
+                .OrderBy(v => v.CreatedAt)
                 .ToListAsync()
         };
 

@@ -1,0 +1,109 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Resident.Amenities.IndexModel
+@{
+    ViewData["Title"] = "Lịch tiện ích";
+}
+
+<div class="bg-white p-6 rounded-xl border">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">Lịch tiện ích</h2>
+        <a class="btn btn-primary" asp-page="Book">Đặt tiện ích</a>
+    </div>
+
+    <div class="mb-4">
+        <label class="text-sm">Chọn tiện ích</label>
+        <select id="amenityFilter" class="form-select w-64">
+            <option value="">Tất cả</option>
+            @foreach (var a in Model.Amenities)
+            {
+                <option value="@a.AmenityId">@a.AmenityName</option>
+            }
+        </select>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 text-emerald-600">@TempData["Success"]</div>
+    }
+
+    <div id="calendar"></div>
+</div>
+
+@section Scripts{
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function pad(n) { return n < 10 ? '0' + n : n; }
+            function formatDateLocal(d) {
+                return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+            }
+            function formatTimeLocal(d) {
+                return pad(d.getHours()) + ':' + pad(d.getMinutes());
+            }
+
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                selectable: true,
+                selectMirror: true,
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+                events: function (info, successCallback, failureCallback) {
+                    var amenityId = document.getElementById('amenityFilter').value;
+                    var params = new URLSearchParams();
+                    params.set('handler', 'Events');
+                    params.set('start', info.startStr);
+                    params.set('end', info.endStr);
+                    if (amenityId) params.set('amenityId', amenityId);
+                    var url = '/Resident/Amenities?' + params.toString();
+
+                    fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                        .then(function (r) {
+                            if (!r.ok) throw new Error('Network response was not ok: ' + r.status);
+                            return r.json();
+                        })
+                        .then(data => successCallback(data))
+                        .catch(error => {
+                            console.error('Error fetching events:', error);
+                            failureCallback(error);
+                        });
+                },
+                select: function (selectionInfo) {
+                    var amenityId = document.getElementById('amenityFilter').value;
+                    var start = selectionInfo.start;
+                    var end = selectionInfo.end;
+
+                    var date = formatDateLocal(start);
+                    var startTime = formatTimeLocal(start);
+                    var endTime = formatTimeLocal(new Date(end.getTime() - 60000)); // minus 1 minute
+
+                    var params = new URLSearchParams();
+                    params.set('date', date);
+                    params.set('start', startTime);
+                    params.set('end', endTime);
+                    if (amenityId) params.set('amenityId', amenityId);
+
+                    window.location.href = '/Resident/Amenities/Book?' + params.toString();
+                },
+                eventClick: function (info) {
+                    var ev = info.event;
+                    var details = ev.title + '\n' + (ev.extendedProps.notes || '');
+                    if (confirm(details + '\n\nMở trang đặt/chi tiết?')) {
+                        var start = new Date(ev.start);
+                        var end = new Date(ev.end);
+                        var params = new URLSearchParams();
+                        params.set('date', formatDateLocal(start));
+                        params.set('start', formatTimeLocal(start));
+                        params.set('end', formatTimeLocal(end));
+                        window.location.href = '/Resident/Amenities/Book?' + params.toString();
+                    }
+                }
+            });
+            calendar.render();
+
+            document.getElementById('amenityFilter').addEventListener('change', function () {
+                calendar.refetchEvents();
+            });
+        });
+    </script>
+}
