@@ -1,0 +1,67 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Visitors.RegisterModel
+@{
+    ViewData["Title"] = "Đăng ký khách";
+}
+
+<div class="max-w-2xl mx-auto p-6 bg-white rounded-xl border">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">Đăng ký khách đến</h2>
+        <a asp-page="MyVisitors" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm hover:bg-slate-100">Xem danh sách khách của tôi</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="text-emerald-600 mb-4">@TempData["Success"]</div>
+    }
+
+    <form method="post" class="space-y-6">
+        <div class="grid grid-cols-1 gap-4">
+            <div class="p-4 border rounded-lg bg-slate-50">
+                <label class="block text-sm text-slate-700 font-medium mb-1">Tên khách</label>
+                <input asp-for="Input.VisitorName" class="form-input w-full" placeholder="Nhập họ tên khách" />
+                <span asp-validation-for="Input.VisitorName" class="text-rose-600 text-sm"></span>
+            </div>
+
+            <div class="p-4 border rounded-lg bg-slate-50">
+                <label class="block text-sm text-slate-700 font-medium mb-1">Số điện thoại</label>
+                <input asp-for="Input.PhoneNumber" class="form-input w-full" placeholder="Ví dụ: 0912345678" />
+                <span asp-validation-for="Input.PhoneNumber" class="text-rose-600 text-sm"></span>
+            </div>
+
+            <div class="p-4 border rounded-lg bg-slate-50">
+                <label class="block text-sm text-slate-700 font-medium mb-1">CMND/CCCD (tuỳ chọn)</label>
+                <input asp-for="Input.IdentityCard" class="form-input w-full" placeholder="Số CMND hoặc CCCD" />
+                <span asp-validation-for="Input.IdentityCard" class="text-rose-600 text-sm"></span>
+            </div>
+
+            <div class="p-4 border rounded-lg bg-slate-50">
+                <label class="block text-sm text-slate-700 font-medium mb-1">Ngày đến</label>
+                <input asp-for="Input.VisitDate" type="date" class="form-input w-full" />
+                <span asp-validation-for="Input.VisitDate" class="text-rose-600 text-sm"></span>
+            </div>
+
+            <div class="p-4 border rounded-lg bg-slate-50">
+                <label class="block text-sm text-slate-700 font-medium mb-1">Giờ đến (ước tính) - tuỳ chọn</label>
+                <input asp-for="Input.ExpectedArrivalTime" type="time" class="form-input w-full" />
+                <span asp-validation-for="Input.ExpectedArrivalTime" class="text-rose-600 text-sm"></span>
+            </div>
+
+            <div class="p-4 border rounded-lg bg-slate-50">
+                <label class="block text-sm text-slate-700 font-medium mb-1">Ghi chú (tuỳ chọn)</label>
+                <textarea asp-for="Input.Notes" class="form-textarea w-full" placeholder="Ghi chú thêm về khách (mục đích, người được thăm...)"></textarea>
+            </div>
+        </div>
+
+        <div class="text-xs text-slate-500">Lưu ý: CMND/CCCD và giờ đến là tuỳ chọn; chỉ cần tên và số điện thoại để đăng ký.</div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="btn btn-primary">Đăng ký</button>
+            <a asp-page="MyVisitors" class="btn btn-secondary">Xem khách của tôi</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+}

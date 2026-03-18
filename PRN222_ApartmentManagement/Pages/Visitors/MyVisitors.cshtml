@@ -1,0 +1,52 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Visitors.MyVisitorsModel
+@{
+    ViewData["Title"] = "Khách của tôi";
+}
+
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-xl border">
+    <h2 class="text-lg font-bold mb-4">Danh sách khách đã đăng ký</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="text-emerald-600 mb-4">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="text-rose-600 mb-4">@TempData["Error"]</div>
+    }
+
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="text-left text-slate-500 text-xs uppercase">
+                <th class="px-4 py-2">Tên</th>
+                <th class="px-4 py-2">Sđt</th>
+                <th class="px-4 py-2">Ngày</th>
+                <th class="px-4 py-2">Trạng thái</th>
+                <th class="px-4 py-2">Ghi chú</th>
+                <th class="px-4 py-2"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var v in Model.Visitors)
+            {
+                <tr class="border-t">
+                    <td class="px-4 py-2">@v.VisitorName</td>
+                    <td class="px-4 py-2">@v.PhoneNumber</td>
+                    <td class="px-4 py-2">@v.VisitDate.ToString("dd/MM/yyyy")</td>
+                    <td class="px-4 py-2">@v.Status</td>
+                    <td class="px-4 py-2">@v.Notes</td>
+                    <td class="px-4 py-2 text-right">
+                        @if (v.Status == PRN222_ApartmentManagement.Models.Enums.VisitorStatus.Pending)
+                        {
+                            <form method="post" asp-page-handler="Cancel" class="inline">
+                                <input type="hidden" name="id" value="@v.VisitorId" />
+                                <button type="submit" class="text-rose-600">Hủy</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

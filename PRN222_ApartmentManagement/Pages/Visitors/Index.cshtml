@@ -1,0 +1,46 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Visitors.IndexModel
+@{
+    ViewData["Title"] = "Quản lý khách";
+}
+
+<div class="p-6 bg-white rounded-xl border">
+    <h2 class="text-lg font-bold mb-4">Quản lý khách đã đăng ký</h2>
+
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="text-left text-slate-500 text-xs uppercase">
+                <th class="px-4 py-2">Tên</th>
+                <th class="px-4 py-2">Sđt</th>
+                <th class="px-4 py-2">Căn hộ</th>
+                <th class="px-4 py-2">Ngày</th>
+                <th class="px-4 py-2">Trạng thái</th>
+                <th class="px-4 py-2">Đăng ký bởi</th>
+                <th class="px-4 py-2"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var v in Model.Visitors)
+            {
+                <tr class="border-t">
+                    <td class="px-4 py-2">@v.VisitorName</td>
+                    <td class="px-4 py-2">@v.PhoneNumber</td>
+                    <td class="px-4 py-2">@v.Apartment?.ApartmentNumber</td>
+                    <td class="px-4 py-2">@v.VisitDate.ToString("dd/MM/yyyy")</td>
+                    <td class="px-4 py-2">@v.Status</td>
+                    <td class="px-4 py-2">@v.RegisteredByUser?.FullName</td>
+                    <td class="px-4 py-2 text-right">
+                        @if (v.Status == PRN222_ApartmentManagement.Models.Enums.VisitorStatus.Pending)
+                        {
+                            <a asp-page="CheckIn" asp-route-id="@v.VisitorId" class="text-emerald-600 mr-2">Check-in</a>
+                        }
+                        else if (v.Status == PRN222_ApartmentManagement.Models.Enums.VisitorStatus.CheckedIn)
+                        {
+                            <a asp-page="CheckOut" asp-route-id="@v.VisitorId" class="text-rose-600">Check-out</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

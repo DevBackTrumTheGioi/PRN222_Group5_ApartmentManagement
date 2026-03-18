@@ -1,0 +1,141 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.BQL_Staff.Amenities.BookModel
+@{
+    ViewData["Title"] = "Quản lý booking tiện ích (Staff)";
+}
+
+<div class="max-w-5xl">
+    <div class="bg-white p-6 rounded-xl border shadow-sm">
+        <h2 class="text-lg font-bold mb-4">Quản lý booking tiện ích @(Model.DateFilter.HasValue ? $"- {Model.DateFilter.Value:dd/MM/yyyy}" : "- Tất cả")</h2>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="text-emerald-600 mb-4">@TempData["Success"]</div>
+        }
+
+        <form method="get" class="mb-4 flex items-center gap-2">
+            <label class="text-sm">Chọn ngày</label>
+            <input type="date" name="date" value="@(Model.DateFilter.HasValue ? Model.DateFilter.Value.ToString("yyyy-MM-dd") : string.Empty)" class="form-input ml-2" />
+            <button class="btn btn-primary ml-2">Lọc</button>
+            @if (Model.DateFilter.HasValue)
+            {
+                <a class="ml-2 text-sm text-slate-500 hover:underline" href="/BQL_Staff/Amenities/Book">Hiển thị tất cả</a>
+            }
+        </form>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm bg-white rounded border-collapse table-auto">
+                <thead>
+                    <tr class="text-left text-xs text-slate-500 uppercase">
+                        <th class="px-4 py-3">Ngày</th>
+                        <th class="px-4 py-3">Tiện ích</th>
+                        <th class="px-4 py-3">Cư dân</th>
+                        <th class="px-4 py-3">Căn hộ</th>
+                        <th class="px-4 py-3">Giờ</th>
+                        <th class="px-4 py-3">Trạng thái</th>
+                        <th class="px-4 py-3">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.Bookings)
+                    {
+                        <tr class="border-t">
+                            <td class="px-4 py-3">@b.BookingDate.ToString("dd/MM/yyyy")</td>
+                            <td class="px-4 py-3">@b.Amenity.AmenityName</td>
+                            <td class="px-4 py-3">@b.Resident.FullName</td>
+                            <td class="px-4 py-3">@b.Apartment.ApartmentNumber</td>
+                            <td class="px-4 py-3">@DateTime.Today.Add(b.StartTime).ToString("hh:mm tt") - @DateTime.Today.Add(b.EndTime).ToString("hh:mm tt")</td>
+                            <td class="px-4 py-3">@b.Status</td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    @if (b.Status == "Pending")
+                                    {
+                                        <form method="post" asp-page-handler="Confirm">
+                                            <input type="hidden" name="id" value="@b.BookingId" />
+                                            <input type="hidden" name="date" value="@(Model.DateFilter.HasValue ? Model.DateFilter.Value.ToString("yyyy-MM-dd") : string.Empty)" />
+                                            <input type="hidden" name="pageIndex" value="@Model.Page" />
+                                            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                                            <button class="text-blue-600">Xác nhận</button>
+                                        </form>
+                                    }
+                                    @if (b.Status == "Confirmed" || b.Status == "Pending")
+                                    {
+                                        <form method="post" asp-page-handler="CheckIn">
+                                            <input type="hidden" name="id" value="@b.BookingId" />
+                                            <input type="hidden" name="date" value="@(Model.DateFilter.HasValue ? Model.DateFilter.Value.ToString("yyyy-MM-dd") : string.Empty)" />
+                                            <input type="hidden" name="pageIndex" value="@Model.Page" />
+                                            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                                            <button class="text-emerald-600">Check-in</button>
+                                        </form>
+                                    }
+                                    @if (b.Status == "CheckedIn")
+                                    {
+                                        <form method="post" asp-page-handler="Complete">
+                                            <input type="hidden" name="id" value="@b.BookingId" />
+                                            <input type="hidden" name="date" value="@(Model.DateFilter.HasValue ? Model.DateFilter.Value.ToString("yyyy-MM-dd") : string.Empty)" />
+                                            <input type="hidden" name="pageIndex" value="@Model.Page" />
+                                            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                                            <button class="text-emerald-700">Hoàn tất</button>
+                                        </form>
+                                    }
+                                    @if (b.Status != "Cancelled" && b.Status != "Completed")
+                                    {
+                                        <form method="post" asp-page-handler="Cancel" onsubmit="return confirm('Bạn muốn hủy booking này?');">
+                                            <input type="hidden" name="id" value="@b.BookingId" />
+                                            <input type="hidden" name="date" value="@(Model.DateFilter.HasValue ? Model.DateFilter.Value.ToString("yyyy-MM-dd") : string.Empty)" />
+                                            <input type="hidden" name="pageIndex" value="@Model.Page" />
+                                            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                                            <button class="text-rose-600">Hủy</button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between">
+            <div class="text-sm text-slate-500">Tổng: @Model.TotalCount booking</div>
+            <div class="flex items-center gap-2">
+                <div>
+                    <label class="text-sm text-slate-500 mr-2">Số hàng / trang</label>
+                    <select id="pageSizeSelect" class="border rounded px-2 py-1" onchange="changePage(1, this.value)">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+                @if (Model.Page > 1)
+                {
+                    <a class="px-3 py-1 border rounded" href="?date=@(Model.DateFilter.HasValue ? Model.DateFilter.Value.ToString("yyyy-MM-dd") : string.Empty)&pageIndex=@(Model.Page-1)&pageSize=@(Model.PageSize)">Prev</a>
+                }
+                <span class="px-2">Trang @Model.Page / @Model.TotalPages</span>
+                @if (Model.Page < Model.TotalPages)
+                {
+                    <a class="px-3 py-1 border rounded" href="?date=@(Model.DateFilter.HasValue ? Model.DateFilter.Value.ToString("yyyy-MM-dd") : string.Empty)&pageIndex=@(Model.Page+1)&pageSize=@(Model.PageSize)">Next</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // initialize pageSize select
+    document.addEventListener('DOMContentLoaded', function() {
+        var sel = document.getElementById('pageSizeSelect');
+        if (sel) {
+            sel.value = '@Model.PageSize';
+        }
+    });
+
+    function changePage(pageIndex, pageSize) {
+        const url = new URL(window.location.href);
+        const date = url.searchParams.get('date') || '';
+        if (date) url.searchParams.set('date', date);
+        url.searchParams.set('pageIndex', pageIndex);
+        url.searchParams.set('pageSize', pageSize);
+        window.location.href = url.toString();
+    }
+</script>
