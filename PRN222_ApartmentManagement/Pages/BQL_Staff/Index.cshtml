@@ -59,7 +59,7 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
             <h3 class="text-lg font-bold">Yêu cầu cần xử lý</h3>
-            <a href="/Requests/Assigned" class="text-emerald-600 text-sm font-semibold hover:underline">Xem tất cả</a>
+            <a href="/BQL_Staff/Requests/Assigned" class="text-emerald-600 text-sm font-semibold hover:underline">Xem tất cả</a>
         </div>
         <div class="p-0">
             @if (!Model.DashboardData.MyRecentRequests.Any())
@@ -89,23 +89,37 @@
                                 <tr class="hover:bg-slate-50 transition-colors">
                                     <td class="px-6 py-4 text-sm font-medium text-slate-900">#@request.RequestNumber</td>
                                     <td class="px-6 py-4 text-sm text-slate-600">@request.Title</td>
-                                    <td class="px-6 py-4 text-sm text-slate-600">Phòng @request.Apartment?.ApartmentNumber</td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">Căn hộ @request.Apartment?.ApartmentNumber</td>
                                     <td class="px-6 py-4 text-sm">
-                                        <span class="px-2 py-1 rounded text-[10px] font-bold uppercase
-                                            @(request.Priority == PRN222_ApartmentManagement.Models.Enums.RequestPriority.High ? "bg-red-50 text-red-600" : 
-                                              request.Priority == PRN222_ApartmentManagement.Models.Enums.RequestPriority.Normal ? "bg-blue-50 text-blue-600" : "bg-slate-50 text-slate-600")">
-                                            @request.Priority
+                                        @{
+                                            var (priBg, priText) = request.Priority switch {
+                                                PRN222_ApartmentManagement.Models.Enums.RequestPriority.Emergency => ("bg-red-50 text-red-600",    "Khẩn cấp"),
+                                                PRN222_ApartmentManagement.Models.Enums.RequestPriority.High      => ("bg-orange-50 text-orange-500", "Cao"),
+                                                PRN222_ApartmentManagement.Models.Enums.RequestPriority.Normal    => ("bg-slate-100 text-slate-600",  "Bình thường"),
+                                                PRN222_ApartmentManagement.Models.Enums.RequestPriority.Low       => ("bg-slate-50 text-slate-400",   "Thấp"),
+                                                _ => ("bg-slate-50 text-slate-400", request.Priority.ToString())
+                                            };
+                                            var (stBg, stDot, stText) = request.Status switch {
+                                                PRN222_ApartmentManagement.Models.Enums.RequestStatus.Pending    => ("bg-amber-100 text-amber-800",   "bg-amber-500",   "Chờ xử lý"),
+                                                PRN222_ApartmentManagement.Models.Enums.RequestStatus.InProgress => ("bg-blue-100 text-blue-800",     "bg-blue-500",    "Đang xử lý"),
+                                                PRN222_ApartmentManagement.Models.Enums.RequestStatus.Completed  => ("bg-emerald-100 text-emerald-800","bg-emerald-500", "Hoàn thành"),
+                                                PRN222_ApartmentManagement.Models.Enums.RequestStatus.Cancelled  => ("bg-slate-100 text-slate-600",   "bg-slate-400",   "Đã hủy"),
+                                                PRN222_ApartmentManagement.Models.Enums.RequestStatus.Rejected   => ("bg-red-100 text-red-700",       "bg-red-500",     "Từ chối"),
+                                                _ => ("bg-slate-100 text-slate-500", "bg-slate-400", request.Status.ToString())
+                                            };
+                                        }
+                                        <span class="px-2 py-1 rounded text-[10px] font-bold uppercase @priBg">
+                                            @priText
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium 
-                                            @(request.Status == PRN222_ApartmentManagement.Models.Enums.RequestStatus.Pending ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800")">
-                                            <span class="w-1.5 h-1.5 rounded-full @(request.Status == PRN222_ApartmentManagement.Models.Enums.RequestStatus.Pending ? "bg-amber-500" : "bg-blue-500")"></span>
-                                            @request.Status
+                                        <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium @stBg">
+                                            <span class="w-1.5 h-1.5 rounded-full @stDot"></span>
+                                            @stText
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <a href="/Requests/Details/@request.RequestId" class="text-slate-400 hover:text-emerald-600">
+                                        <a href="/BQL_Staff/Requests/Details/@request.RequestId" class="text-slate-400 hover:text-emerald-600">
                                             <span class="material-icons">navigate_next</span>
                                         </a>
                                     </td>

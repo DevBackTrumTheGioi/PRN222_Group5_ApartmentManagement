@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN222_ApartmentManagement.Data;
 
@@ -11,9 +12,11 @@ using PRN222_ApartmentManagement.Data;
 namespace PRN222_ApartmentManagement.Migrations
 {
     [DbContext(typeof(ApartmentDbContext))]
-    partial class ApartmentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260305071651_AddEscaltionAndSourceColumns")]
+    partial class AddEscaltionAndSourceColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -927,37 +930,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.ToTable("RequestAttachments");
                 });
 
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.RequestComment", b =>
-                {
-                    b.Property<int>("CommentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CommentId"));
-
-                    b.Property<int>("AuthorId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("RequestId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CommentId");
-
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("RequestId");
-
-                    b.ToTable("RequestComments");
-                });
-
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.ResidentCard", b =>
                 {
                     b.Property<int>("ResidentCardId")
@@ -1715,25 +1687,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("Request");
                 });
 
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.RequestComment", b =>
-                {
-                    b.HasOne("PRN222_ApartmentManagement.Models.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("PRN222_ApartmentManagement.Models.Request", "Request")
-                        .WithMany("Comments")
-                        .HasForeignKey("RequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("Request");
-                });
-
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.ResidentCard", b =>
                 {
                     b.HasOne("PRN222_ApartmentManagement.Models.User", "Resident")
@@ -1896,8 +1849,6 @@ namespace PRN222_ApartmentManagement.Migrations
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Request", b =>
                 {
-                    b.Navigation("Comments");
-
                     b.Navigation("RequestAttachments");
                 });
 

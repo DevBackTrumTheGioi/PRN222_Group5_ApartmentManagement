@@ -541,6 +541,7 @@ desktop.ini
 **/secrets.json
 # Connection strings with real credentials
 **/connectionstrings.json
+MODULE4_NOTES.md
 ###############################################################################
 # Database Files (SQL Server)
 ###############################################################################

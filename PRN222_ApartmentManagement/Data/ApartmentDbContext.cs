@@ -33,6 +33,7 @@ public class ApartmentDbContext : DbContext
     // Request entities
     public DbSet<Request> Requests { get; set; }
     public DbSet<RequestAttachment> RequestAttachments { get; set; }
+    public DbSet<RequestComment> RequestComments { get; set; }
 
     // Announcement entities
     public DbSet<Announcement> Announcements { get; set; }
@@ -282,6 +283,24 @@ public class ApartmentDbContext : DbContext
             .HasOne(r => r.AssignedUser)
             .WithMany(u => u.AssignedRequests)
             .HasForeignKey(r => r.AssignedTo)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Request>()
+            .HasOne(r => r.EscalatedToUser)
+            .WithMany()
+            .HasForeignKey(r => r.EscalatedTo)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<RequestComment>()
+            .HasOne(c => c.Request)
+            .WithMany(r => r.Comments)
+            .HasForeignKey(c => c.RequestId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RequestComment>()
+            .HasOne(c => c.Author)
+            .WithMany()
+            .HasForeignKey(c => c.AuthorId)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Announcement>()
