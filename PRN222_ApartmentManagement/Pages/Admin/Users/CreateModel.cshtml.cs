@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Services.Interfaces;
@@ -13,13 +11,11 @@ namespace PRN222_ApartmentManagement.Pages.Admin.Users;
 [Authorize(Policy = "AdminOnly")]
 public class CreateModel : PageModel
 {
-    private readonly ApartmentDbContext _context;
-    private readonly IAuthService _authService;
+    private readonly IUserManagementService _userManagementService;
 
-    public CreateModel(ApartmentDbContext context, IAuthService authService)
+    public CreateModel(IUserManagementService userManagementService)
     {
-        _context = context;
-        _authService = authService;
+        _userManagementService = userManagementService;
     }
 
     [BindProperty]
@@ -80,48 +76,26 @@ public class CreateModel : PageModel
 
     public async Task OnGetAsync()
     {
-        Apartments = await _context.Apartments
-            .Where(a => a.Status != ApartmentStatus.Maintenance)
-            .OrderBy(a => a.ApartmentNumber)
-            .ToListAsync();
+        Apartments = await _userManagementService.GetAssignableApartmentsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         if (!ModelState.IsValid)
         {
-            Apartments = await _context.Apartments
-                .Where(a => a.Status != ApartmentStatus.Maintenance)
-                .OrderBy(a => a.ApartmentNumber)
-                .ToListAsync();
+            Apartments = await _userManagementService.GetAssignableApartmentsAsync();
             return Page();
         }
 
-        // Check if username already exists
-        if (await _context.Users.AnyAsync(u => u.Username == Input.Username))
-        {
-            ModelState.AddModelError("Input.Username", "Tên đăng nhập đã tồn tại.");
-            return Page();
-        }
-
-        // Check if email already exists
-        if (await _context.Users.AnyAsync(u => u.Email == Input.Email))
-        {
-            ModelState.AddModelError("Input.Email", "Email đã được sử dụng.");
-            return Page();
-        }
-
-        var user = new User
+        var request = new UserUpsertRequest
         {
             Username = Input.Username,
-            PasswordHash = _authService.HashPassword(Input.Password),
+            Password = Input.Password,
             FullName = Input.FullName,
             Email = Input.Email,
             PhoneNumber = Input.PhoneNumber,
             Role = Input.Role,
             IsActive = Input.IsActive,
-            CreatedAt = DateTime.Now,
-            // Resident fields
             DateOfBirth = Input.DateOfBirth,
             IdentityCardNumber = Input.IdentityCardNumber,
             ResidentType = Input.ResidentType,
@@ -132,8 +106,13 @@ public class CreateModel : PageModel
             Note = Input.Note
         };
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        var (success, errorField, errorMessage) = await _userManagementService.CreateUserAsync(request);
+        if (!success)
+        {
+            Apartments = await _userManagementService.GetAssignableApartmentsAsync();
+            ModelState.AddModelError(errorField ?? string.Empty, errorMessage ?? "Không thể tạo người dùng.");
+            return Page();
+        }
 
         return RedirectToPage("./Index");
     }

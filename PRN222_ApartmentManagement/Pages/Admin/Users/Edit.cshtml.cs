@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Services.Interfaces;
@@ -13,13 +11,11 @@ namespace PRN222_ApartmentManagement.Pages.Admin.Users;
 [Authorize(Policy = "AdminOnly")]
 public class EditModel : PageModel
 {
-    private readonly ApartmentDbContext _context;
-    private readonly IAuthService _authService;
+    private readonly IUserManagementService _userManagementService;
 
-    public EditModel(ApartmentDbContext context, IAuthService authService)
+    public EditModel(IUserManagementService userManagementService)
     {
-        _context = context;
-        _authService = authService;
+        _userManagementService = userManagementService;
     }
 
     [BindProperty]
@@ -79,17 +75,14 @@ public class EditModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        var user = await _context.Users.FindAsync(id);
+        var user = await _userManagementService.GetUserForEditAsync(id);
 
-        if (user == null || user.IsDeleted)
+        if (user == null)
         {
             return NotFound();
         }
 
-        Apartments = await _context.Apartments
-            .Where(a => a.Status != ApartmentStatus.Maintenance)
-            .OrderBy(a => a.ApartmentNumber)
-            .ToListAsync();
+        Apartments = await _userManagementService.GetAssignableApartmentsAsync();
 
         Username = user.Username;
         Input = new InputModel
@@ -118,50 +111,41 @@ public class EditModel : PageModel
     {
         if (!ModelState.IsValid)
         {
-            Apartments = await _context.Apartments
-                .Where(a => a.Status != ApartmentStatus.Maintenance)
-                .OrderBy(a => a.ApartmentNumber)
-                .ToListAsync();
+            Apartments = await _userManagementService.GetAssignableApartmentsAsync();
             return Page();
         }
 
-        var user = await _context.Users.FindAsync(Input.UserId);
-
-        if (user == null || user.IsDeleted)
+        var request = new UserUpsertRequest
         {
-            return NotFound();
-        }
+            UserId = Input.UserId,
+            Password = Input.NewPassword,
+            FullName = Input.FullName,
+            Email = Input.Email,
+            PhoneNumber = Input.PhoneNumber,
+            Role = Input.Role,
+            IsActive = Input.IsActive,
+            DateOfBirth = Input.DateOfBirth,
+            IdentityCardNumber = Input.IdentityCardNumber,
+            ResidentType = Input.ResidentType,
+            ResidencyStatus = Input.ResidencyStatus,
+            ApartmentId = Input.ApartmentId,
+            MoveInDate = Input.MoveInDate,
+            MoveOutDate = Input.MoveOutDate,
+            Note = Input.Note
+        };
 
-        // Check email uniqueness if changed
-        if (Input.Email != user.Email && await _context.Users.AnyAsync(u => u.Email == Input.Email))
+        var (success, errorField, errorMessage) = await _userManagementService.UpdateUserAsync(request);
+        if (!success)
         {
-            ModelState.AddModelError("Input.Email", "Email đã được sử dụng bởi người dùng khác.");
+            Apartments = await _userManagementService.GetAssignableApartmentsAsync();
+            if (errorMessage == "Không tìm thấy người dùng.")
+            {
+                return NotFound();
+            }
+
+            ModelState.AddModelError(errorField ?? string.Empty, errorMessage ?? "Không thể cập nhật người dùng.");
             return Page();
         }
-
-        user.FullName = Input.FullName;
-        user.Email = Input.Email;
-        user.PhoneNumber = Input.PhoneNumber;
-        user.Role = Input.Role;
-        user.IsActive = Input.IsActive;
-        user.UpdatedAt = DateTime.Now;
-
-        // Resident fields
-        user.DateOfBirth = Input.DateOfBirth;
-        user.IdentityCardNumber = Input.IdentityCardNumber;
-        user.ResidentType = Input.ResidentType;
-        user.ResidencyStatus = Input.ResidencyStatus;
-        user.ApartmentId = Input.ApartmentId;
-        user.MoveInDate = Input.MoveInDate;
-        user.MoveOutDate = Input.MoveOutDate;
-        user.Note = Input.Note;
-
-        if (!string.IsNullOrEmpty(Input.NewPassword))
-        {
-            user.PasswordHash = _authService.HashPassword(Input.NewPassword);
-        }
-
-        await _context.SaveChangesAsync();
 
         return RedirectToPage("./Index");
     }

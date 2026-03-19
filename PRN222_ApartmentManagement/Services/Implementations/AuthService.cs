@@ -3,8 +3,8 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Repositories.Interfaces;
 using PRN222_ApartmentManagement.Services.Interfaces;
 using PRN222_ApartmentManagement.Utils;
 using BC = BCrypt.Net.BCrypt;
@@ -13,31 +13,38 @@ namespace PRN222_ApartmentManagement.Services.Implementations;
 
 public class AuthService : IAuthService
 {
-    private readonly ApartmentDbContext _context;
+    private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
+    private readonly IActivityLogService _activityLogService;
 
-    public AuthService(ApartmentDbContext context, IConfiguration configuration, IEmailService emailService)
+    public AuthService(
+        IUserRepository userRepository,
+        IConfiguration configuration,
+        IEmailService emailService,
+        IActivityLogService activityLogService)
     {
-        _context = context;
+        _userRepository = userRepository;
         _configuration = configuration;
         _emailService = emailService;
+        _activityLogService = activityLogService;
     }
 
     public async Task<(bool Success, string Token, User? User, string ErrorMessage)> LoginAsync(string username, string password)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == username && u.IsActive && !u.IsDeleted);
+        var user = await _userRepository.GetByUsernameAsync(username);
 
-        if (user == null || !VerifyPassword(password, user.PasswordHash))
+        if (user == null || !user.IsActive || !VerifyPassword(password, user.PasswordHash))
         {
+            await _activityLogService.LogLoginAsync(0, username, false, "Invalid username or password.");
             return (false, string.Empty, null, "Invalid username or password.");
         }
 
         var token = GenerateJwtToken(user);
         
         user.LastLogin = DateTime.Now;
-        await _context.SaveChangesAsync();
+        await _userRepository.UpdateAsync(user);
+        await _activityLogService.LogLoginAsync(user.UserId, user.Username, true);
 
         return (true, token, user, string.Empty);
     }
@@ -88,7 +95,7 @@ public class AuthService : IAuthService
 
     public async Task<(bool Success, string ErrorMessage)> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
     {
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _userRepository.GetActiveByIdAsync(userId);
         if (user == null)
         {
             return (false, "User not found.");
@@ -102,14 +109,16 @@ public class AuthService : IAuthService
         user.PasswordHash = HashPassword(newPassword);
         user.UpdatedAt = DateTime.Now;
         
-        await _context.SaveChangesAsync();
+        await _userRepository.UpdateAsync(user);
+        await _activityLogService.LogCustomAsync("ChangePassword", nameof(User), user.UserId.ToString(), $"Người dùng {user.Username} đổi mật khẩu");
         return (true, string.Empty);
     }
 
     public async Task<(bool Success, string ErrorMessage)> ResetPasswordAsync(string usernameOrEmail)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == usernameOrEmail || u.Email == usernameOrEmail);
+        var users = await _userRepository.FindAsync(u =>
+            !u.IsDeleted && (u.Username == usernameOrEmail || u.Email == usernameOrEmail));
+        var user = users.FirstOrDefault();
 
         if (user == null)
         {
@@ -139,12 +148,18 @@ public class AuthService : IAuthService
 
             await _emailService.SendEmailAsync(user.Email, "Cấp lại mật khẩu truy cập", emailBody);
             
-            await _context.SaveChangesAsync();
+            await _userRepository.UpdateAsync(user);
+            await _activityLogService.LogCustomAsync("ResetPassword", nameof(User), user.UserId.ToString(), $"Đặt lại mật khẩu cho {user.Username}");
             return (true, string.Empty);
         }
         catch (Exception ex)
         {
             return (false, $"Lỗi khi gửi email: {ex.Message}");
         }
+    }
+
+    public async Task LogLogoutAsync(int userId, string userName)
+    {
+        await _activityLogService.LogLogoutAsync(userId, userName);
     }
 }

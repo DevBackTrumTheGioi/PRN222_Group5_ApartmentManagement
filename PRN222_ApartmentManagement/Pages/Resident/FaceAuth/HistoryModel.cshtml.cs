@@ -1,21 +1,20 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Services.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.Resident.FaceAuth;
 
 [Authorize(Roles = "Resident")]
 public class HistoryModel : PageModel
 {
-    private readonly ApartmentDbContext _context;
+    private readonly IFaceAuthService _faceAuthService;
 
-    public HistoryModel(ApartmentDbContext context)
+    public HistoryModel(IFaceAuthService faceAuthService)
     {
-        _context = context;
+        _faceAuthService = faceAuthService;
     }
 
     public List<FaceAuthHistory> Histories { get; set; } = new();
@@ -28,12 +27,7 @@ public class HistoryModel : PageModel
             return RedirectToPage("/Account/Login");
         }
 
-        Histories = await _context.FaceAuthHistories
-            .Where(h => h.ResidentId == userId)
-            .OrderByDescending(h => h.AuthTime)
-            .ToListAsync();
-
+        Histories = await _faceAuthService.GetHistoriesAsync(userId);
         return Page();
     }
 }
-
