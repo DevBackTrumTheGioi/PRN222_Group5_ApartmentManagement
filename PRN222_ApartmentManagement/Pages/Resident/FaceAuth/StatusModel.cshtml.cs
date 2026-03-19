@@ -1,21 +1,20 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Services.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.Resident.FaceAuth;
 
 [Authorize(Roles = "Resident")]
 public class StatusModel : PageModel
 {
-    private readonly ApartmentDbContext _context;
+    private readonly IFaceAuthService _faceAuthService;
 
-    public StatusModel(ApartmentDbContext context)
+    public StatusModel(IFaceAuthService faceAuthService)
     {
-        _context = context;
+        _faceAuthService = faceAuthService;
     }
 
     public User Resident { get; set; } = null!;
@@ -29,18 +28,14 @@ public class StatusModel : PageModel
             return RedirectToPage("/Account/Login");
         }
 
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null || user.Role != UserRole.Resident)
+        var user = await _faceAuthService.GetResidentByIdAsync(userId);
+        if (user == null)
         {
             return NotFound();
         }
 
         Resident = user;
-        RecentHistories = await _context.FaceAuthHistories
-            .Where(h => h.ResidentId == userId)
-            .OrderByDescending(h => h.AuthTime)
-            .Take(3)
-            .ToListAsync();
+        RecentHistories = await _faceAuthService.GetRecentHistoriesAsync(userId, 3);
 
         return Page();
     }
