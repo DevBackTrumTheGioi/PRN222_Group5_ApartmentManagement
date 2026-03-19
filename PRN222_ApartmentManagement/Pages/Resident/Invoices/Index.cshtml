@@ -1,0 +1,49 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Resident.Invoices.IndexModel
+@{
+    ViewData["Title"] = "Hóa đơn của tôi";
+    ViewData["CurrentPage"] = "invoices";
+    Layout = "_Layout";
+}
+
+<div class="space-y-6">
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Tháng</label>
+                <input asp-for="BillingMonth" type="number" min="1" max="12" class="w-full rounded-lg border border-slate-200 px-3 py-2" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Năm</label>
+                <input asp-for="BillingYear" type="number" min="2024" class="w-full rounded-lg border border-slate-200 px-3 py-2" />
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="px-4 py-2 rounded-lg bg-slate-900 text-white">Lọc</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid gap-4">
+        @foreach (var invoice in Model.Invoices)
+        {
+            <div class="bg-white rounded-xl border border-slate-200 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <p class="text-sm text-slate-500">Mã hóa đơn</p>
+                    <h3 class="text-lg font-semibold">@invoice.InvoiceNumber</h3>
+                    <p class="text-sm text-slate-500 mt-1">Kỳ: @invoice.BillingMonth/@invoice.BillingYear</p>
+                </div>
+                <div class="text-sm">
+                    <p>Trạng thái thanh toán: <strong>@invoice.Status</strong></p>
+                    <p>Hạn thanh toán: <strong>@invoice.DueDate:dd/MM/yyyy</strong></p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-slate-500">Tổng tiền</p>
+                    <p class="text-2xl font-bold text-emerald-700">@invoice.TotalAmount.ToString("N0")</p>
+                </div>
+                <div class="flex justify-end">
+                    <a asp-page="/Invoices/Print" asp-route-id="@invoice.InvoiceId" class="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50">Xem / In</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

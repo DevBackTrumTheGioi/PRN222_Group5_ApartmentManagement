@@ -1,0 +1,83 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Invoices.IndexModel
+@{
+    ViewData["Title"] = "Phê duyệt hóa đơn";
+    ViewData["CurrentPage"] = "invoices";
+    Layout = "_Layout";
+}
+
+<div class="space-y-6">
+    <div class="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Tháng</label>
+                <input asp-for="BillingMonth" type="number" min="1" max="12" class="w-full rounded-lg border border-slate-200 px-3 py-2" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Năm</label>
+                <input asp-for="BillingYear" type="number" min="2024" class="w-full rounded-lg border border-slate-200 px-3 py-2" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Trạng thái</label>
+                <select asp-for="Status" asp-items="Html.GetEnumSelectList<PRN222_ApartmentManagement.Models.Enums.InvoiceStatus>()" class="w-full rounded-lg border border-slate-200 px-3 py-2">
+                    <option value="">Tất cả</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Duyệt</label>
+                <select asp-for="ApprovalStatus" asp-items="Html.GetEnumSelectList<PRN222_ApartmentManagement.Models.Enums.InvoiceApprovalStatus>()" class="w-full rounded-lg border border-slate-200 px-3 py-2">
+                    <option value="">Tất cả</option>
+                </select>
+            </div>
+            <div class="md:col-span-4">
+                <button type="submit" class="px-4 py-2 rounded-lg bg-slate-900 text-white">Lọc</button>
+            </div>
+        </form>
+
+        @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+        {
+            <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">@Model.StatusMessage</div>
+        }
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3 text-left">Mã hóa đơn</th>
+                    <th class="px-4 py-3 text-left">Căn hộ</th>
+                    <th class="px-4 py-3 text-left">Kỳ</th>
+                    <th class="px-4 py-3 text-left">Thanh toán</th>
+                    <th class="px-4 py-3 text-left">Duyệt</th>
+                    <th class="px-4 py-3 text-right">Tổng tiền</th>
+                    <th class="px-4 py-3 text-right">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                @foreach (var invoice in Model.Invoices)
+                {
+                    <tr>
+                        <td class="px-4 py-3 font-medium">@invoice.InvoiceNumber</td>
+                        <td class="px-4 py-3">@invoice.Apartment.ApartmentNumber</td>
+                        <td class="px-4 py-3">@invoice.BillingMonth/@invoice.BillingYear</td>
+                        <td class="px-4 py-3">@invoice.Status</td>
+                        <td class="px-4 py-3">@invoice.ApprovalStatus</td>
+                        <td class="px-4 py-3 text-right font-semibold">@invoice.TotalAmount.ToString("N0")</td>
+                        <td class="px-4 py-3">
+                            <div class="flex justify-end gap-2">
+                                <a asp-page="/Invoices/Print" asp-route-id="@invoice.InvoiceId" class="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50">Xem</a>
+                                @if (invoice.ApprovalStatus == PRN222_ApartmentManagement.Models.Enums.InvoiceApprovalStatus.PendingApproval)
+                                {
+                                    <form method="post" asp-page-handler="Approve">
+                                        <input type="hidden" name="id" value="@invoice.InvoiceId" />
+                                        <button type="submit" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Duyệt</button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

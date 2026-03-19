@@ -1,0 +1,93 @@
+@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.Invoices.PrintModel
+@{
+    Layout = null;
+    var invoice = Model.Invoice;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>In hóa đơn @invoice.InvoiceNumber</title>
+    <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+</head>
+<body class="bg-slate-100 text-slate-900">
+    <div class="max-w-4xl mx-auto p-6 md:p-10">
+        <div class="flex justify-between items-center mb-6 print:hidden">
+            <a href="/Invoices" class="text-sm text-emerald-600 hover:text-emerald-700">Quay lại</a>
+            <button onclick="window.print()" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm hover:bg-emerald-700">In / PDF</button>
+        </div>
+
+        <div class="bg-white shadow-sm border border-slate-200 rounded-2xl p-8 space-y-8">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-bold">Hóa đơn</h1>
+                    <p class="text-slate-500 mt-2">Mã hóa đơn: <strong>@invoice.InvoiceNumber</strong></p>
+                </div>
+                <div class="text-right text-sm text-slate-500">
+                    <p>Tháng @invoice.BillingMonth/@invoice.BillingYear</p>
+                    <p>Ngày phát hành: @invoice.IssueDate:dd/MM/yyyy</p>
+                    <p>Hạn thanh toán: @invoice.DueDate:dd/MM/yyyy</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <p class="text-slate-500 mb-2">Thông tin căn hộ</p>
+                    <p class="font-semibold">Căn @invoice.Apartment.ApartmentNumber</p>
+                    <p>Tòa: @(invoice.Apartment.BuildingBlock ?? "-")</p>
+                    <p>Tầng: @invoice.Apartment.Floor</p>
+                </div>
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <p class="text-slate-500 mb-2">Trạng thái</p>
+                    <p>Thanh toán: <strong>@invoice.Status</strong></p>
+                    <p>Duyệt: <strong>@invoice.ApprovalStatus</strong></p>
+                    <p>Đã gửi: <strong>@(invoice.IsSent ? "Có" : "Chưa")</strong></p>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold mb-3">Chi tiết hóa đơn</h2>
+                <div class="overflow-hidden border border-slate-200 rounded-xl">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left">Dịch vụ</th>
+                                <th class="px-4 py-3 text-left">Mô tả</th>
+                                <th class="px-4 py-3 text-right">SL</th>
+                                <th class="px-4 py-3 text-right">Đơn giá</th>
+                                <th class="px-4 py-3 text-right">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach (var detail in invoice.InvoiceDetails)
+                            {
+                                <tr>
+                                    <td class="px-4 py-3 font-medium">@detail.ServiceType.ServiceTypeName</td>
+                                    <td class="px-4 py-3 text-slate-500">@(detail.Description ?? "-")</td>
+                                    <td class="px-4 py-3 text-right">@detail.Quantity</td>
+                                    <td class="px-4 py-3 text-right">@detail.UnitPrice.ToString("N0")</td>
+                                    <td class="px-4 py-3 text-right font-semibold">@((detail.Amount ?? (detail.Quantity * detail.UnitPrice)).ToString("N0"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="bg-slate-50">
+                            <tr>
+                                <td colspan="4" class="px-4 py-3 text-right font-semibold">Tổng cộng</td>
+                                <td class="px-4 py-3 text-right text-lg font-bold text-emerald-700">@invoice.TotalAmount.ToString("N0")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="text-sm text-slate-500">
+                <p>Người lập: @invoice.Creator.FullName</p>
+                <p>Người duyệt: @(invoice.Approver?.FullName ?? "Chưa duyệt")</p>
+                <p>Ghi chú: @(string.IsNullOrWhiteSpace(invoice.Notes) ? "-" : invoice.Notes)</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
