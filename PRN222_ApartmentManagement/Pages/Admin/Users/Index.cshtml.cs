@@ -1,20 +1,19 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Services.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.Admin.Users;
 
 [Authorize(Policy = "AdminOnly")]
 public class IndexModel : PageModel
 {
-    private readonly ApartmentDbContext _context;
+    private readonly IUserManagementService _userManagementService;
 
-    public IndexModel(ApartmentDbContext context)
+    public IndexModel(IUserManagementService userManagementService)
     {
-        _context = context;
+        _userManagementService = userManagementService;
     }
 
     public List<User> Users { get; set; } = new();
@@ -38,30 +37,13 @@ public class IndexModel : PageModel
 
     public async Task OnGetAsync()
     {
-        var query = _context.Users.Where(u => !u.IsDeleted);
-
-        if (!string.IsNullOrEmpty(SearchTerm))
-        {
-            query = query.Where(u => u.FullName.Contains(SearchTerm) || 
-                                     u.Username.Contains(SearchTerm) || 
-                                     (u.Email != null && u.Email.Contains(SearchTerm)));
-        }
-
-        if (!string.IsNullOrEmpty(RoleFilter) && Enum.TryParse<UserRole>(RoleFilter, out var role))
-        {
-            query = query.Where(u => u.Role == role);
-        }
-
-        TotalItems = await query.CountAsync();
-        TotalPages = (int)Math.Ceiling(TotalItems / (double)PageSize);
+        var result = await _userManagementService.GetPagedUsersAsync(SearchTerm, RoleFilter, PageIndex, PageSize);
+        Users = result.Users;
+        TotalItems = result.TotalItems;
+        TotalPages = result.TotalPages;
 
         if (PageIndex < 1) PageIndex = 1;
         if (PageIndex > TotalPages && TotalPages > 0) PageIndex = TotalPages;
-
-        Users = await query.OrderByDescending(u => u.CreatedAt)
-                           .Skip((PageIndex - 1) * PageSize)
-                           .Take(PageSize)
-                           .ToListAsync();
 
         TableRows = Users.Select(u => (object)new {
             PrimaryId = u.UserId,
@@ -84,26 +66,13 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostToggleStatusAsync(int id)
     {
-        var user = await _context.Users.FindAsync(id);
-        if (user != null)
-        {
-            user.IsActive = !user.IsActive;
-            user.UpdatedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
-        }
+        await _userManagementService.ToggleStatusAsync(id);
         return RedirectToPage();
     }
 
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
-        var user = await _context.Users.FindAsync(id);
-        if (user != null)
-        {
-            user.IsDeleted = true;
-            user.IsActive = false;
-            user.UpdatedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
-        }
+        await _userManagementService.SoftDeleteAsync(id);
         return RedirectToPage();
     }
 }
