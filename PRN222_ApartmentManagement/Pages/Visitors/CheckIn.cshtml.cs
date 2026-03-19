@@ -22,7 +22,7 @@ public class CheckInModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        Visitor = await _context.Visitors.Include(v => v.Apartment).FirstOrDefaultAsync(v => v.VisitorId == id);
+        Visitor = await _context.Visitors.Include(v => v.Apartment).Include(v => v.RegisteredByUser).FirstOrDefaultAsync(v => v.VisitorId == id);
         if (Visitor == null) return NotFound();
         if (Visitor.Status != VisitorStatus.Pending) return BadRequest();
         return Page();
@@ -34,8 +34,9 @@ public class CheckInModel : PageModel
         if (visitor == null) return NotFound();
         if (visitor.Status != VisitorStatus.Pending) return BadRequest();
 
-        visitor.Status = VisitorStatus.CheckedIn;
         visitor.CheckInTime = DateTime.Now;
+        visitor.Status = VisitorStatus.CheckedIn;
+
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "Đã ghi nhận khách vào.";

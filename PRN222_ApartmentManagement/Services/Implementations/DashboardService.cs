@@ -81,7 +81,13 @@ public class DashboardService : IDashboardService
     public async Task<BQLStaffDashboardViewModel> GetBQLStaffDashboardAsync(int userId)
     {
         var today = DateTime.Today;
-        
+
+         
+        var requests = await _context.Requests
+            .Where(r => r.AssignedTo == userId)
+            .Include(r => r.Apartment)
+            .ToListAsync();
+
         var model = new BQLStaffDashboardViewModel
         {
             AssignedRequests = await _context.Requests.CountAsync(r => r.AssignedTo == userId && r.Status != RequestStatus.Completed),
@@ -92,21 +98,19 @@ public class DashboardService : IDashboardService
             TodayExpectedVisitors = await _context.Visitors.CountAsync(v => v.VisitDate.Date == today),
             TodayCheckedInVisitors = await _context.Visitors.CountAsync(v => v.VisitDate.Date == today && v.Status == VisitorStatus.CheckedOut),
 
-            MyRecentRequests = await _context.Requests
-                .Where(r => r.AssignedTo == userId)
-                .Include(r => r.Apartment)
-                .ToListAsync())
+            
+            MyRecentRequests = requests
                 .OrderBy(r => r.Status is RequestStatus.Completed or RequestStatus.Cancelled or RequestStatus.Rejected ? 1 : 0)
                 .ThenByDescending(r => (int)r.Priority)
                 .ThenBy(r => r.CreatedAt)
                 .Take(5)
-                .ToListAsync(),
+                .ToList(), 
 
-            // Tiện ích hôm nay
+            
             TodayAmenityBookings = await _context.AmenityBookings.CountAsync(b => b.BookingDate == today && b.Status != "Cancelled"),
             TodayCheckedInBookings = await _context.AmenityBookings.CountAsync(b => b.BookingDate == today && b.Status == "CheckedIn"),
 
-            // Danh sách khách hôm nay
+            
             TodayVisitorsList = await _context.Visitors
                 .Where(v => v.VisitDate.Date == today)
                 .OrderBy(v => v.CreatedAt)

@@ -8,7 +8,7 @@ using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Utils;
 
-namespace PRN222_ApartmentManagement.Pages.Resident.Amenities;
+namespace PRN222_ApartmentManagement.Pages.Amenities;
 
 [Authorize(Policy = "ResidentOnly")]
 public class BookModel : PageModel

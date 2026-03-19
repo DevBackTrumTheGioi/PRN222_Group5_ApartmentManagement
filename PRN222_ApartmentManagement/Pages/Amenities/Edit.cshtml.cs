@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 
-namespace PRN222_ApartmentManagement.Pages.Admin.Amenities;
+namespace PRN222_ApartmentManagement.Pages.Amenities;
 
 [Authorize(Policy = "AdminOnly")]
 public class EditModel : PageModel

@@ -1,0 +1,131 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Amenities.IndexModel
+@{
+    ViewData["Title"] = "Tiện ích";
+
+    bool isAdmin = User.Identity?.IsAuthenticated == true &&
+        (User.IsInRole("Admin") || User.IsInRole("BQL_Manager") || User.IsInRole("BQT_Head"));
+}
+@if (isAdmin)
+{
+    <div class="bg-white p-6 rounded-xl border">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold">Quản lý tiện ích</h2>
+            <a href="/Amenities/Create" class="btn btn-primary">+ Thêm tiện ích</a>
+        </div>
+
+        <table class="w-full border">
+            <thead>
+                <tr class="bg-slate-100 text-left">
+                    <th class="p-2">Tên</th>
+                    <th class="p-2">Loại</th>
+                    <th class="p-2">Trạng thái</th>
+                    <th class="p-2">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model.Amenities)
+                {
+                    <tr class="border-t">
+                        <td class="p-2">@a.AmenityName</td>
+                        <td class="p-2">@a.AmenityType?.TypeName</td>
+                        <td class="p-2">
+                            @(a.IsActive ? "Đang mở" : "Đóng")
+                        </td>
+                        <td class="p-2 space-x-2">
+                            <a href="/Amenities/Edit/@a.AmenityId" class="text-blue-500">Sửa</a>
+
+                            <form method="post" asp-page-handler="ToggleActive" asp-route-id="@a.AmenityId" class="inline">
+                                <button class="text-amber-500">Bật/Tắt</button>
+                            </form>
+
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@a.AmenityId" class="inline">
+                                <button class="text-red-500">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="bg-white p-6 rounded-xl border">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold">Lịch tiện ích</h2>
+            <a class="btn btn-primary" href="/Resident/Amenities/Book">Đặt tiện ích</a>
+        </div>
+
+        <div class="mb-4">
+            <label class="text-sm">Chọn tiện ích</label>
+            <select id="amenityFilter" class="form-select w-64">
+                <option value="">Tất cả</option>
+                @foreach (var a in Model.Amenities)
+                {
+                    <option value="@a.AmenityId">@a.AmenityName</option>
+                }
+            </select>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="mb-4 text-emerald-600">@TempData["Success"]</div>
+        }
+
+        <div id="calendar"></div>
+    </div>
+
+    @section Scripts {
+        <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+
+                function pad(n) { return n < 10 ? '0' + n : n; }
+                function formatDateLocal(d) {
+                    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+                }
+                function formatTimeLocal(d) {
+                    return pad(d.getHours()) + ':' + pad(d.getMinutes());
+                }
+
+                var calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+                    initialView: 'dayGridMonth',
+                    selectable: true,
+                    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+
+                    events: function (info, successCallback, failureCallback) {
+                        var amenityId = document.getElementById('amenityFilter').value;
+
+                        var params = new URLSearchParams();
+                        params.set('handler', 'Events');
+                        params.set('start', info.startStr);
+                        params.set('end', info.endStr);
+                        if (amenityId) params.set('amenityId', amenityId);
+
+                        fetch('/Amenities?' + params.toString())
+                            .then(r => r.json())
+                            .then(data => successCallback(data))
+                            .catch(err => failureCallback(err));
+                    },
+
+                    select: function (info) {
+                        var params = new URLSearchParams();
+                        params.set('date', formatDateLocal(info.start));
+                        params.set('start', formatTimeLocal(info.start));
+                        params.set('end', formatTimeLocal(info.end));
+
+                        window.location.href = '/Resident/Amenities/Book?' + params.toString();
+                    }
+                });
+
+                calendar.render();
+
+                document.getElementById('amenityFilter')
+                    .addEventListener('change', () => calendar.refetchEvents());
+            });
+        </script>
+    }
+}

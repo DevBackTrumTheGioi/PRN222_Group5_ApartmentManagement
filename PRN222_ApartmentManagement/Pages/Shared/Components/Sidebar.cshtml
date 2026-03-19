@@ -1,17 +1,11 @@
-﻿@using PRN222_ApartmentManagement.Services.Interfaces
+﻿﻿@using PRN222_ApartmentManagement.Services.Interfaces
 ﻿@using PRN222_ApartmentManagement.Services.Interfaces
 @inject ISettingService SettingService
 @{
     var apartmentName = await SettingService.GetSettingAsync("ApartmentName", "ApartmentMS");
     var apartmentLogo = await SettingService.GetSettingAsync("ApartmentLogo", "apartment");
     var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
-
-    // choose amenity link based on role: admin/managers go to admin area, residents go to resident area
-    var amenityHref = 
-        (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("BQL_Manager") || User.IsInRole("BQT_Head")))
-            ? "/Admin/Amenities"
-            : "/Resident/Amenities";
-
+    
     var menuGroups = new[]
     {
         new {
@@ -48,7 +42,15 @@
             Items = new[] {
                 new { Icon = "support_agent", Label = "Yêu cầu", Href = User.IsInRole("BQL_Manager") ? "/BQL_Manager/Requests" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "requests" },
                 new { Icon = "escalator_warning", Label = "Yêu cầu chuyển cấp", Href = User.IsInRole("BQL_Manager") ? "/BQL_Manager/Requests/Escalated" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "escalated" },
-                new { Icon = "fitness_center", Label = "Tiện ích", Href = "/Amenities", Key = "amenities" }
+                new { 
+                      Icon = "fitness_center", 
+                      Label = "Tiện ích", 
+                      Href = (User.Identity?.IsAuthenticated == true 
+                      && (User.IsInRole("Admin") || User.IsInRole("BQL_Manager") || User.IsInRole("BQT_Head")))
+                      ? "/Admin/Amenities"
+                      : "/Amenities", 
+                      Key = "amenities" 
+                }
             }
         },
         new {
@@ -179,4 +181,3 @@ function toggleMenu(menuId) {
     }
 }
 </script>
-
