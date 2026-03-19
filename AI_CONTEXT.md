@@ -103,6 +103,90 @@
 - Use `DateTime.Now` to match current codebase.
 - Keep Vietnamese UI text style aligned with nearby pages.
 
+## UI Conventions
+- Main UI stack:
+- Razor Pages `.cshtml`
+- Tailwind utility classes from `wwwroot/css/output.css`
+- Google `Inter` font
+- Material Icons
+- Authenticated pages usually render through shared layouts and partials in `Pages/Shared`.
+- Visual baseline:
+- background is usually `bg-slate-50`
+- main surfaces are `bg-white`
+- borders are mostly `border-slate-200`
+- main text uses `text-slate-900`, secondary text uses `text-slate-700` and `text-slate-500`
+- corners are usually `rounded-lg` or `rounded-xl`
+- shadows are light, usually `shadow-sm`
+- Primary color direction is emerald/green.
+- Common primary action styling:
+- `bg-emerald-600`
+- hover `bg-emerald-700`
+- selected tint `bg-emerald-50`
+- selected text/icon `text-emerald-600` or `text-emerald-700`
+- Semantic color usage:
+- emerald -> active, success, primary actions
+- amber -> pending, warning, approval waiting
+- red -> validation error, destructive action, alert
+- slate -> neutral, inactive, secondary UI
+- Layout pattern:
+- left sidebar is fixed and usually `w-64`
+- content shell shifts with `lg:ml-64`
+- top header is sticky, white/translucent, with blur and bottom border
+- page content lives in `main` with generous padding like `p-4 md:p-6 lg:p-8`
+- footer is simple, white, and lightly bordered
+- Sidebar pattern:
+- white vertical nav with right border
+- top branding block has a small emerald tile/icon
+- menu groups can be collapsible
+- active link uses emerald tint and stronger font weight
+- inactive links use slate text and subtle hover background
+- labels are short, practical, and admin-style
+- Page header pattern:
+- title on the left, actions on the right
+- title is often `text-2xl font-bold tracking-tight`
+- subtitle is optional and muted
+- breadcrumb/header metadata may be passed through `ViewData["PageHeader"]`
+- Form pattern:
+- forms are usually wrapped in a white card with `rounded-xl`, `border`, and `shadow-sm`
+- major vertical spacing commonly uses `space-y-6`
+- field layout often uses `grid grid-cols-1 md:grid-cols-2 gap-6`
+- labels use `text-sm font-medium text-slate-700`
+- inputs/selects/textareas use soft borders, rounded corners, and emerald focus ring
+- validation summary appears near the top in a red-tinted alert box
+- per-field validation text is small red text below the input
+- form footer actions usually sit in `bg-slate-50` with a top border
+- Table and list pattern:
+- list pages often use a white rounded bordered container
+- table headers often use `bg-slate-50`
+- rows use light separators and subtle hover highlight
+- search/filter controls usually appear above the table
+- wide tables should be wrapped with `overflow-x-auto`
+- Card/stat pattern:
+- cards are white, bordered, rounded, and lightly shadowed
+- metric cards often combine a bold number with a tinted icon chip
+- avoid visually dense cards; keep spacing breathable
+- Status and badge pattern:
+- badges should be compact and easy to scan
+- use color first for semantic meaning, but keep text explicit
+- prefer consistency with existing emerald/amber/red/slate combinations
+- Content and copy style:
+- user-facing text is Vietnamese
+- headings, labels, and button text are concise and literal
+- common verbs are `Tạo`, `Lưu`, `Cập nhật`, `Lọc`, `Duyệt`, `Hủy`
+- avoid long marketing-style copy or decorative slogans
+- Responsive pattern:
+- write mobile-first Tailwind classes
+- stack vertically by default, then expand to columns from `md:` upward
+- keep key actions visible without forcing horizontal scroll
+- use `max-w-*` containers for forms/detail pages when needed
+- Preferred `.cshtml` authoring style in this repo:
+- set `ViewData["Title"]`
+- set `ViewData["CurrentPage"]` when page should highlight the sidebar
+- use shared layout/components before creating new custom wrappers
+- compose pages from known blocks: header, card, filters, table, form footer
+- match nearby spacing, border treatment, and color usage before inventing a new visual style
+- do not introduce a new theme or different design language unless explicitly requested
+
 ## Feature Flow Template
 1. Add/update entity or enum in `Models`.
 2. Update `ApartmentDbContext` if schema rules changed.
