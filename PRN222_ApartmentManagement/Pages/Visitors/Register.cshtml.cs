@@ -49,7 +49,7 @@ public class RegisterModel : PageModel
 
     public async Task OnGetAsync()
     {
-        // nothing special
+       
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -70,16 +70,12 @@ public class RegisterModel : PageModel
         }
 
         DateTime? expectedDateTime = null;
+
         if (!string.IsNullOrEmpty(Input.ExpectedArrivalTime))
         {
-            // try parse time (HH:mm) or full time
             if (TimeSpan.TryParse(Input.ExpectedArrivalTime, out var ts))
             {
                 expectedDateTime = Input.VisitDate.Date.Add(ts);
-            }
-            else if (DateTime.TryParse(Input.ExpectedArrivalTime, out var dt))
-            {
-                expectedDateTime = dt;
             }
         }
 
@@ -93,13 +89,10 @@ public class RegisterModel : PageModel
             VisitDate = Input.VisitDate.Date,
             Notes = Input.Notes,
             Status = PRN222_ApartmentManagement.Models.Enums.VisitorStatus.Pending,
-            CreatedAt = DateTime.Now
-        };
+            CreatedAt = DateTime.Now,
 
-        if (expectedDateTime.HasValue)
-        {
-            visitor.CheckInTime = expectedDateTime.Value;
-        }
+            CheckInTime = expectedDateTime
+        };
 
         _context.Visitors.Add(visitor);
         await _context.SaveChangesAsync();

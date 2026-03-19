@@ -22,7 +22,7 @@ public class CheckOutModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        Visitor = await _context.Visitors.Include(v => v.Apartment).FirstOrDefaultAsync(v => v.VisitorId == id);
+        Visitor = await _context.Visitors.Include(v => v.Apartment).Include(v => v.RegisteredByUser).FirstOrDefaultAsync(v => v.VisitorId == id);
         if (Visitor == null) return NotFound();
         if (Visitor.Status != VisitorStatus.CheckedIn) return BadRequest();
         return Page();
