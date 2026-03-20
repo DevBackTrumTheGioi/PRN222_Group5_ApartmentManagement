@@ -1,0 +1,354 @@
+@page "{id:int}"
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.Invoices.PrintModel
+@{
+    ViewData["Title"] = "Chi tiết hóa đơn";
+    ViewData["CurrentPage"] = "invoices";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Chi tiết hóa đơn",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "Hóa đơn", Href = "/Invoices" },
+            new { Label = "Chi tiết", Href = "#" }
+        }
+    };
+
+    var invoice = Model.Invoice;
+    var remainingAmount = invoice.TotalAmount - invoice.PaidAmount;
+
+    string GetPaymentLabel(InvoiceStatus status) => status switch
+    {
+        InvoiceStatus.Unpaid => "Chưa thanh toán",
+        InvoiceStatus.Paid => "Đã thanh toán",
+        InvoiceStatus.PartiallyPaid => "Thanh toán một phần",
+        InvoiceStatus.Overdue => "Quá hạn",
+        InvoiceStatus.Cancelled => "Đã hủy",
+        InvoiceStatus.Pending => "Chờ xác nhận",
+        _ => status.ToString()
+    };
+
+    string GetApprovalLabel(InvoiceApprovalStatus status) => status switch
+    {
+        InvoiceApprovalStatus.Draft => "Bản nháp",
+        InvoiceApprovalStatus.PendingApproval => "Chờ duyệt",
+        InvoiceApprovalStatus.Approved => "Đã duyệt",
+        InvoiceApprovalStatus.Rejected => "Từ chối",
+        _ => status.ToString()
+    };
+}
+
+<style>
+    .invoice-paper {
+        color: #0f172a;
+        font-family: "Times New Roman", Times, serif;
+    }
+
+    .invoice-header-grid {
+        display: grid;
+        grid-template-columns: 1fr 220px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .invoice-pair-grid {
+        display: grid;
+        grid-template-columns: 170px 1fr;
+        gap: 12px;
+    }
+
+    .invoice-quad-grid {
+        display: grid;
+        grid-template-columns: 170px 1fr 140px 1fr;
+        gap: 12px;
+    }
+
+    .invoice-signature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 32px;
+        text-align: center;
+    }
+
+    .invoice-footer-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 16px;
+    }
+
+    .invoice-table th,
+    .invoice-table td {
+        border: 1px solid #64748b;
+        padding: 8px 10px;
+        vertical-align: top;
+    }
+
+    .invoice-table th {
+        text-align: center;
+        font-weight: 700;
+    }
+
+    .invoice-table .text-right {
+        text-align: right;
+    }
+
+    .invoice-summary td {
+        font-weight: 700;
+    }
+
+    @@media (max-width: 767px) {
+        .invoice-header-grid,
+        .invoice-quad-grid,
+        .invoice-signature-grid,
+        .invoice-footer-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .invoice-pair-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media print {
+        #main-sidebar,
+        header,
+        footer,
+        .print-hidden {
+            display: none !important;
+        }
+
+        body {
+            background: #ffffff !important;
+        }
+
+        body > div.flex.flex-col.min-h-screen.transition-all.duration-300.lg\:ml-64 {
+            margin-left: 0 !important;
+            min-height: auto !important;
+            display: block !important;
+        }
+
+        main {
+            padding: 0 !important;
+            display: block !important;
+        }
+
+        .invoice-page-shell {
+            max-width: none !important;
+            margin: 0 !important;
+        }
+
+        .invoice-paper-wrapper {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+
+        .invoice-header-grid {
+            grid-template-columns: 1fr 220px !important;
+        }
+
+        .invoice-pair-grid {
+            grid-template-columns: 170px 1fr !important;
+        }
+
+        .invoice-quad-grid {
+            grid-template-columns: 170px 1fr 140px 1fr !important;
+        }
+
+        .invoice-signature-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+
+        .invoice-footer-grid {
+            grid-template-columns: 1fr 1fr !important;
+        }
+    }
+</style>
+
+<div class="invoice-page-shell max-w-5xl mx-auto space-y-6">
+    <div class="flex items-center justify-between gap-3 print-hidden">
+        <a href="/Invoices" class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+            <span class="material-icons text-lg mr-1">arrow_back</span>
+            Quay lại danh sách hóa đơn
+        </a>
+        <button type="button"
+                onclick="window.print()"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-semibold shadow-sm">
+            <span class="material-icons text-base">print</span>
+            In / Lưu PDF
+        </button>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden invoice-paper-wrapper">
+        <div class="p-6 md:p-8 invoice-paper">
+            <div class="invoice-header-grid">
+                <div class="text-center">
+                    <h1 class="text-3xl font-bold uppercase tracking-tight">Hóa đơn dịch vụ</h1>
+                    <p class="mt-2 text-lg italic">(Bản thể hiện điện tử)</p>
+                    <p class="mt-3 text-lg">Ngày @invoice.IssueDate.ToString("dd") tháng @invoice.IssueDate.ToString("MM") năm @invoice.IssueDate.ToString("yyyy")</p>
+                </div>
+
+                <div class="space-y-2 text-[17px]">
+                    <div class="flex justify-between gap-3">
+                        <span>Mẫu số:</span>
+                        <strong>INV/AMS</strong>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <span>Ký hiệu:</span>
+                        <strong>@invoice.BillingMonth/@invoice.BillingYear</strong>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <span>Số:</span>
+                        <strong>@invoice.InvoiceNumber</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 space-y-2 text-[17px] leading-7">
+                <div class="invoice-pair-grid">
+                    <div>Đơn vị quản lý:</div>
+                    <div>Apartment Management System</div>
+                </div>
+                <div class="invoice-pair-grid">
+                    <div>Địa chỉ:</div>
+                    <div>Khu căn hộ / tòa nhà @(string.IsNullOrWhiteSpace(invoice.Apartment.BuildingBlock) ? "-" : invoice.Apartment.BuildingBlock)</div>
+                </div>
+                <div class="invoice-quad-grid">
+                    <div>Điện thoại:</div>
+                    <div>-</div>
+                    <div>Mã hóa đơn:</div>
+                    <div>@invoice.InvoiceNumber</div>
+                </div>
+            </div>
+
+            <div class="mt-5 space-y-2 text-[17px] leading-7">
+                <div class="invoice-pair-grid">
+                    <div>Khách hàng:</div>
+                    <div>@(invoice.Apartment.Residents?.FirstOrDefault()?.FullName ?? "Cư dân căn hộ")</div>
+                </div>
+                <div class="invoice-pair-grid">
+                    <div>Căn hộ:</div>
+                    <div>Căn @invoice.Apartment.ApartmentNumber, tòa @(string.IsNullOrWhiteSpace(invoice.Apartment.BuildingBlock) ? "-" : invoice.Apartment.BuildingBlock), tầng @invoice.Apartment.Floor</div>
+                </div>
+                <div class="invoice-quad-grid">
+                    <div>Kỳ hóa đơn:</div>
+                    <div>Tháng @invoice.BillingMonth/@invoice.BillingYear</div>
+                    <div>Hạn thanh toán:</div>
+                    <div>@invoice.DueDate.ToString("dd/MM/yyyy")</div>
+                </div>
+                <div class="invoice-quad-grid">
+                    <div>Trạng thái:</div>
+                    <div>@GetPaymentLabel(invoice.Status)</div>
+                    <div>Phê duyệt:</div>
+                    <div>@GetApprovalLabel(invoice.ApprovalStatus)</div>
+                </div>
+            </div>
+
+            <div class="mt-6 overflow-x-auto">
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 56px;">STT</th>
+                            <th>Tên hàng hóa, dịch vụ</th>
+                            <th style="width: 160px;">Diễn giải</th>
+                            <th style="width: 90px;">SL</th>
+                            <th style="width: 130px;">Đơn giá</th>
+                            <th style="width: 150px;">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var index = 1;
+                        }
+                        @foreach (var detail in invoice.InvoiceDetails)
+                        {
+                            <tr>
+                                <td class="text-right">@index</td>
+                                <td>@detail.ServiceType.ServiceTypeName</td>
+                                <td>@(string.IsNullOrWhiteSpace(detail.Description) ? "-" : detail.Description)</td>
+                                <td class="text-right">@detail.Quantity</td>
+                                <td class="text-right">@detail.UnitPrice.ToString("N0")</td>
+                                <td class="text-right">@((detail.Amount ?? (detail.Quantity * detail.UnitPrice)).ToString("N0"))</td>
+                            </tr>
+                            index++;
+                        }
+                        <tr class="invoice-summary">
+                            <td colspan="5" class="text-right">Cộng tiền hàng</td>
+                            <td class="text-right">@invoice.TotalAmount.ToString("N0")</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" class="text-right">Đã thanh toán</td>
+                            <td class="text-right">@invoice.PaidAmount.ToString("N0")</td>
+                        </tr>
+                        <tr class="invoice-summary">
+                            <td colspan="5" class="text-right">Còn phải thanh toán</td>
+                            <td class="text-right">@remainingAmount.ToString("N0")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 text-[17px] leading-7">
+                <strong>Ghi chú:</strong> @(string.IsNullOrWhiteSpace(invoice.Notes) ? "Không có ghi chú bổ sung." : invoice.Notes)
+            </div>
+
+            <div class="invoice-signature-grid mt-10 text-[17px]">
+                <div>
+                    <div class="font-bold uppercase">Người lập</div>
+                    <div class="mt-1 italic">(Ký, ghi rõ họ tên)</div>
+                    <div class="h-24"></div>
+                    <div>@invoice.Creator.FullName</div>
+                </div>
+                <div>
+                    <div class="font-bold uppercase">Người mua hàng</div>
+                    <div class="mt-1 italic">(Ký, ghi rõ họ tên)</div>
+                    <div class="h-24"></div>
+                    <div>Cư dân căn hộ</div>
+                </div>
+                <div>
+                    <div class="font-bold uppercase">Người duyệt</div>
+                    <div class="mt-1 italic">(Ký, ghi rõ họ tên)</div>
+                    <div class="h-24"></div>
+                    <div>@(invoice.Approver?.FullName ?? "Chưa duyệt")</div>
+                </div>
+            </div>
+
+            <div class="invoice-footer-grid mt-6 text-[16px] text-slate-700">
+                <div>
+                    <p>Ngày phát hành: @invoice.IssueDate.ToString("dd/MM/yyyy")</p>
+                    <p>Ngày gửi: @(invoice.SentAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa gửi")</p>
+                </div>
+                <div class="md:text-right">
+                    <p>Phương thức thanh toán: @(string.IsNullOrWhiteSpace(invoice.PaymentMethod) ? "-" : invoice.PaymentMethod)</p>
+                    <p>Ngày thanh toán: @(invoice.PaymentDate?.ToString("dd/MM/yyyy") ?? "-")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3 print-hidden">
+            <p class="text-xs text-slate-400">
+                <span class="material-icons text-xs align-text-top">info</span>
+                Màn hình này dùng layout chung để xem chi tiết, và vẫn có thể in trực tiếp thành PDF.
+            </p>
+            <div class="flex gap-3">
+                <a href="/Invoices" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                    Quay lại
+                </a>
+                <button type="button"
+                        onclick="window.print()"
+                        class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-semibold shadow-sm">
+                    <span class="material-icons text-base">download</span>
+                    In / Lưu PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
