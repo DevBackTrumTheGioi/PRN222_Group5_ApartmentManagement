@@ -1,28 +1,29 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using PRN222_ApartmentManagement.Data;
-using PRN222_ApartmentManagement.Repositories.Interfaces;
 using PRN222_ApartmentManagement.Repositories.Implementations;
+using PRN222_ApartmentManagement.Repositories.Interfaces;
 using PRN222_ApartmentManagement.Services;
 using PRN222_ApartmentManagement.Services.Implementations;
 using PRN222_ApartmentManagement.Services.Interfaces;
+using PRN222_ApartmentManagement.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AllowAnonymousToPage("/Index");
     options.Conventions.AuthorizeFolder("/");
     options.Conventions.AllowAnonymousToPage("/Account/Login");
     options.Conventions.AllowAnonymousToPage("/Account/ForgotPassword");
+    options.Conventions.AllowAnonymousToPage("/Account/Inactive");
     options.Conventions.AllowAnonymousToPage("/Account/AccessDenied");
     options.Conventions.AllowAnonymousToPage("/Admin/SeedData");
     options.Conventions.AllowAnonymousToPage("/Error");
-    
-    // Role-based folder authorization
+
     options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
     options.Conventions.AuthorizeFolder("/BQL_Manager", "BQLManagerOnly");
     options.Conventions.AuthorizeFolder("/BQL_Staff", "BQLStaffOnly");
@@ -41,57 +42,112 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("BQTMemberOnly", policy => policy.RequireRole("BQT_Member"));
 });
 
-// Configure Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
+var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["Key"]!));
 
-builder.Services.AddAuthentication(options =>
+var tokenValidationParameters = new TokenValidationParameters
 {
-    options.DefaultAuthenticateScheme = "MixedAuth";
-    options.DefaultChallengeScheme = "MixedAuth";
-})
-.AddPolicyScheme("MixedAuth", "JWT or Cookie", options =>
-{
-    options.ForwardDefaultSelector = context =>
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = signingKey,
+    ValidateIssuer = true,
+    ValidIssuer = jwtSettings["Issuer"],
+    ValidateAudience = true,
+    ValidAudience = jwtSettings["Audience"],
+    ValidateLifetime = true,
+    ClockSkew = TimeSpan.Zero
+};
+
+builder.Services.AddSingleton(tokenValidationParameters);
+
+builder.Services
+    .AddAuthentication(options =>
     {
-        string? authHeader = context.Request.Headers["Authorization"];
-        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = tokenValidationParameters;
+        options.Events = new JwtBearerEvents
         {
-            return JwtBearerDefaults.AuthenticationScheme;
-        }
-        return "Cookies";
-    };
-})
-.AddCookie("Cookies", options =>
-{
-    options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(jwtSettings["DurationInMinutes"]!));
-})
-.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidateAudience = true,
-        ValidAudience = jwtSettings["Audience"],
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
+            OnMessageReceived = context =>
+            {
+                if (context.HttpContext.Items.TryGetValue(AuthCookieHelper.AccessTokenCookieName, out var refreshedToken) &&
+                    refreshedToken is string accessTokenFromRefresh &&
+                    !string.IsNullOrWhiteSpace(accessTokenFromRefresh))
+                {
+                    context.Token = accessTokenFromRefresh;
+                    return Task.CompletedTask;
+                }
 
-// Add HttpContextAccessor for accessing HttpContext in services
+                var authHeader = context.Request.Headers["Authorization"].ToString();
+                if (!string.IsNullOrWhiteSpace(authHeader) &&
+                    authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Token = authHeader["Bearer ".Length..].Trim();
+                    return Task.CompletedTask;
+                }
+
+                var accessTokenCookie = context.Request.Cookies[AuthCookieHelper.AccessTokenCookieName];
+                if (!string.IsNullOrWhiteSpace(accessTokenCookie))
+                {
+                    context.Token = accessTokenCookie;
+                }
+
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = async context =>
+            {
+                var userIdClaim = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    context.Fail("Invalid token payload.");
+                    return;
+                }
+
+                var dbContext = context.HttpContext.RequestServices.GetRequiredService<ApartmentDbContext>();
+                var user = await dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId && !u.IsDeleted);
+                if (user == null || !user.IsActive)
+                {
+                    context.Fail("User is inactive.");
+                }
+            },
+            OnChallenge = context =>
+            {
+                if (IsBrowserPageRequest(context.Request))
+                {
+                    context.HandleResponse();
+                    AuthCookieHelper.ClearAuthCookies(context.HttpContext);
+
+                    var returnUrl = context.Request.Path + context.Request.QueryString;
+                    var loginUrl = string.IsNullOrWhiteSpace(returnUrl)
+                        ? "/Account/Login"
+                        : $"/Account/Login?returnUrl={Uri.EscapeDataString(returnUrl)}";
+
+                    context.Response.Redirect(loginUrl);
+                }
+
+                return Task.CompletedTask;
+            },
+            OnForbidden = context =>
+            {
+                if (IsBrowserPageRequest(context.Request))
+                {
+                    context.Response.Redirect("/Account/AccessDenied");
+                }
+
+                return Task.CompletedTask;
+            }
+        };
+    });
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<ApartmentDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register Activity Log Service
 builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 builder.Services.AddScoped<ISettingService, SettingService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -102,7 +158,6 @@ builder.Services.AddScoped<IInvoiceManagementService, InvoiceManagementService>(
 builder.Services.AddScoped<IPaymentManagementService, PaymentManagementService>();
 builder.Services.AddScoped<IFinancialReportService, FinancialReportService>();
 
-// Register repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IApartmentRepository, ApartmentRepository>();
 builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
@@ -122,17 +177,16 @@ builder.Services.AddScoped<IResidentCardRepository, ResidentCardRepository>();
 builder.Services.AddScoped<IServicePriceRepository, ServicePriceRepository>();
 builder.Services.AddScoped<IServiceTypeRepository, ServiceTypeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserRefreshTokenRepository, UserRefreshTokenRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IVisitorRepository, VisitorRepository>();
 builder.Services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
 
-// Register Services
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRequestService, RequestService>();
 
 var app = builder.Build();
 
-// Automatically create database if it doesn't exist
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -142,18 +196,36 @@ using (var scope = app.Services.CreateScope())
     await DbInitializer.InitializeAsync(context, logger);
 }
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
 }
+
 app.UseStaticFiles();
-
 app.UseRouting();
-
+app.UseMiddleware<JwtCookieRefreshMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
 
 await app.RunAsync();
+
+static bool IsBrowserPageRequest(HttpRequest request)
+{
+    if (request.Headers.ContainsKey("Authorization"))
+    {
+        return false;
+    }
+
+    if (request.Headers.TryGetValue("X-Requested-With", out var requestedWith) &&
+        string.Equals(requestedWith, "XMLHttpRequest", StringComparison.OrdinalIgnoreCase))
+    {
+        return false;
+    }
+
+    var acceptHeader = request.Headers.Accept.ToString();
+    return string.IsNullOrWhiteSpace(acceptHeader) ||
+           acceptHeader.Contains("text/html", StringComparison.OrdinalIgnoreCase) ||
+           acceptHeader.Contains("*/*", StringComparison.OrdinalIgnoreCase);
+}
