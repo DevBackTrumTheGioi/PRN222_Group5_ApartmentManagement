@@ -153,6 +153,12 @@ public class UserManagementService : IUserManagementService
         user.IsActive = !user.IsActive;
         user.UpdatedAt = DateTime.Now;
         await _userRepository.UpdateAsync(user);
+
+        if (!user.IsActive)
+        {
+            await _authService.RevokeAllRefreshTokensAsync(user.UserId, reason: "Account deactivated by admin.");
+        }
+
         return (true, null);
     }
 
@@ -168,6 +174,7 @@ public class UserManagementService : IUserManagementService
         user.IsActive = false;
         user.UpdatedAt = DateTime.Now;
         await _userRepository.UpdateAsync(user);
+        await _authService.RevokeAllRefreshTokensAsync(user.UserId, reason: "Account soft deleted.");
         return (true, null);
     }
 }

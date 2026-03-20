@@ -56,6 +56,7 @@ public class ApartmentDbContext : DbContext
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
     public DbSet<FaceAuthHistory> FaceAuthHistories { get; set; }
+    public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -216,12 +217,25 @@ public class ApartmentDbContext : DbContext
             .HasIndex(c => c.ContractNumber)
             .IsUnique();
 
+        modelBuilder.Entity<UserRefreshToken>()
+            .HasIndex(rt => rt.TokenHash)
+            .IsUnique();
+
+        modelBuilder.Entity<UserRefreshToken>()
+            .HasIndex(rt => new { rt.UserId, rt.ExpiresAt });
+
         // Configure relationships with specific navigation properties
         modelBuilder.Entity<User>()
             .HasOne(u => u.Apartment)
             .WithMany(a => a.Residents)
             .HasForeignKey(u => u.ApartmentId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<UserRefreshToken>()
+            .HasOne(rt => rt.User)
+            .WithMany(u => u.RefreshTokens)
+            .HasForeignKey(rt => rt.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<ResidentCard>()
             .HasOne(rc => rc.Resident)
