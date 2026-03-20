@@ -1,49 +1,195 @@
 @page
+@using PRN222_ApartmentManagement.Models.Enums
 @model PRN222_ApartmentManagement.Pages.Resident.Invoices.IndexModel
 @{
     ViewData["Title"] = "Hóa đơn của tôi";
     ViewData["CurrentPage"] = "invoices";
     Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Hóa đơn của tôi",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "Cư dân", Href = "/Resident" },
+            new { Label = "Hóa đơn", Href = "#" }
+        }
+    };
+
+    var totalDue = Model.Invoices.Where(i => i.Status != InvoiceStatus.Paid).Sum(i => i.TotalAmount - i.PaidAmount);
+    var unpaidCount = Model.Invoices.Count(i => i.Status == InvoiceStatus.Unpaid || i.Status == InvoiceStatus.Overdue || i.Status == InvoiceStatus.PartiallyPaid);
+    var paidCount = Model.Invoices.Count(i => i.Status == InvoiceStatus.Paid);
+    var nearestDue = Model.Invoices
+        .Where(i => i.Status != InvoiceStatus.Paid)
+        .OrderBy(i => i.DueDate)
+        .Select(i => (DateTime?)i.DueDate)
+        .FirstOrDefault();
+
+    string GetPaymentLabel(InvoiceStatus status) => status switch
+    {
+        InvoiceStatus.Unpaid => "Chưa thanh toán",
+        InvoiceStatus.Paid => "Đã thanh toán",
+        InvoiceStatus.PartiallyPaid => "Thanh toán một phần",
+        InvoiceStatus.Overdue => "Quá hạn",
+        InvoiceStatus.Cancelled => "Đã hủy",
+        InvoiceStatus.Pending => "Chờ xác nhận",
+        _ => status.ToString()
+    };
+
+    string GetPaymentBadgeClass(InvoiceStatus status) => status switch
+    {
+        InvoiceStatus.Paid => "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+        InvoiceStatus.PartiallyPaid => "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+        InvoiceStatus.Overdue => "bg-red-50 text-red-700 ring-1 ring-red-200",
+        InvoiceStatus.Cancelled => "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
+        InvoiceStatus.Pending => "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+        _ => "bg-slate-100 text-slate-700 ring-1 ring-slate-200"
+    };
 }
 
 <div class="space-y-6">
-    <div class="bg-white rounded-xl border border-slate-200 p-6">
-        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-sm font-medium mb-2">Tháng</label>
-                <input asp-for="BillingMonth" type="number" min="1" max="12" class="w-full rounded-lg border border-slate-200 px-3 py-2" />
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Tổng hóa đơn</p>
+                    <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@Model.Invoices.Count</p>
+                    <p class="mt-2 text-sm text-slate-500">Các kỳ đang được lưu</p>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                    <span class="material-icons">description</span>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium mb-2">Năm</label>
-                <input asp-for="BillingYear" type="number" min="2024" class="w-full rounded-lg border border-slate-200 px-3 py-2" />
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Cần thanh toán</p>
+                    <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@unpaidCount</p>
+                    <p class="mt-2 text-sm text-slate-500">Bao gồm quá hạn và thanh toán một phần</p>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                    <span class="material-icons">schedule</span>
+                </div>
             </div>
-            <div class="flex items-end">
-                <button type="submit" class="px-4 py-2 rounded-lg bg-slate-900 text-white">Lọc</button>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Đã thanh toán</p>
+                    <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@paidCount</p>
+                    <p class="mt-2 text-sm text-slate-500">Các kỳ đã hoàn tất nghĩa vụ</p>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                    <span class="material-icons">task_alt</span>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Số tiền còn lại</p>
+                    <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@totalDue.ToString("N0")</p>
+                    <p class="mt-2 text-sm text-slate-500">@(nearestDue.HasValue ? $"Hạn gần nhất: {nearestDue.Value:dd/MM/yyyy}" : "Không có khoản đến hạn")</p>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                    <span class="material-icons">account_balance_wallet</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="mb-5 flex items-start justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">Tra cứu theo kỳ</h2>
+                <p class="mt-1 text-sm text-slate-500">Lọc nhanh hóa đơn theo tháng và năm để xem lại từng kỳ thanh toán.</p>
+            </div>
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                <span class="material-icons">search</span>
+            </div>
+        </div>
+
+        <form method="get" class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="space-y-2">
+                <label asp-for="BillingMonth" class="text-sm font-medium text-slate-700">Tháng</label>
+                <input asp-for="BillingMonth" type="number" min="1" max="12"
+                       class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div class="space-y-2">
+                <label asp-for="BillingYear" class="text-sm font-medium text-slate-700">Năm</label>
+                <input asp-for="BillingYear" type="number" min="2024"
+                       class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div class="flex items-end gap-3">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700">
+                    <span class="material-icons text-base">filter_alt</span>
+                    Lọc hóa đơn
+                </button>
+                <a asp-page="./Index" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50">
+                    <span class="material-icons text-base">restart_alt</span>
+                    Đặt lại
+                </a>
             </div>
         </form>
-    </div>
+    </section>
 
-    <div class="grid gap-4">
-        @foreach (var invoice in Model.Invoices)
-        {
-            <div class="bg-white rounded-xl border border-slate-200 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <p class="text-sm text-slate-500">Mã hóa đơn</p>
-                    <h3 class="text-lg font-semibold">@invoice.InvoiceNumber</h3>
-                    <p class="text-sm text-slate-500 mt-1">Kỳ: @invoice.BillingMonth/@invoice.BillingYear</p>
-                </div>
-                <div class="text-sm">
-                    <p>Trạng thái thanh toán: <strong>@invoice.Status</strong></p>
-                    <p>Hạn thanh toán: <strong>@invoice.DueDate:dd/MM/yyyy</strong></p>
-                </div>
-                <div class="text-right">
-                    <p class="text-sm text-slate-500">Tổng tiền</p>
-                    <p class="text-2xl font-bold text-emerald-700">@invoice.TotalAmount.ToString("N0")</p>
-                </div>
-                <div class="flex justify-end">
-                    <a asp-page="/Invoices/Print" asp-route-id="@invoice.InvoiceId" class="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50">Xem / In</a>
-                </div>
+    @if (Model.Invoices.Any())
+    {
+        <section class="grid gap-4">
+            @foreach (var invoice in Model.Invoices.OrderByDescending(i => i.BillingYear).ThenByDescending(i => i.BillingMonth))
+            {
+                <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="flex items-start gap-4">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                                <span class="material-icons">receipt</span>
+                            </div>
+                            <div>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <h3 class="text-lg font-semibold text-slate-900">@invoice.InvoiceNumber</h3>
+                                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold @GetPaymentBadgeClass(invoice.Status)">
+                                        @GetPaymentLabel(invoice.Status)
+                                    </span>
+                                </div>
+                                <p class="mt-2 text-sm text-slate-500">Kỳ hóa đơn tháng @invoice.BillingMonth/@invoice.BillingYear cho căn hộ @invoice.Apartment.ApartmentNumber</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 text-sm text-slate-600 sm:grid-cols-3 lg:min-w-[520px]">
+                            <div class="rounded-xl bg-slate-50 px-4 py-3">
+                                <p class="text-xs uppercase tracking-wide text-slate-400">Hạn thanh toán</p>
+                                <p class="mt-1 font-semibold text-slate-900">@invoice.DueDate.ToString("dd/MM/yyyy")</p>
+                            </div>
+                            <div class="rounded-xl bg-slate-50 px-4 py-3">
+                                <p class="text-xs uppercase tracking-wide text-slate-400">Đã thanh toán</p>
+                                <p class="mt-1 font-semibold text-slate-900">@invoice.PaidAmount.ToString("N0") VNĐ</p>
+                            </div>
+                            <div class="rounded-xl bg-slate-50 px-4 py-3">
+                                <p class="text-xs uppercase tracking-wide text-slate-400">Tổng tiền</p>
+                                <p class="mt-1 font-semibold text-emerald-700">@invoice.TotalAmount.ToString("N0") VNĐ</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <a asp-page="/Invoices/Print" asp-route-id="@invoice.InvoiceId"
+                               class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50">
+                                <span class="material-icons text-base">print</span>
+                                Xem / In
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            }
+        </section>
+    }
+    else
+    {
+        <section class="rounded-xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                <span class="material-icons text-3xl">inventory</span>
             </div>
-        }
-    </div>
+            <h3 class="mt-4 text-lg font-semibold text-slate-900">Hiện chưa có hóa đơn</h3>
+            <p class="mt-2 text-sm text-slate-500">Khi ban quản lý phát hành hóa đơn, bạn sẽ xem được đầy đủ lịch sử thanh toán tại đây.</p>
+        </section>
+    }
 </div>

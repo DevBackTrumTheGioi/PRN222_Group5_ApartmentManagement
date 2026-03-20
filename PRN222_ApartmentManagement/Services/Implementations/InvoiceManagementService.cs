@@ -40,12 +40,12 @@ public class InvoiceManagementService : IInvoiceManagementService
     {
         if (billingMonth < 1 || billingMonth > 12)
         {
-            return (false, "Tháng lập hóa đơn không hợp lệ.", 0);
+            return (false, "Thang lap hoa don khong hop le.", 0);
         }
 
         if (billingYear < 2000 || billingYear > 3000)
         {
-            return (false, "Năm lập hóa đơn không hợp lệ.", 0);
+            return (false, "Nam lap hoa don khong hop le.", 0);
         }
 
         var issueDate = new DateTime(billingYear, billingMonth, 1);
@@ -100,7 +100,7 @@ public class InvoiceManagementService : IInvoiceManagementService
                 ApprovalStatus = InvoiceApprovalStatus.PendingApproval,
                 CreatedBy = createdByUserId,
                 CreatedAt = DateTime.Now,
-                Notes = $"Hóa đơn tự động tháng {billingMonth:D2}/{billingYear}"
+                Notes = $"Hoa don tu dong thang {billingMonth:D2}/{billingYear}"
             };
 
             await _invoiceRepository.AddAsync(invoice);
@@ -122,7 +122,7 @@ public class InvoiceManagementService : IInvoiceManagementService
                     ServicePriceId = servicePrice.ServicePriceId,
                     Quantity = apartmentService.Quantity,
                     UnitPrice = servicePrice.UnitPrice,
-                    Description = $"Dịch vụ định kỳ: {servicePrice.ServiceType.ServiceTypeName}"
+                    Description = $"Dich vu dinh ky: {servicePrice.ServiceType.ServiceTypeName}"
                 };
 
                 await _invoiceDetailRepository.AddAsync(detail);
@@ -146,7 +146,7 @@ public class InvoiceManagementService : IInvoiceManagementService
                     Quantity = 1,
                     UnitPrice = unitPrice,
                     ServiceOrderId = serviceOrder.ServiceOrderId,
-                    Description = $"Dịch vụ phát sinh: {serviceOrder.ServiceType.ServiceTypeName}"
+                    Description = $"Dich vu phat sinh: {serviceOrder.ServiceType.ServiceTypeName}"
                 };
 
                 await _invoiceDetailRepository.AddAsync(detail);
@@ -164,7 +164,7 @@ public class InvoiceManagementService : IInvoiceManagementService
         }
 
         await _context.SaveChangesAsync();
-        return (true, $"Đã tạo {createdCount} hóa đơn tự động.", createdCount);
+        return (true, $"Da tao {createdCount} hoa don tu dong.", createdCount);
     }
 
     public Task<List<Invoice>> GetInvoicesAsync(int? billingMonth, int? billingYear, InvoiceStatus? status, InvoiceApprovalStatus? approvalStatus)
@@ -210,13 +210,18 @@ public class InvoiceManagementService : IInvoiceManagementService
         var approver = await _context.Users.FirstOrDefaultAsync(u => u.UserId == approverUserId && u.Role == UserRole.BQL_Manager && !u.IsDeleted);
         if (approver == null)
         {
-            return (false, "Không tìm thấy người duyệt hợp lệ.");
+            return (false, "Khong tim thay nguoi duyet hop le.");
         }
 
         var invoice = await _invoiceRepository.GetWithDetailsAsync(invoiceId);
         if (invoice == null)
         {
-            return (false, "Không tìm thấy hóa đơn.");
+            return (false, "Khong tim thay hoa don.");
+        }
+
+        if (invoice.ApprovalStatus == InvoiceApprovalStatus.Approved && invoice.IsSent)
+        {
+            return (false, "Hoa don nay da duoc duyet va gui truoc do.");
         }
 
         invoice.ApprovalStatus = InvoiceApprovalStatus.Approved;
@@ -225,9 +230,15 @@ public class InvoiceManagementService : IInvoiceManagementService
         invoice.UpdatedAt = DateTime.Now;
 
         await _invoiceRepository.UpdateAsync(invoice);
-        await _activityLogService.LogCustomAsync("ApproveInvoice", nameof(Invoice), invoice.InvoiceId.ToString(), $"Duyệt hóa đơn {invoice.InvoiceNumber}");
+        await _activityLogService.LogCustomAsync("ApproveInvoice", nameof(Invoice), invoice.InvoiceId.ToString(), $"Duyet hoa don {invoice.InvoiceNumber}");
 
-        return (true, "Duyệt hóa đơn thành công.");
+        if (!invoice.IsSent)
+        {
+            await DispatchInvoiceToResidentsAsync(invoice);
+            return (true, "Duyet hoa don thanh cong va da gui cho cu dan.");
+        }
+
+        return (true, "Duyet hoa don thanh cong.");
     }
 
     public async Task<(bool Success, string Message)> SendInvoiceAsync(int invoiceId)
@@ -235,19 +246,25 @@ public class InvoiceManagementService : IInvoiceManagementService
         var invoice = await _invoiceRepository.GetWithDetailsAsync(invoiceId);
         if (invoice == null)
         {
-            return (false, "Không tìm thấy hóa đơn.");
+            return (false, "Khong tim thay hoa don.");
         }
 
         if (invoice.ApprovalStatus != InvoiceApprovalStatus.Approved)
         {
-            return (false, "Chỉ được gửi hóa đơn đã duyệt.");
+            return (false, "Chi duoc gui hoa don da duyet.");
         }
 
         if (invoice.IsSent)
         {
-            return (false, "Hóa đơn này đã được gửi trước đó.");
+            return (false, "Hoa don nay da duoc gui truoc do.");
         }
 
+        await DispatchInvoiceToResidentsAsync(invoice);
+        return (true, "Da gui hoa don cho cu dan.");
+    }
+
+    private async Task DispatchInvoiceToResidentsAsync(Invoice invoice)
+    {
         var residents = await _context.Users
             .Where(u => !u.IsDeleted && u.Role == UserRole.Resident && u.ApartmentId == invoice.ApartmentId)
             .ToListAsync();
@@ -257,8 +274,8 @@ public class InvoiceManagementService : IInvoiceManagementService
             var notification = new Notification
             {
                 UserId = resident.UserId,
-                Title = $"Hóa đơn tháng {invoice.BillingMonth:D2}/{invoice.BillingYear}",
-                Content = $"Hóa đơn {invoice.InvoiceNumber} đã được phát hành với tổng tiền {invoice.TotalAmount:N0} VND.",
+                Title = $"Hoa don thang {invoice.BillingMonth:D2}/{invoice.BillingYear}",
+                Content = $"Hoa don {invoice.InvoiceNumber} da duoc phat hanh voi tong tien {invoice.TotalAmount:N0} VND.",
                 NotificationType = NotificationType.Invoice,
                 ReferenceType = ReferenceType.Invoice,
                 ReferenceId = invoice.InvoiceId,
@@ -274,8 +291,8 @@ public class InvoiceManagementService : IInvoiceManagementService
                 {
                     await _emailService.SendEmailAsync(
                         resident.Email,
-                        $"Hóa đơn {invoice.InvoiceNumber}",
-                        $"<p>Xin chào {resident.FullName},</p><p>Hóa đơn <strong>{invoice.InvoiceNumber}</strong> đã được phát hành.</p><p>Tổng tiền: <strong>{invoice.TotalAmount:N0} VND</strong></p><p>Hạn thanh toán: {invoice.DueDate:dd/MM/yyyy}</p>");
+                        $"Hoa don {invoice.InvoiceNumber}",
+                        $"<p>Xin chao {resident.FullName},</p><p>Hoa don <strong>{invoice.InvoiceNumber}</strong> da duoc phat hanh.</p><p>Tong tien: <strong>{invoice.TotalAmount:N0} VND</strong></p><p>Han thanh toan: {invoice.DueDate:dd/MM/yyyy}</p>");
                 }
                 catch
                 {
@@ -288,9 +305,7 @@ public class InvoiceManagementService : IInvoiceManagementService
         invoice.SentAt = DateTime.Now;
         invoice.UpdatedAt = DateTime.Now;
         await _invoiceRepository.UpdateAsync(invoice);
-        await _activityLogService.LogCustomAsync("SendInvoice", nameof(Invoice), invoice.InvoiceId.ToString(), $"Gửi hóa đơn {invoice.InvoiceNumber} cho cư dân");
-
-        return (true, "Đã gửi hóa đơn cho cư dân.");
+        await _activityLogService.LogCustomAsync("SendInvoice", nameof(Invoice), invoice.InvoiceId.ToString(), $"Gui hoa don {invoice.InvoiceNumber} cho cu dan");
     }
 
     private async Task<ServicePrice?> GetEffectiveServicePriceAsync(int serviceTypeId, DateTime monthStart, DateTime monthEnd)
