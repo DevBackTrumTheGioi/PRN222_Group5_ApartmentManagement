@@ -99,6 +99,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 builder.Services.AddScoped<IFaceAuthService, FaceAuthService>();
 builder.Services.AddScoped<IInvoiceManagementService, InvoiceManagementService>();
+builder.Services.AddScoped<IPaymentManagementService, PaymentManagementService>();
+builder.Services.AddScoped<IFinancialReportService, FinancialReportService>();
 
 // Register repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

@@ -1,0 +1,28 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Payments.IndexModel
+@{
+    ViewData["Title"] = "Điều hướng thanh toán";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-slate-50 text-slate-900" style="font-family: 'Inter', sans-serif;">
+    <main class="flex min-h-screen items-center justify-center px-4">
+        <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <span class="material-icons text-3xl">payments</span>
+            </div>
+            <h1 class="mt-5 text-xl font-semibold text-slate-900">Đang điều hướng đến trang thanh toán phù hợp</h1>
+            <p class="mt-2 text-sm text-slate-500">Hệ thống sẽ chuyển bạn đến giao diện thu tiền, theo dõi giao dịch hoặc thanh toán online theo đúng vai trò hiện tại.</p>
+        </div>
+    </main>
+</body>
+</html>
