@@ -51,7 +51,7 @@
             Icon = "notifications",
             IsCollapsible = true,
             Items = new[] {
-                new { Icon = "campaign", Label = "Thông báo", Href = "/Announcements", Key = "announcements" }
+                new { Icon = "campaign", Label = "Thông báo", Href = User.IsInRole("Resident") ? "/Announcements/View" : "/Announcements/Index", Key = "announcements" }
             }
         },
         new {

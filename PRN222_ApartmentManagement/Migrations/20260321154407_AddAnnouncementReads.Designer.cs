@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN222_ApartmentManagement.Data;
 
@@ -11,9 +12,11 @@ using PRN222_ApartmentManagement.Data;
 namespace PRN222_ApartmentManagement.Migrations
 {
     [DbContext(typeof(ApartmentDbContext))]
-    partial class ApartmentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260321154407_AddAnnouncementReads")]
+    partial class AddAnnouncementReads
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -285,44 +288,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.HasIndex("CreatedBy");
 
                     b.ToTable("Announcements");
-                });
-
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.AnnouncementAttachment", b =>
-                {
-                    b.Property<int>("AttachmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttachmentId"));
-
-                    b.Property<int>("AnnouncementId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ContentType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<long?>("FileSize")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("UploadedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("AttachmentId");
-
-                    b.HasIndex("AnnouncementId");
-
-                    b.ToTable("AnnouncementAttachments");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.AnnouncementRead", b =>
@@ -1645,17 +1610,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("Creator");
                 });
 
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.AnnouncementAttachment", b =>
-                {
-                    b.HasOne("PRN222_ApartmentManagement.Models.Announcement", "Announcement")
-                        .WithMany("Attachments")
-                        .HasForeignKey("AnnouncementId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Announcement");
-                });
-
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.AnnouncementRead", b =>
                 {
                     b.HasOne("PRN222_ApartmentManagement.Models.Announcement", "Announcement")
@@ -2047,8 +2001,6 @@ namespace PRN222_ApartmentManagement.Migrations
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Announcement", b =>
                 {
                     b.Navigation("AnnouncementReads");
-
-                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Apartment", b =>

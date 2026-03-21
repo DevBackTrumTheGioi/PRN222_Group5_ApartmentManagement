@@ -110,6 +110,26 @@ public class DashboardService : IDashboardService
             .Include(u => u.Apartment)
             .FirstOrDefaultAsync(u => u.UserId == userId);
             
+        var now = DateTime.Now;
+
+        var recentAnnouncements = await _context.Announcements
+            .Where(a => !a.IsDeleted
+                        && a.IsActive
+                        && a.PublishedDate <= now
+                        && (!a.ExpiryDate.HasValue || a.ExpiryDate >= now))
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(5)
+            .Select(a => new ResidentAnnouncementPreviewViewModel
+            {
+                AnnouncementId = a.AnnouncementId,
+                Title = a.Title,
+                Content = a.Content,
+                Source = a.Source,
+                CreatedAt = a.CreatedAt,
+                IsRead = a.AnnouncementReads.Any(ar => ar.UserId == userId)
+            })
+            .ToListAsync();
+
         var model = new ResidentDashboardViewModel
         {
             Apartment = user?.Apartment,
@@ -125,10 +145,7 @@ public class DashboardService : IDashboardService
                 .Take(5)
                 .ToListAsync(),
                 
-            RecentAnnouncements = await _context.Announcements
-                .OrderByDescending(a => a.CreatedAt)
-                .Take(5)
-                .ToListAsync()
+            RecentAnnouncements = recentAnnouncements
         };
 
         return model;
