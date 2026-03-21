@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model PRN222_ApartmentManagement.Pages.BQL_Manager.Requests.IndexModel
 @using PRN222_ApartmentManagement.Models.Enums
 @using PRN222_ApartmentManagement.Utils
@@ -36,6 +36,11 @@
            class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-orange-600 hover:border-orange-400 transition-colors -mb-px">
             <span class="material-icons text-base">escalator_warning</span>
             Yêu cầu chuyển cấp
+        </a>
+        <a asp-page="ForwardedComplaints"
+           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-rose-600 hover:border-rose-400 transition-colors -mb-px">
+            <span class="material-icons text-base">report</span>
+            Khiếu nại từ BQT
         </a>
     </div>
 
@@ -96,7 +101,7 @@
                 <select name="TypeFilter"
                         class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
                     <option value="">Tất cả loại</option>
-                    @foreach (var t in Enum.GetValues<RequestType>())
+                    @foreach (var t in Enum.GetValues<RequestType>().Where(t => t != RequestType.Complaint))
                     {
                         <option value="@t" selected="@(Model.TypeFilter == t)">@t.GetDisplayName()</option>
                     }
