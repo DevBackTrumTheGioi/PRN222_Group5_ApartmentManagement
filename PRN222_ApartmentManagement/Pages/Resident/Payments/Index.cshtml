@@ -1,0 +1,216 @@
+@page
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.Resident.Payments.IndexModel
+@{
+    ViewData["Title"] = "Thanh toán";
+    ViewData["CurrentPage"] = "payments";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Thanh toán",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "Cư dân", Href = "/Resident" },
+            new { Label = "Thanh toán", Href = "#" }
+        }
+    };
+
+    var totalDue = Model.Invoices.Sum(i => i.TotalAmount - i.PaidAmount);
+    var onlineCount = Model.Transactions.Count(t => t.PaymentMethod == "VNPay" || t.PaymentMethod == "Momo");
+
+    string GetInvoiceStatusLabel(InvoiceStatus status) => status switch
+    {
+        InvoiceStatus.Unpaid => "Chưa thanh toán",
+        InvoiceStatus.Paid => "Đã thanh toán",
+        InvoiceStatus.PartiallyPaid => "Thanh toán một phần",
+        InvoiceStatus.Overdue => "Quá hạn",
+        InvoiceStatus.Cancelled => "Đã hủy",
+        InvoiceStatus.Pending => "Chờ xác nhận",
+        _ => status.ToString()
+    };
+
+    string GetTransactionStatusLabel(int status) => status switch
+    {
+        (int)PaymentTransactionStatus.Pending => "Đang xử lý",
+        (int)PaymentTransactionStatus.Success => "Thành công",
+        (int)PaymentTransactionStatus.Failed => "Thất bại",
+        (int)PaymentTransactionStatus.Cancelled => "Đã hủy",
+        _ => "Không xác định"
+    };
+}
+
+<div class="space-y-6">
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-slate-500">Hóa đơn cần thanh toán</p>
+            <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@Model.Invoices.Count</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-slate-500">Tổng còn lại</p>
+            <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@totalDue.ToString("N0")</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-slate-500">Lịch sử giao dịch</p>
+            <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@Model.Transactions.Count</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-slate-500">Online</p>
+            <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@onlineCount</p>
+        </div>
+    </section>
+
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            @Model.StatusMessage
+        </div>
+    }
+
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="mb-5">
+            <h2 class="text-lg font-semibold text-slate-900">Tra cứu thanh toán</h2>
+            <p class="mt-1 text-sm text-slate-500">Lọc theo kỳ và phương thức giao dịch.</p>
+        </div>
+        <form method="get" class="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div class="space-y-2">
+                <label asp-for="BillingMonth" class="text-sm font-medium text-slate-700">Tháng</label>
+                <input asp-for="BillingMonth" type="number" min="1" max="12" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm" />
+            </div>
+            <div class="space-y-2">
+                <label asp-for="BillingYear" class="text-sm font-medium text-slate-700">Năm</label>
+                <input asp-for="BillingYear" type="number" min="2024" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm" />
+            </div>
+            <div class="space-y-2">
+                <label asp-for="PaymentMethod" class="text-sm font-medium text-slate-700">Phương thức</label>
+                <select asp-for="PaymentMethod" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm">
+                    <option value="">Tất cả</option>
+                    <option value="VNPay">VNPay</option>
+                    <option value="Momo">Momo</option>
+                    <option value="Cash">Cash</option>
+                    <option value="BankTransfer">Bank transfer</option>
+                </select>
+            </div>
+            <div class="flex items-end gap-3">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                    <span class="material-icons text-base">filter_alt</span>
+                    Lọc
+                </button>
+                <a asp-page="./Index" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                    <span class="material-icons text-base">restart_alt</span>
+                    Đặt lại
+                </a>
+            </div>
+        </form>
+    </section>
+
+    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-6 py-5">
+            <h2 class="text-lg font-semibold text-slate-900">Thanh toán online</h2>
+            <p class="mt-1 text-sm text-slate-500">Mô phỏng thanh toán qua cổng online cho các hóa đơn đã phát hành.</p>
+        </div>
+        @if (Model.Invoices.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-600">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold">Hóa đơn</th>
+                            <th class="px-6 py-3 text-left font-semibold">Trạng thái</th>
+                            <th class="px-6 py-3 text-right font-semibold">Còn phải trả</th>
+                            <th class="px-6 py-3 text-left font-semibold">Thanh toán</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var invoice in Model.Invoices)
+                        {
+                            var remaining = invoice.TotalAmount - invoice.PaidAmount;
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <p class="font-semibold text-slate-900">@invoice.InvoiceNumber</p>
+                                    <p class="mt-1 text-xs text-slate-500">Kỳ @invoice.BillingMonth/@invoice.BillingYear</p>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">@GetInvoiceStatusLabel(invoice.Status)</td>
+                                <td class="px-6 py-4 text-right font-semibold text-slate-900">@remaining.ToString("N0") VNĐ</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-wrap gap-2">
+                                        <form method="post" asp-page-handler="PayOnline">
+                                            <input type="hidden" name="invoiceId" value="@invoice.InvoiceId" />
+                                            <input type="hidden" name="gateway" value="VNPay" />
+                                            <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                                                <span class="material-icons text-base">credit_card</span>
+                                                Thanh toán VNPay
+                                            </button>
+                                        </form>
+                                        <form method="post" asp-page-handler="PayOnline">
+                                            <input type="hidden" name="invoiceId" value="@invoice.InvoiceId" />
+                                            <input type="hidden" name="gateway" value="Momo" />
+                                            <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                                <span class="material-icons text-base">account_balance_wallet</span>
+                                                Thanh toán Momo
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="px-6 py-16 text-center text-sm text-slate-500">Hiện không có hóa đơn nào cần thanh toán online.</div>
+        }
+    </section>
+
+    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-6 py-5">
+            <h2 class="text-lg font-semibold text-slate-900">Lịch sử giao dịch của tôi</h2>
+        </div>
+        @if (Model.Transactions.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-600">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold">Mã giao dịch</th>
+                            <th class="px-6 py-3 text-left font-semibold">Hóa đơn</th>
+                            <th class="px-6 py-3 text-left font-semibold">Phương thức</th>
+                            <th class="px-6 py-3 text-left font-semibold">Trạng thái</th>
+                            <th class="px-6 py-3 text-right font-semibold">Số tiền</th>
+                            <th class="px-6 py-3 text-right font-semibold">Biên lai</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var transaction in Model.Transactions)
+                        {
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <p class="font-semibold text-slate-900">@transaction.TransactionCode</p>
+                                    <p class="mt-1 text-xs text-slate-500">@transaction.PaymentDate.ToString("dd/MM/yyyy HH:mm")</p>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <p class="font-medium text-slate-800">@transaction.Invoice.InvoiceNumber</p>
+                                    <p class="mt-1 text-xs text-slate-500">Căn @transaction.Invoice.Apartment.ApartmentNumber</p>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">@(string.IsNullOrWhiteSpace(transaction.PaymentMethod) ? "-" : transaction.PaymentMethod)</td>
+                                <td class="px-6 py-4 text-slate-600">@GetTransactionStatusLabel(transaction.Status)</td>
+                                <td class="px-6 py-4 text-right font-semibold text-slate-900">@transaction.Amount.ToString("N0") VNĐ</td>
+                                <td class="px-6 py-4 text-right">
+                                    <a asp-page="/Payments/Receipt" asp-route-id="@transaction.TransactionId" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                                        <span class="material-icons text-base">receipt_long</span>
+                                        Biên lai
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="px-6 py-16 text-center text-sm text-slate-500">Bạn chưa có giao dịch thanh toán nào.</div>
+        }
+    </section>
+</div>

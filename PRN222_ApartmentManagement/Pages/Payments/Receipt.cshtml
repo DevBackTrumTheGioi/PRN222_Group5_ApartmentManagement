@@ -1,0 +1,158 @@
+@page "{id:int}"
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.Payments.ReceiptModel
+@{
+    ViewData["Title"] = "Biên lai thanh toán";
+    ViewData["CurrentPage"] = "payments";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Biên lai thanh toán",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "Thanh toán", Href = "/Payments" },
+            new { Label = "Biên lai", Href = "#" }
+        }
+    };
+
+    var transaction = Model.Transaction;
+    var invoice = transaction.Invoice;
+
+    string GetStatusLabel(int status) => status switch
+    {
+        (int)PaymentTransactionStatus.Pending => "Đang xử lý",
+        (int)PaymentTransactionStatus.Success => "Thành công",
+        (int)PaymentTransactionStatus.Failed => "Thất bại",
+        (int)PaymentTransactionStatus.Cancelled => "Đã hủy",
+        _ => "Không xác định"
+    };
+}
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between gap-3 print-hidden">
+        <a href="/Payments" class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+            <span class="material-icons text-lg mr-1">arrow_back</span>
+            Quay lại lịch sử thanh toán
+        </a>
+        <button type="button"
+                onclick="window.print()"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-semibold shadow-sm">
+            <span class="material-icons text-base">print</span>
+            In biên lai
+        </button>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 md:p-8 space-y-8">
+            <div class="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+                <div>
+                    <p class="text-sm font-medium uppercase tracking-[0.2em] text-emerald-600">Apartment Management</p>
+                    <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-900">Biên lai thu tiền</h1>
+                    <p class="mt-2 text-sm text-slate-500">Biên lai xác nhận giao dịch thanh toán cho hóa đơn @invoice.InvoiceNumber.</p>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600 min-w-[240px]">
+                    <p>Mã giao dịch</p>
+                    <p class="mt-1 text-lg font-semibold text-slate-900">@transaction.TransactionCode</p>
+                    <p class="mt-3">Ngày thanh toán: <strong>@transaction.PaymentDate.ToString("dd/MM/yyyy HH:mm")</strong></p>
+                    <p class="mt-1">Trạng thái: <strong>@GetStatusLabel(transaction.Status)</strong></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Thông tin hóa đơn</h2>
+                    <div class="mt-4 space-y-2 text-sm text-slate-600">
+                        <p><span class="font-medium text-slate-900">Mã hóa đơn:</span> @invoice.InvoiceNumber</p>
+                        <p><span class="font-medium text-slate-900">Kỳ:</span> @invoice.BillingMonth/@invoice.BillingYear</p>
+                        <p><span class="font-medium text-slate-900">Căn hộ:</span> @invoice.Apartment.ApartmentNumber</p>
+                        <p><span class="font-medium text-slate-900">Hạn thanh toán:</span> @invoice.DueDate.ToString("dd/MM/yyyy")</p>
+                    </div>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Thông tin thanh toán</h2>
+                    <div class="mt-4 space-y-2 text-sm text-slate-600">
+                        <p><span class="font-medium text-slate-900">Phương thức:</span> @(string.IsNullOrWhiteSpace(transaction.PaymentMethod) ? "-" : transaction.PaymentMethod)</p>
+                        <p><span class="font-medium text-slate-900">Số tiền giao dịch:</span> @transaction.Amount.ToString("N0") VNĐ</p>
+                        <p><span class="font-medium text-slate-900">Người ghi nhận:</span> @(transaction.Creator?.FullName ?? "Hệ thống")</p>
+                        <p><span class="font-medium text-slate-900">Ghi chú:</span> @(string.IsNullOrWhiteSpace(transaction.GatewayResponse) ? "-" : transaction.GatewayResponse)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-xl border border-slate-200">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-600">
+                        <tr>
+                            <th class="px-5 py-3 text-left font-semibold">Khoản mục</th>
+                            <th class="px-5 py-3 text-right font-semibold">Giá trị</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 bg-white">
+                        <tr>
+                            <td class="px-5 py-4 text-slate-600">Tổng tiền hóa đơn</td>
+                            <td class="px-5 py-4 text-right font-semibold text-slate-900">@invoice.TotalAmount.ToString("N0") VNĐ</td>
+                        </tr>
+                        <tr>
+                            <td class="px-5 py-4 text-slate-600">Đã thanh toán trước đó</td>
+                            <td class="px-5 py-4 text-right font-semibold text-slate-900">@((invoice.PaidAmount - transaction.Amount).ToString("N0")) VNĐ</td>
+                        </tr>
+                        <tr>
+                            <td class="px-5 py-4 text-slate-600">Thanh toán kỳ này</td>
+                            <td class="px-5 py-4 text-right font-semibold text-emerald-700">@transaction.Amount.ToString("N0") VNĐ</td>
+                        </tr>
+                        <tr>
+                            <td class="px-5 py-4 text-slate-600">Còn lại sau giao dịch</td>
+                            <td class="px-5 py-4 text-right font-semibold text-slate-900">@Math.Max(0, invoice.TotalAmount - invoice.PaidAmount).ToString("N0") VNĐ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 text-sm text-slate-600">
+                <div>
+                    <p class="font-semibold text-slate-900">Người lập biên lai</p>
+                    <p class="mt-16">@(transaction.Creator?.FullName ?? "Hệ thống")</p>
+                </div>
+                <div class="text-left md:text-right">
+                    <p class="font-semibold text-slate-900">Người nộp tiền</p>
+                    <p class="mt-16">Cư dân căn hộ @invoice.Apartment.ApartmentNumber</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3 print-hidden">
+            <p class="text-xs text-slate-400">
+                <span class="material-icons text-xs align-text-top">receipt_long</span>
+                Biên lai này được tạo tự động từ giao dịch thanh toán đã ghi nhận trong hệ thống.
+            </p>
+            <a asp-page="/Invoices/Print" asp-route-id="@invoice.InvoiceId"
+               class="inline-flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                <span class="material-icons text-base">description</span>
+                Xem hóa đơn
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const printElements = document.querySelectorAll(".print-hidden");
+            const style = document.createElement("style");
+            style.textContent = `
+                @@media print {
+                    #main-sidebar, header, footer, .print-hidden { display: none !important; }
+                    body > div.flex.flex-col.min-h-screen.transition-all.duration-300.lg\\:ml-64 {
+                        margin-left: 0 !important;
+                        min-height: auto !important;
+                        display: block !important;
+                    }
+                    main { padding: 0 !important; }
+                }
+            `;
+            if (printElements.length) {
+                document.head.appendChild(style);
+            }
+        });
+    </script>
+}

@@ -1,20 +1,19 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using PRN222_ApartmentManagement.Data;
-using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Services.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.Resident.FaceAuth;
 
 [Authorize(Roles = "Resident")]
 public class RegisterModel : PageModel
 {
-    private readonly ApartmentDbContext _context;
+    private readonly IFaceAuthService _faceAuthService;
 
-    public RegisterModel(ApartmentDbContext context)
+    public RegisterModel(IFaceAuthService faceAuthService)
     {
-        _context = context;
+        _faceAuthService = faceAuthService;
     }
 
     [BindProperty]
@@ -37,17 +36,16 @@ public class RegisterModel : PageModel
             return RedirectToPage("/Account/Login");
         }
 
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null || user.Role != UserRole.Resident)
+        var (success, errorMessage) = await _faceAuthService.RegisterFaceAsync(userId, FaceDescriptorString);
+        if (!success)
         {
-            return NotFound();
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                ModelState.AddModelError(string.Empty, errorMessage);
+            }
+
+            return Page();
         }
-
-        user.FaceDescriptor = FaceDescriptorString;
-        user.IsFaceRegistered = true;
-        user.UpdatedAt = DateTime.Now;
-
-        await _context.SaveChangesAsync();
 
         return RedirectToPage("./Status");
     }

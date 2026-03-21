@@ -85,6 +85,7 @@ public class User
     public virtual ICollection<AmenityBooking> AmenityBookings { get; set; } = new List<AmenityBooking>();
     public virtual ICollection<ContractMember> ContractMembers { get; set; } = new List<ContractMember>();
     public virtual ICollection<ServiceOrder> ServiceOrders { get; set; } = new List<ServiceOrder>();
+    public virtual ICollection<UserRefreshToken> RefreshTokens { get; set; } = new List<UserRefreshToken>();
 
     // ServiceOrder navigation properties
     public virtual ICollection<ServiceOrder> AssignedServiceOrders { get; set; } = new List<ServiceOrder>();

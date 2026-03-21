@@ -598,6 +598,17 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Property<int>("ApartmentId")
                         .HasColumnType("int");
 
+                    b.Property<string>("ApprovalStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int");
+
                     b.Property<int>("BillingMonth")
                         .HasColumnType("int");
 
@@ -618,6 +629,9 @@ namespace PRN222_ApartmentManagement.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<bool>("IsSent")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("IssueDate")
                         .HasColumnType("date");
 
@@ -635,6 +649,9 @@ namespace PRN222_ApartmentManagement.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -649,6 +666,8 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.HasKey("InvoiceId");
 
                     b.HasIndex("ApartmentId");
+
+                    b.HasIndex("ApprovedBy");
 
                     b.HasIndex("CreatedBy");
 
@@ -1333,6 +1352,57 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("PRN222_ApartmentManagement.Models.UserRefreshToken", b =>
+                {
+                    b.Property<int>("RefreshTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RefreshTokenId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReplacedByTokenHash")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("RevocationReason")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RevokedByIp")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RefreshTokenId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ExpiresAt");
+
+                    b.ToTable("UserRefreshTokens");
+                });
+
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Vehicle", b =>
                 {
                     b.Property<int>("VehicleId")
@@ -1597,6 +1667,11 @@ namespace PRN222_ApartmentManagement.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("PRN222_ApartmentManagement.Models.User", "Approver")
+                        .WithMany()
+                        .HasForeignKey("ApprovedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("PRN222_ApartmentManagement.Models.User", "Creator")
                         .WithMany("CreatedInvoices")
                         .HasForeignKey("CreatedBy")
@@ -1604,6 +1679,8 @@ namespace PRN222_ApartmentManagement.Migrations
                         .IsRequired();
 
                     b.Navigation("Apartment");
+
+                    b.Navigation("Approver");
 
                     b.Navigation("Creator");
                 });
@@ -1821,6 +1898,17 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("Apartment");
                 });
 
+            modelBuilder.Entity("PRN222_ApartmentManagement.Models.UserRefreshToken", b =>
+                {
+                    b.HasOne("PRN222_ApartmentManagement.Models.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Vehicle", b =>
                 {
                     b.HasOne("PRN222_ApartmentManagement.Models.User", "Resident")
@@ -1940,6 +2028,8 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("PaymentTransactions");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("RegisteredVisitors");
 
