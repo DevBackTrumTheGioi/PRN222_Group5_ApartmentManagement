@@ -149,7 +149,7 @@ public class DashboardService : IDashboardService
                 .SumAsync(i => i.TotalAmount),
                 
             PendingComplaints = await _context.Requests
-                .CountAsync(r => r.RequestType == RequestType.Complaint && r.Status != RequestStatus.Completed),
+                .CountAsync(r => r.RequestType == RequestType.Complaint && r.Status == RequestStatus.Pending),
                 
             TotalResidents = await _context.Users.CountAsync(u => !u.IsDeleted && u.Role == UserRole.Resident),
             TotalApartments = await _context.Apartments.CountAsync(),
@@ -157,6 +157,8 @@ public class DashboardService : IDashboardService
             
             RecentComplaints = await _context.Requests
                 .Where(r => r.RequestType == RequestType.Complaint)
+                .Include(r => r.Resident)
+                .Include(r => r.Apartment)
                 .OrderByDescending(r => r.CreatedAt)
                 .Take(5)
                 .ToListAsync()

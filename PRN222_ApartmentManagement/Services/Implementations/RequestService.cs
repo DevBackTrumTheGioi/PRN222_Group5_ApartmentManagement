@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
@@ -33,10 +33,16 @@ public class RequestService : IRequestService
         => await _requestRepository.GetWithDetailsAsync(requestId);
 
     public async Task<IEnumerable<Request>> GetAllRequestsAsync()
-        => SortByUrgency(await _requestRepository.GetAllWithDetailsAsync());
+    {
+        var all = await _requestRepository.GetAllWithDetailsAsync();
+        return SortByUrgency(all.Where(r => r.RequestType != RequestType.Complaint));
+    }
 
     public async Task<IEnumerable<Request>> GetAssignedRequestsAsync(int staffId)
-        => SortByUrgency(await _requestRepository.GetByAssignedToAsync(staffId));
+    {
+        var all = await _requestRepository.GetByAssignedToAsync(staffId);
+        return SortByUrgency(all.Where(r => r.RequestType != RequestType.Complaint));
+    }
 
     public async Task<IEnumerable<Request>> GetComplaintsAsync()
         => SortByUrgency(await _requestRepository.GetComplaintsAsync());
@@ -150,7 +156,8 @@ public class RequestService : IRequestService
     public async Task<IEnumerable<Request>> GetAllRequestsAsync(
         RequestStatus? status, RequestType? type, RequestPriority? priority, string? search)
     {
-        var all = await _requestRepository.GetAllWithDetailsAsync();
+        var allRaw = await _requestRepository.GetAllWithDetailsAsync();
+        var all = allRaw.Where(r => r.RequestType != RequestType.Complaint);
 
         if (status.HasValue)
             all = all.Where(r => r.Status == status.Value);
@@ -202,10 +209,49 @@ public class RequestService : IRequestService
         await _requestRepository.UpdateAsync(request);
     }
 
+    public async Task ForwardComplaintAsync(int requestId, int managerId, string reason)
+    {
+        var request = await _requestRepository.GetByIdAsync(requestId)
+            ?? throw new InvalidOperationException("Không tìm thấy yêu cầu.");
+
+        if (request.RequestType != RequestType.Complaint)
+            throw new InvalidOperationException("Yêu cầu này không phải khiếu nại.");
+
+        if (request.EscalatedAt.HasValue)
+            throw new InvalidOperationException("Khiếu nại này đã được chuyển cho BQL trước đó.");
+
+        if (request.Status is RequestStatus.Completed or RequestStatus.Cancelled or RequestStatus.Rejected)
+            throw new InvalidOperationException("Không thể chuyển xử lý khiếu nại đã đóng.");
+
+        var managerExists = await _context.Users
+            .AnyAsync(u => u.UserId == managerId
+                        && u.Role == UserRole.BQL_Manager
+                        && u.IsActive
+                        && !u.IsDeleted);
+
+        if (!managerExists)
+            throw new InvalidOperationException("Quản lý BQL được chọn không hợp lệ hoặc không còn hoạt động.");
+
+        request.EscalatedTo = managerId;
+        request.EscalatedAt = DateTime.Now;
+        request.EscalationReason = reason.Trim();
+        request.Status = RequestStatus.InProgress;
+        request.UpdatedAt = DateTime.Now;
+
+        await _requestRepository.UpdateAsync(request);
+    }
+
+    public async Task<IEnumerable<Request>> GetForwardedComplaintsAsync(int managerId)
+    {
+        var all = await _requestRepository.GetAllWithDetailsAsync();
+        return SortByUrgency(all.Where(r =>
+            r.RequestType == RequestType.Complaint && r.EscalatedTo == managerId));
+    }
+
     public async Task<IEnumerable<Request>> GetEscalatedRequestsAsync()
     {
         var all = await _requestRepository.GetAllWithDetailsAsync();
-        return all.Where(r => r.EscalatedAt.HasValue);
+        return all.Where(r => r.EscalatedAt.HasValue && r.RequestType != RequestType.Complaint);
     }
 
     /// <summary>

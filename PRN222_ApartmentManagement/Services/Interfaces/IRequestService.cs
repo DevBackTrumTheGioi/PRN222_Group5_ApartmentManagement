@@ -1,4 +1,4 @@
-﻿using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Services.Interfaces;
@@ -27,4 +27,8 @@ public interface IRequestService
 
     // BQT
     Task<IEnumerable<Request>> GetComplaintsAsync();
+    Task ForwardComplaintAsync(int requestId, int managerId, string reason);
+
+    // BQL — khiếu nại được forward từ BQT
+    Task<IEnumerable<Request>> GetForwardedComplaintsAsync(int managerId);
 }

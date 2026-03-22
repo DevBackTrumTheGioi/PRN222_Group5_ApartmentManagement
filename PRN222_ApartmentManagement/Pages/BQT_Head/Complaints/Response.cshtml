@@ -1,0 +1,210 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQT_Head.Complaints.ResponseModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Phản hồi khiếu nại";
+    ViewData["Subtitle"] = "Phản hồi trực tiếp hoặc chuyển xử lý cho BQL Manager";
+    ViewData["CurrentPage"] = "complaints";
+
+    var req = Model.Complaint;
+
+    (string statusBg, string statusText, string statusIcon) = req.Status switch
+    {
+        RequestStatus.Pending => ("bg-amber-50 text-amber-700 border-amber-200", "Chờ xử lý", "schedule"),
+        RequestStatus.InProgress => ("bg-blue-50 text-blue-700 border-blue-200", "Đang xử lý", "sync"),
+        RequestStatus.Completed => ("bg-emerald-50 text-emerald-700 border-emerald-200", "Hoàn thành", "check_circle"),
+        RequestStatus.Cancelled => ("bg-slate-50 text-slate-500 border-slate-200", "Đã hủy", "cancel"),
+        RequestStatus.Rejected => ("bg-red-50 text-red-600 border-red-200", "Từ chối", "block"),
+        _ => ("bg-slate-50 text-slate-500 border-slate-200", req.Status.ToString(), "help")
+    };
+
+    (string priBg, string priText) = req.Priority switch
+    {
+        RequestPriority.Emergency => ("bg-red-50 text-red-600 border-red-200", "Khẩn cấp"),
+        RequestPriority.High => ("bg-orange-50 text-orange-600 border-orange-200", "Cao"),
+        RequestPriority.Normal => ("bg-slate-50 text-slate-500 border-slate-200", "Bình thường"),
+        RequestPriority.Low => ("bg-slate-50 text-slate-400 border-slate-100", "Thấp"),
+        _ => ("bg-slate-50 text-slate-400 border-slate-100", req.Priority.ToString())
+    };
+}
+
+<div class="max-w-6xl mx-auto space-y-6">
+
+    <a asp-page="Index"
+       class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+        <span class="material-icons text-lg mr-1">arrow_back</span>
+        Quay lại danh sách khiếu nại
+    </a>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm">
+            <span class="material-icons text-emerald-500">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <span class="material-icons text-red-500 mt-0.5">error</span>
+            <div>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <p>@error.ErrorMessage</p>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <p class="text-xs font-mono text-slate-400">@req.RequestNumber</p>
+                <h2 class="text-xl font-bold text-slate-900 mt-1">@req.Title</h2>
+                <p class="text-sm text-slate-500 mt-2">@req.Description</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border @statusBg">
+                    <span class="material-icons text-[11px]">@statusIcon</span>
+                    @statusText
+                </span>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border @priBg">
+                    @priText
+                </span>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                    Khiếu nại
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4 text-xs">
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <p class="text-slate-400">Cư dân</p>
+                <p class="text-slate-700 font-semibold">@req.Resident?.FullName</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <p class="text-slate-400">Căn hộ</p>
+                <p class="text-slate-700 font-semibold">@req.Apartment?.ApartmentNumber</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <p class="text-slate-400">Ngày gửi</p>
+                <p class="text-slate-700 font-semibold">@req.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <p class="text-slate-400">Phụ trách hiện tại</p>
+                <p class="text-slate-700 font-semibold">@(req.AssignedUser?.FullName ?? "Chưa phân công")</p>
+            </div>
+        </div>
+    </div>
+
+    @{
+        var isClosed = req.Status is RequestStatus.Completed or RequestStatus.Cancelled or RequestStatus.Rejected;
+        var isForwarded = req.EscalatedAt.HasValue;
+    }
+
+    @if (isClosed)
+    {
+        <div class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 text-sm">
+            <span class="material-icons text-slate-400">lock</span>
+            <span>Khiếu nại này đã được đóng với trạng thái <strong>@statusText</strong>. Không thể phản hồi hoặc chuyển xử lý.</span>
+        </div>
+    }
+    else if (isForwarded)
+    {
+        <div class="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-xl text-orange-700 text-sm">
+            <span class="material-icons text-orange-500">forward_to_inbox</span>
+            <span>Khiếu nại này đã được chuyển cho BQL Manager <strong>@(req.EscalatedToUser?.FullName ?? "—")</strong> xử lý vào lúc @req.EscalatedAt?.ToString("dd/MM/yyyy HH:mm").</span>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <h3 class="text-base font-bold text-slate-900 mb-4">Phản hồi cư dân (BQT)</h3>
+                <form method="post" asp-page-handler="Respond" asp-route-id="@req.RequestId" class="space-y-3">
+                    <div>
+                        <label asp-for="RespondInput.Content" class="text-sm font-medium text-slate-700">Nội dung phản hồi</label>
+                        <textarea asp-for="RespondInput.Content" rows="5"
+                                  placeholder="Nhập nội dung phản hồi cho cư dân..."
+                                  class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"></textarea>
+                        <span asp-validation-for="RespondInput.Content" class="text-xs text-red-500"></span>
+                    </div>
+                    <button type="submit"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors">
+                        <span class="material-icons text-base">send</span>
+                        Gửi phản hồi
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-xl border border-orange-200 shadow-sm p-5">
+                <h3 class="text-base font-bold text-slate-900 mb-4">Chuyển cho BQL xử lý</h3>
+                <form method="post" asp-page-handler="Forward" asp-route-id="@req.RequestId" class="space-y-3">
+                    <div>
+                        <label asp-for="ForwardInput.ManagerId" class="text-sm font-medium text-slate-700">BQL Manager nhận xử lý</label>
+                        <select asp-for="ForwardInput.ManagerId" asp-items="Model.ManagerOptions"
+                                class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white">
+                            <option value="">-- Chọn quản lý --</option>
+                        </select>
+                        <span asp-validation-for="ForwardInput.ManagerId" class="text-xs text-red-500"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="ForwardInput.Reason" class="text-sm font-medium text-slate-700">Lý do chuyển xử lý</label>
+                        <textarea asp-for="ForwardInput.Reason" rows="4"
+                                  placeholder="Nêu rõ lý do chuyển cho BQL Manager..."
+                                  class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"></textarea>
+                        <span asp-validation-for="ForwardInput.Reason" class="text-xs text-red-500"></span>
+                    </div>
+
+                    <button type="submit" @(!Model.ManagerOptions.Any() ? "disabled" : "")
+                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-200 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors">
+                        <span class="material-icons text-base">forward_to_inbox</span>
+                        Chuyển BQL xử lý
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <h3 class="text-base font-bold text-slate-900 mb-4">Lịch sử trao đổi</h3>
+
+        @if (!Model.Complaint.Comments.Any())
+        {
+            <div class="text-center py-10 text-slate-400">
+                <span class="material-icons text-4xl">chat_bubble_outline</span>
+                <p class="text-sm mt-2">Chưa có bình luận nào.</p>
+            </div>
+        }
+        else
+        {
+            <div class="space-y-3">
+                @foreach (var c in Model.Complaint.Comments)
+                {
+                    <div class="p-3 rounded-lg border border-slate-200 bg-slate-50">
+                        <div class="flex justify-between items-center gap-3 mb-1">
+                            <p class="text-sm font-semibold text-slate-700">@c.Author?.FullName</p>
+                            <p class="text-xs text-slate-400">@c.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                        <p class="text-sm text-slate-600 whitespace-pre-wrap">@c.Content</p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
