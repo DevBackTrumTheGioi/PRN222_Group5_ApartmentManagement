@@ -37,6 +37,8 @@ public class ApartmentDbContext : DbContext
 
     // Announcement entities
     public DbSet<Announcement> Announcements { get; set; }
+    public DbSet<AnnouncementRead> AnnouncementReads { get; set; }
+    public DbSet<AnnouncementAttachment> AnnouncementAttachments { get; set; }
     public DbSet<Document> Documents { get; set; }
 
     // Facility entities
@@ -333,6 +335,37 @@ public class ApartmentDbContext : DbContext
             .WithMany(u => u.Announcements)
             .HasForeignKey(a => a.CreatedBy)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<AnnouncementRead>()
+            .HasIndex(ar => new { ar.AnnouncementId, ar.UserId })
+            .IsUnique();
+
+        modelBuilder.Entity<AnnouncementAttachment>()
+            .HasIndex(aa => aa.AnnouncementId);
+
+        modelBuilder.Entity<Announcement>()
+            .HasOne(a => a.Creator)
+            .WithMany(u => u.Announcements)
+            .HasForeignKey(a => a.CreatedBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<AnnouncementRead>()
+            .HasOne(ar => ar.Announcement)
+            .WithMany(a => a.AnnouncementReads)
+            .HasForeignKey(ar => ar.AnnouncementId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<AnnouncementRead>()
+            .HasOne(ar => ar.User)
+            .WithMany(u => u.AnnouncementReads)
+            .HasForeignKey(ar => ar.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<AnnouncementAttachment>()
+            .HasOne(aa => aa.Announcement)
+            .WithMany(a => a.Attachments)
+            .HasForeignKey(aa => aa.AnnouncementId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Document>()
             .HasOne(d => d.Uploader)
