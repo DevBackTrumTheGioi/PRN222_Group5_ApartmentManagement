@@ -113,9 +113,9 @@ public class CreateModel : PageModel
 
                 if (!string.IsNullOrWhiteSpace(emailToCheck) && await _userRepository.EmailExistsAsync(emailToCheck))
                 {
-                    var dup = await _userRepository.FindByIdentityCardAsync(cccdToCheck);
+                    var dup = await _userRepository.GetByEmailAsync(emailToCheck);
                     if (dup != null)
-                        ErrorMessage = $"Email \"{emailToCheck}\" đã được gắn với chủ hộ mang CCCD \"{dup.IdentityCardNumber}\".";
+                        ErrorMessage = $"Email \"{emailToCheck}\" đã được sử dụng bởi tài khoản mang CCCD \"{dup.IdentityCardNumber}\".";
                     else
                         ErrorMessage = $"Email \"{emailToCheck}\" đã được sử dụng bởi tài khoản khác.";
                     return Page();
@@ -169,9 +169,7 @@ public class CreateModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "LỖI TẠO HỢP ĐỒNG - Message: {Message} | StackTrace: {StackTrace} | Inner: {Inner}",
-                ex.Message, ex.StackTrace, ex.InnerException?.Message);
-            ErrorMessage = $"Loi khi tao hop dong: {ex.Message}\nStack: {ex.StackTrace}\nInner: {ex.InnerException?.Message}";
+            ErrorMessage = "Đã xảy ra lỗi khi tạo hợp đồng. Vui lòng thử lại sau hoặc liên hệ ban quản lý";
             return Page();
         }
     }

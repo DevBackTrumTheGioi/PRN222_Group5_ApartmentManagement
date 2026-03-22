@@ -7,6 +7,12 @@ namespace PRN222_ApartmentManagement.Services.Interfaces;
 public interface IContractService
 {
     Task<List<Contract>> GetAllAsync();
+    Task<PagedResult<Contract>> GetPagedFilteredAsync(
+        string? searchTerm,
+        ContractStatus? status,
+        ContractType? contractType,
+        int pageIndex,
+        int pageSize);
     Task<Contract?> GetByIdAsync(int id);
     Task<Contract?> GetByIdWithDetailsAsync(int id);
     Task<Contract> CreateContractAsync(CreateContractDto dto, int creatorId);

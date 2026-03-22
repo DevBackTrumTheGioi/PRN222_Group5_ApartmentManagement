@@ -176,6 +176,14 @@ public class VerifyPhoneModel : PageModel
             return Page();
         }
 
+        if (await _userRepository.PhoneExistsAsync(normalized, user.UserId))
+        {
+            ErrorMessage = $"Số điện thoại \"{normalized}\" đã được sử dụng bởi tài khoản khác.";
+            HttpContext.Session.SetString("IsChangingPhone", "1");
+            ChangingPhone = true;
+            return Page();
+        }
+
         // CHƯA lưu — chỉ gửi OTP để verify
         HttpContext.Session.SetString("IsChangingPhone", "1");
         return await SendOtpToPhone(normalized, user.UserId);

@@ -186,6 +186,7 @@ builder.Services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepo
 builder.Services.AddScoped<IRequestRepository, RequestRepository>();
 builder.Services.AddScoped<IRequestAttachmentRepository, RequestAttachmentRepository>();
 builder.Services.AddScoped<IResidentCardRepository, ResidentCardRepository>();
+builder.Services.AddScoped<IResidentApartmentRepository, ResidentApartmentRepository>();
 builder.Services.AddScoped<IServicePriceRepository, ServicePriceRepository>();
 builder.Services.AddScoped<IServiceTypeRepository, ServiceTypeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();

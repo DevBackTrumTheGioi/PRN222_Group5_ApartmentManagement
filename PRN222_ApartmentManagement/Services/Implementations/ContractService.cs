@@ -16,6 +16,7 @@ public class ContractService : IContractService
     private readonly IContractMemberRepository _contractMemberRepository;
     private readonly IUserRepository _userRepository;
     private readonly IApartmentRepository _apartmentRepository;
+    private readonly IResidentApartmentRepository _residentApartmentRepository;
     private readonly IActivityLogService _activityLogService;
     private readonly ApartmentDbContext _dbContext;
 
@@ -26,6 +27,7 @@ public class ContractService : IContractService
         IContractMemberRepository contractMemberRepository,
         IUserRepository userRepository,
         IApartmentRepository apartmentRepository,
+        IResidentApartmentRepository residentApartmentRepository,
         IActivityLogService activityLogService,
         ApartmentDbContext dbContext)
     {
@@ -33,6 +35,7 @@ public class ContractService : IContractService
         _contractMemberRepository = contractMemberRepository;
         _userRepository = userRepository;
         _apartmentRepository = apartmentRepository;
+        _residentApartmentRepository = residentApartmentRepository;
         _activityLogService = activityLogService;
         _dbContext = dbContext;
     }
@@ -47,6 +50,16 @@ public class ContractService : IContractService
                 .ThenInclude(cm => cm.Resident)
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
+    }
+
+    public async Task<PagedResult<Contract>> GetPagedFilteredAsync(
+        string? searchTerm,
+        ContractStatus? status,
+        ContractType? contractType,
+        int pageIndex,
+        int pageSize)
+    {
+        return await _contractRepository.GetPagedFilteredAsync(searchTerm, status, contractType, pageIndex, pageSize);
     }
 
     public async Task<Contract?> GetByIdAsync(int id)
@@ -178,6 +191,35 @@ public class ContractService : IContractService
                 CreatedAt = DateTime.Now
             };
             await _contractMemberRepository.AddAsync(contractMember);
+
+            // Tao ResidentApartment record — ghi nhan lich su cu tru cua user tai apartment nay
+            var residencyType = contract.ContractType switch
+            {
+                ContractType.Rental => ResidencyType.Tenant,
+                ContractType.Purchase => ResidencyType.Owner,
+                _ => ResidencyType.Other
+            };
+
+            var residentApartment = new ResidentApartment
+            {
+                UserId = ownerUserId,
+                ApartmentId = contract.ApartmentId,
+                ContractId = contract.ContractId,
+                ResidencyType = residencyType,
+                IsActive = true,
+                CreatedAt = DateTime.Now
+            };
+            await _residentApartmentRepository.AddAsync(residentApartment);
+
+            // Cap nhat User.ApartmentId = apartment moi nhat (tien ich, con khop voi code cu)
+            var ownerUserForUpdate = await _dbContext.Users.FindAsync(ownerUserId);
+            if (ownerUserForUpdate != null)
+            {
+                ownerUserForUpdate.ApartmentId = contract.ApartmentId;
+                ownerUserForUpdate.UpdatedAt = DateTime.Now;
+                await _dbContext.SaveChangesAsync();
+            }
+
             await _dbContext.SaveChangesAsync();
 
             // Chuyen trang thai sang Active
@@ -265,6 +307,41 @@ public class ContractService : IContractService
         {
             member.IsActive = false;
             await _contractMemberRepository.UpdateAsync(member);
+
+            if (member.Resident == null) continue;
+
+            // Dong ResidentApartment record cua member cho hop dong nay
+            var residentApts = await _dbContext.ResidentApartments
+                .Where(ra => ra.UserId == member.ResidentId
+                          && ra.ContractId == id
+                          && ra.IsActive)
+                .ToListAsync();
+
+            foreach (var ra in residentApts)
+            {
+                ra.IsActive = false;
+                ra.MoveOutDate = DateTime.Now;
+                ra.UpdatedAt = DateTime.Now;
+            }
+
+            var hasOtherActiveContract = await _dbContext.ContractMembers
+                .AnyAsync(cm =>
+                    cm.ResidentId == member.ResidentId &&
+                    cm.IsActive &&
+                    cm.ContractId != id);
+
+            if (!hasOtherActiveContract)
+            {
+                member.Resident.IsActive = false;
+                member.Resident.UpdatedAt = DateTime.Now;
+                await _userRepository.UpdateAsync(member.Resident);
+
+                await _activityLogService.LogCustomAsync(
+                    "UserDeactivatedOnContractTermination",
+                    nameof(User),
+                    member.Resident.UserId.ToString(),
+                    $"Tai khoan {member.Resident.Username} bi khoa vi khong con hop dong active nao sau khi ket thuc hop dong {contract.ContractNumber}.");
+            }
         }
 
         await _activityLogService.LogCustomAsync(
@@ -283,7 +360,7 @@ public class ContractService : IContractService
             return (false, "Khong tim thay hop dong.");
 
         if (contract.Status != ContractStatus.Draft)
-            return (false, "Chỉ có thể xóa hợp đônhf ở trạng thái bản nháp");
+            return (false, "Chỉ có thể xóa hợp đồng ở trạng thái bản nháp");
 
         contract.IsDeleted = true;
         contract.UpdatedAt = DateTime.Now;

@@ -42,67 +42,56 @@ public class IndexModel : PageModel
     public async Task OnGetAsync()
     {
         TempData.Remove("StatusMessage");
-        var contracts = await _contractService.GetAllAsync();
 
-        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        var result = await _contractService.GetPagedFilteredAsync(
+            SearchTerm,
+            Status,
+            ContractTypeFilter,
+            PageIndex,
+            PageSize);
+
+        TotalItems = result.TotalCount;
+
+        Rows = result.Items.Select(c =>
         {
-            contracts = contracts.Where(c =>
-                c.ContractNumber.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                c.Apartment.ApartmentNumber.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                c.ContractMembers.Any(cm =>
-                    cm.Resident.FullName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
-            ).ToList();
-        }
-        if (Status.HasValue)
-            contracts = contracts.Where(c => c.Status == Status.Value).ToList();
-        if (ContractTypeFilter.HasValue)
-            contracts = contracts.Where(c => c.ContractType == ContractTypeFilter.Value).ToList();
-
-        TotalItems = contracts.Count;
-
-        Rows = contracts
-            .Skip((PageIndex - 1) * PageSize)
-            .Take(PageSize)
-            .Select(c =>
+            var owner = c.ContractMembers.FirstOrDefault(cm => cm.MemberRole == MemberRole.ContractOwner);
+            return new ContractRowVm
             {
-                var owner = c.ContractMembers.FirstOrDefault(cm => cm.MemberRole == MemberRole.ContractOwner);
-                return new ContractRowVm
+                ContractId = c.ContractId,
+                ContractNumber = c.ContractNumber,
+                ApartmentDisplay = $"Căn {c.Apartment?.ApartmentNumber}" +
+                    (string.IsNullOrWhiteSpace(c.Apartment?.BuildingBlock) ? "" : $", {c.Apartment.BuildingBlock}"),
+                TypeLabel = (c.ContractType ?? ContractType.Other) switch
                 {
-                    ContractId = c.ContractId,
-                    ContractNumber = c.ContractNumber,
-                    ApartmentDisplay = $"Căn {c.Apartment?.ApartmentNumber}" +
-                        (string.IsNullOrWhiteSpace(c.Apartment?.BuildingBlock) ? "" : $", {c.Apartment.BuildingBlock}"),
-                    TypeLabel = (c.ContractType ?? ContractType.Other) switch
-                    {
-                        ContractType.Rental => "Thuê",
-                        ContractType.Purchase => "Mua bán",
-                        ContractType.Other => "Khác",
-                        _ => "-"
-                    },
-                    StartDate = c.StartDate.ToString("dd/MM/yyyy"),
-                    EndDate = c.EndDate?.ToString("dd/MM/yyyy") ?? "—",
-                    StatusLabel = c.Status switch
-                    {
-                        ContractStatus.Draft => "Bản nháp",
-                        ContractStatus.Active => "Đang hiệu lực",
-                        ContractStatus.Expired => "Hết hạn",
-                        ContractStatus.Terminated => "Đã chấm dứt",
-                        ContractStatus.Cancelled => "Đã hủy",
-                        _ => "-"
-                    },
-                    StatusCssClass = c.Status switch
-                    {
-                        ContractStatus.Active => "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-                        ContractStatus.Draft => "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
-                        ContractStatus.Expired => "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
-                        ContractStatus.Terminated => "bg-red-50 text-red-700 ring-1 ring-red-200",
-                        ContractStatus.Cancelled => "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
-                        _ => "bg-slate-100 text-slate-700 ring-1 ring-slate-200"
-                    },
-                    OwnerName = c.OwnerFullName ?? (owner?.Resident?.FullName ?? "—"),
-                    OwnerPhone = !string.IsNullOrWhiteSpace(c.OwnerPhone) ? c.OwnerPhone : (owner?.Resident?.PhoneNumber ?? "—")
-                };
-            }).ToList();
+                    ContractType.Rental => "Thuê",
+                    ContractType.Purchase => "Mua bán",
+                    ContractType.Other => "Khác",
+                    _ => "-"
+                },
+                StartDate = c.StartDate.ToString("dd/MM/yyyy"),
+                EndDate = c.EndDate?.ToString("dd/MM/yyyy") ?? "—",
+                StatusLabel = c.Status switch
+                {
+                    ContractStatus.Draft => "Bản nháp",
+                    ContractStatus.Active => "Đang hiệu lực",
+                    ContractStatus.Expired => "Hết hạn",
+                    ContractStatus.Terminated => "Đã chấm dứt",
+                    ContractStatus.Cancelled => "Đã hủy",
+                    _ => "-"
+                },
+                StatusCssClass = c.Status switch
+                {
+                    ContractStatus.Active => "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+                    ContractStatus.Draft => "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
+                    ContractStatus.Expired => "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
+                    ContractStatus.Terminated => "bg-red-50 text-red-700 ring-1 ring-red-200",
+                    ContractStatus.Cancelled => "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
+                    _ => "bg-slate-100 text-slate-700 ring-1 ring-slate-200"
+                },
+                OwnerName = c.OwnerFullName ?? (owner?.Resident?.FullName ?? "—"),
+                OwnerPhone = !string.IsNullOrWhiteSpace(c.OwnerPhone) ? c.OwnerPhone : (owner?.Resident?.PhoneNumber ?? "—")
+            };
+        }).ToList();
     }
 }
 

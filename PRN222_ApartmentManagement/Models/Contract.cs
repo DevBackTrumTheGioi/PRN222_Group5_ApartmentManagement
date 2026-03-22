@@ -80,4 +80,5 @@ public class Contract
     public virtual Apartment Apartment { get; set; } = null!;
     public virtual User Creator { get; set; } = null!;
     public virtual ICollection<ContractMember> ContractMembers { get; set; } = new List<ContractMember>();
+    public virtual ICollection<ResidentApartment> ResidentApartments { get; set; } = new List<ResidentApartment>();
 }

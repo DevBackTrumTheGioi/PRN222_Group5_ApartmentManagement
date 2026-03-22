@@ -106,9 +106,10 @@ public class ApartmentRepository : IApartmentRepository
 
     public async Task<IEnumerable<Apartment>> GetAvailableApartmentsAsync()
     {
-        var occupiedApartmentIds = await _context.ContractMembers
-            .Where(cm => cm.IsActive)
-            .Select(cm => cm.Contract!.ApartmentId)
+        // Căn trống = không có ResidentApartment đang active
+        var occupiedApartmentIds = await _context.ResidentApartments
+            .Where(ra => ra.IsActive)
+            .Select(ra => ra.ApartmentId)
             .Distinct()
             .ToListAsync();
 

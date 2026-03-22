@@ -119,9 +119,9 @@ public class EditModel : PageModel
 
         if (!string.IsNullOrWhiteSpace(emailToCheck) && await _userRepository.EmailExistsAsync(emailToCheck, excludeUserId))
         {
-            var dup = await _userRepository.FindByIdentityCardAsync(cccdToCheck);
+            var dup = await _userRepository.GetByEmailAsync(emailToCheck);
             if (dup != null && dup.UserId != excludeUserId)
-                ErrorMessage = $"Email \"{emailToCheck}\" đã được gắn với chủ hộ mang CCCD \"{dup.IdentityCardNumber}\".";
+                ErrorMessage = $"Email \"{emailToCheck}\" đã được sử dụng bởi tài khoản mang CCCD \"{dup.IdentityCardNumber}\".";
             else
                 ErrorMessage = $"Email \"{emailToCheck}\" đã được sử dụng bởi tài khoản khác.";
             return Page();

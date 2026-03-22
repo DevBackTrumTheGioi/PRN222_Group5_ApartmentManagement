@@ -1,5 +1,4 @@
 @using PRN222_ApartmentManagement.Services.Interfaces
-﻿@using PRN222_ApartmentManagement.Services.Interfaces
 @inject ISettingService SettingService
 @{
     var apartmentName = await SettingService.GetSettingAsync("ApartmentName", "ApartmentMS");
