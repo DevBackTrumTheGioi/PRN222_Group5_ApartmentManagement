@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +38,9 @@ public class DetailsModel : PageModel
 
         var request = await _requestService.GetRequestDetailAsync(id);
         if (request == null) return NotFound();
+
+        // BQL không được xem khiếu nại — chỉ BQT_Head xử lý
+        if (request.RequestType == RequestType.Complaint) return NotFound();
 
         // Staff chỉ xem được yêu cầu được giao cho mình
         var userId = GetUserId();
