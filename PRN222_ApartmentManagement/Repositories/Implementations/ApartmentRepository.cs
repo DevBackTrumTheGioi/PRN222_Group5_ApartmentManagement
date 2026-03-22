@@ -1,4 +1,5 @@
-﻿﻿using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Repositories.Interfaces;
@@ -79,6 +80,41 @@ public class ApartmentRepository : IApartmentRepository
                 description: $"Xóa căn hộ: {apartment.ApartmentNumber}"
             );
         }
+    }
+
+    public async Task<IEnumerable<Apartment>> FindAsync(Expression<Func<Apartment, bool>> predicate)
+    {
+        return await _context.Apartments.Where(predicate).ToListAsync();
+    }
+
+    public async Task AddRangeAsync(IEnumerable<Apartment> entities)
+    {
+        await _context.Apartments.AddRangeAsync(entities);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Apartment entity)
+    {
+        _context.Apartments.Remove(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> ExistsAsync(int id)
+    {
+        return await _context.Apartments.AnyAsync(a => a.ApartmentId == id);
+    }
+
+    public async Task<IEnumerable<Apartment>> GetAvailableApartmentsAsync()
+    {
+        var occupiedApartmentIds = await _context.ContractMembers
+            .Where(cm => cm.IsActive)
+            .Select(cm => cm.Contract!.ApartmentId)
+            .Distinct()
+            .ToListAsync();
+
+        return await _context.Apartments
+            .Where(a => !occupiedApartmentIds.Contains(a.ApartmentId))
+            .ToListAsync();
     }
 }
 

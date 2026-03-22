@@ -21,15 +21,24 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AllowAnonymousToPage("/Account/ForgotPassword");
     options.Conventions.AllowAnonymousToPage("/Account/Inactive");
     options.Conventions.AllowAnonymousToPage("/Account/AccessDenied");
+    options.Conventions.AllowAnonymousToPage("/Account/VerifyPhone");
     options.Conventions.AllowAnonymousToPage("/Admin/SeedData");
     options.Conventions.AllowAnonymousToPage("/Error");
-
     options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
     options.Conventions.AuthorizeFolder("/BQL_Manager", "BQLManagerOnly");
     options.Conventions.AuthorizeFolder("/BQL_Staff", "BQLStaffOnly");
     options.Conventions.AuthorizeFolder("/Resident", "ResidentOnly");
     options.Conventions.AuthorizeFolder("/BQT_Head", "BQTHeadOnly");
     options.Conventions.AuthorizeFolder("/BQT_Member", "BQTMemberOnly");
+});
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
 builder.Services.AddAuthorization(options =>
@@ -157,6 +166,9 @@ builder.Services.AddScoped<IFaceAuthService, FaceAuthService>();
 builder.Services.AddScoped<IInvoiceManagementService, InvoiceManagementService>();
 builder.Services.AddScoped<IPaymentManagementService, PaymentManagementService>();
 builder.Services.AddScoped<IFinancialReportService, FinancialReportService>();
+builder.Services.AddScoped<ISmsService, SmsService>();
+builder.Services.AddScoped<IContractService, ContractService>();
+builder.Services.AddHttpClient();
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IApartmentRepository, ApartmentRepository>();
@@ -202,6 +214,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
+app.UseSession();
 app.UseRouting();
 app.UseMiddleware<JwtCookieRefreshMiddleware>();
 app.UseAuthentication();

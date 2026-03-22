@@ -9,6 +9,10 @@ public interface IUserRepository : IGenericRepository<User>
     Task<User?> GetByEmailAsync(string email);
     Task<bool> UsernameExistsAsync(string username);
     Task<bool> EmailExistsAsync(string email, int? excludeUserId = null);
+    Task<bool> PhoneExistsAsync(string phone, int? excludeUserId = null);
+    Task<bool> IdentityCardExistsAsync(string cccd, int? excludeUserId = null);
+    Task<User?> FindByPhoneAsync(string phone);
+    Task<User?> FindByIdentityCardAsync(string cccd);
     Task<List<User>> GetPagedUsersAsync(string? searchTerm, UserRole? roleFilter, int pageIndex, int pageSize);
     Task<int> CountUsersAsync(string? searchTerm, UserRole? roleFilter);
 }

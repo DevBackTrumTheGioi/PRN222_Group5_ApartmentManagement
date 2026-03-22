@@ -20,6 +20,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="UniSdk" Version="0.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +31,10 @@
     <Content Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\contracts\HDT-20260322-001_20260322020513.docx" />
   </ItemGroup>
 
   <!-- Build Tailwind CSS using PowerShell script -->

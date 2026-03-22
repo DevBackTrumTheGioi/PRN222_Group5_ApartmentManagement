@@ -1,0 +1,352 @@
+---
+description: Quy tắc kiến trúc dự án Apartment Management
+alwaysApply: true
+---
+
+# Quy tắc kiến trúc dự án Apartment Management
+
+## Tổng quan
+
+Dự án sử dụng kiến trúc **3 lớp (3-Tier)** với pattern **Repository + Service + Razor Pages**:
+
+```
+Pages (UI Layer)
+    ↓
+PageModel (Controller Layer)
+    ↓
+Services (Business Logic Layer)
+    ↓
+Repositories (Data Access Layer)
+    ↓
+EF Core DbContext
+    ↓
+SQL Server
+```
+
+## 1. Cấu trúc thư mục chuẩn
+
+```text
+PRN222_Group5_ApartmentManagement/
+├── Data/                          # DbContext và khởi tạo DB
+│   ├── ApartmentDbContext.cs
+│   └── DbInitializer.cs
+├── Migrations/                    # EF Core migrations
+├── Models/                        # Entity models
+│   ├── Enums/                     # Định nghĩa enum (26 enums)
+│   └── *.cs                       # Entity classes
+├── Pages/                         # Razor Pages (UI + Controller)
+│   ├── Account/
+│   ├── Admin/
+│   ├── BQL_Manager/
+│   ├── BQL_Staff/
+│   ├── BQT_Head/
+│   ├── BQT_Member/
+│   ├── Resident/
+│   └── Shared/
+│       ├── Components/           # 17 Razor components
+│       ├── _Layout.cshtml
+│       └── _AdminLayout.cshtml
+├── Repositories/                  # Data Access Layer
+│   ├── Interfaces/               # I[Name]Repository
+│   └── Implementations/           # [Name]Repository
+├── Services/                      # Business Logic Layer
+│   ├── Interfaces/               # I[Name]Service
+│   ├── Implementations/           # [Name]Service
+│   └── JwtCookieRefreshMiddleware.cs
+└── Utils/                         # Helper classes
+```
+
+## 2. Quy tắc đặt tên
+
+### 2.1. Model Classes
+
+```csharp
+// ✅ Đúng: PascalCase, không suffix
+public class User { }
+public class ServiceOrder { }
+public class ApartmentInvoice { }
+
+// ❌ Sai: Hungarian notation hoặc suffix
+public class mdlUser { }
+public class UserModel { }
+```
+
+### 2.2. Enums
+
+```csharp
+// ✅ Đúng: Đặt trong Models/Enums/, values PascalCase
+public enum UserRole
+{
+    Admin,
+    BQL_Staff,
+    BQL_Manager,
+    Resident,
+    BQT_Head,
+    BQT_Member
+}
+
+// ❌ Sai: Sử dụng string literals thay vì enum
+if (role == "Admin") { } // Không nên
+```
+
+### 2.3. Interfaces
+
+```csharp
+// ✅ Đúng: Prefix "I" cho interfaces
+public interface IUserRepository { }
+public interface IAuthService { }
+public interface IServiceOrderService { }
+
+// ❌ Sai: Không prefix hoặc sai format
+public interface UserRepository { }
+public interface AuthServiceInterface { }
+```
+
+### 2.4. Implementations
+
+```csharp
+// ✅ Đúng: Implementations đặt trong thư mục Implementations
+public class UserRepository : IUserRepository { }
+public class AuthService : IAuthService { }
+```
+
+### 2.5. Razor Pages & PageModels
+
+```text
+// ✅ Đúng: PageName.cshtml + PageName.cshtml.cs
+Pages/Admin/Users/Index.cshtml
+Pages/Admin/Users/Index.cshtml.cs
+
+// ❌ Sai: Không đặt PageModel cùng thư mục với các thư mục khác
+```
+
+### 2.6. Razor Components
+
+```csharp
+// ✅ Đúng: PascalCase trong Shared/Components
+@component Pages/Shared/Components/Sidebar.cshtml
+@component Pages/Shared/Components/Modal.cshtml
+@component Pages/Shared/Components/DataTable.cshtml
+```
+
+## 3. Quy tắc kiến trúc
+
+### 3.1. Dependency Rule
+
+```
+Pages → PageModels → Services → Repositories → DbContext
+```
+
+**Nguyên tắc:**
+- PageModels inject Services (không inject Repositories trực tiếp)
+- Services inject Repositories
+- Repositories inject DbContext
+- Không bao giờ inject DbContext trong PageModels
+
+```csharp
+// ✅ Đúng: Inject Service vào PageModel
+public class IndexModel : PageModel
+{
+    private readonly IUserService _userService;
+    public IndexModel(IUserService userService)
+    {
+        _userService = userService;
+    }
+}
+
+// ❌ Sai: Inject Repository trực tiếp vào PageModel
+public class IndexModel : PageModel
+{
+    private readonly ApplicationDbContext _context; // KHÔNG LÀM THẾ NÀY
+}
+```
+
+### 3.2. Service Layer
+
+```csharp
+// ✅ Đúng: Business logic trong Service
+public class RequestService : IRequestService
+{
+    public async Task<Request> CreateRequest(RequestCreateDto dto)
+    {
+        // Validate business rules
+        if (dto.RequestType == RequestType.Maintenance && dto.Priority == Priority.Low)
+        {
+            throw new BusinessRuleException("Maintenance requests must have minimum Normal priority");
+        }
+        // Gọi repository
+        return await _requestRepository.Create(dto);
+    }
+}
+```
+
+### 3.3. Repository Layer
+
+```csharp
+// ✅ Đúng: Generic Repository pattern
+public class RequestRepository : IRequestRepository
+{
+    public async Task<Request> GetByIdAsync(int id)
+    {
+        return await _context.Requests
+            .Include(r => r.User)
+            .Include(r => r.Comments)
+            .FirstOrDefaultAsync(r => r.Id == id);
+    }
+}
+```
+
+## 4. Hệ thống phân quyền theo thư mục
+
+### 4.1. Cấu trúc thư mục theo Role
+
+| Thư mục | Role | Quyền |
+|---------|------|-------|
+| `Pages/Admin/` | Admin | Toàn quyền |
+| `Pages/BQL_Manager/` | BQL_Manager | Quản lý |
+| `Pages/BQL_Staff/` | BQL_Staff | Nhân viên |
+| `Pages/BQT_Head/` | BQT_Head | Trưởng tổ |
+| `Pages/BQT_Member/` | BQT_Member | Thành viên tổ |
+| `Pages/Resident/` | Resident | Cư dân |
+
+### 4.2. Authorization trong PageModels
+
+```csharp
+// ✅ Đúng: Kiểm tra role trong OnGet
+public async Task<IActionResult> OnGetAsync()
+{
+    if (!User.IsInRole(nameof(UserRole.Admin)))
+    {
+        return Forbid();
+    }
+    // ...
+}
+
+// ✅ Hoặc sử dụngAuthorize attribute
+[Authorize(Roles = nameof(UserRole.Admin))]
+public class DashboardModel : PageModel
+{
+}
+```
+
+## 5. Frontend Guidelines
+
+### 5.1. CSS - Tailwind + Bootstrap
+
+```html
+<!-- ✅ Sử dụng Tailwind cho styling -->
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-2xl font-bold text-gray-800">@Model.Title</h1>
+</div>
+
+<!-- ✅ Bootstrap chỉ cho layout cơ bản và utilities -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">@await Html.PartialAsync("_Sidebar")</div>
+    </div>
+</div>
+```
+
+### 5.2. Sử dụng Shared Components
+
+```html
+<!-- ✅ Sử dụng pre-built components -->
+<component type="typeof(DataTable)" param-Columns="Model.Columns" param-Data="Model.Items" />
+
+<!-- ✅ Sử dụng StatusBadge cho trạng thái -->
+<component type="typeof(StatusBadge)" param-Status="item.Status" />
+
+<!-- ✅ Sử dụng Modal cho dialogs -->
+<component type="typeof(Modal)" param-Id="'deleteModal'" param-Title="'Xác nhận xóa'" />
+```
+
+## 6. Entity Framework Core
+
+### 6.1. Migrations
+
+```bash
+# ✅ Tạo migration mới
+dotnet ef migrations add AddColumn_PhoneNumber_To_User
+
+# ✅ Áp dụng migration
+dotnet ef database update
+
+# ✅ Xóa migration chưa apply
+dotnet ef migrations remove
+```
+
+### 6.2. DbContext Conventions
+
+```csharp
+// ✅ Đúng: Kết nối bảng và navigation properties
+public class ApartmentDbContext : DbContext
+{
+    public DbSet<User> Users { get; set; }
+    public DbSet<Request> Requests { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Configure relationships
+        modelBuilder.Entity<Request>()
+            .HasOne(r => r.User)
+            .WithMany(u => u.Requests)
+            .HasForeignKey(r => r.UserId);
+    }
+}
+```
+
+## 7. Authentication & JWT
+
+### 7.1. Sử dụng AuthService
+
+```csharp
+// ✅ Đúng: Sử dụng IAuthService cho login/logout
+public async Task<IActionResult> OnPostAsync(LoginDto dto)
+{
+    var result = await _authService.LoginAsync(dto);
+    if (result.Succeeded)
+    {
+        return RedirectToPage("/Admin/Dashboard");
+    }
+    ModelState.AddModelError(string.Empty, "Invalid credentials");
+    return Page();
+}
+```
+
+### 7.2. JWT Configuration
+
+```csharp
+// Token expiry: 15 phút (Access Token)
+// Refresh Token expiry: 7 ngày
+// Sử dụng JwtCookieRefreshMiddleware để tự động refresh
+```
+
+## 8. Seed Data
+
+```csharp
+// ✅ Đặt trong DbInitializer.cs
+// Mật khẩu mặc định: BCrypt("123456")
+// Hash: $2a$11$...
+```
+
+## 9. Utils
+
+| Utility | Mục đích |
+|---------|----------|
+| `FileHelper` | Xử lý upload/download file |
+| `ValidationHelper` | Validation logic |
+| `PasswordHelper` | Hash password |
+
+## 10. Checklist khi thêm feature mới
+
+- [ ] Tạo Model entity trong `Models/`
+- [ ] Tạo Enum nếu cần trong `Models/Enums/`
+- [ ] Thêm DbSet trong `ApartmentDbContext.cs`
+- [ ] Tạo I[Entity]Repository trong `Repositories/Interfaces/`
+- [ ] Implement trong `Repositories/Implementations/`
+- [ ] Tạo I[Entity]Service trong `Services/Interfaces/`
+- [ ] Implement trong `Services/Implementations/`
+- [ ] Đăng ký DI trong `Program.cs`
+- [ ] Tạo Razor Pages trong thư mục phù hợp với role
+- [ ] Chạy `dotnet ef migrations add` nếu cần
+- [ ] Test với account phù hợp

@@ -1,0 +1,131 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.TestSmsModel
+@{
+    ViewData["Title"] = "Test OTP";
+    ViewData["CurrentPage"] = "dashboard";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Test OTP",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Manager", Href = "/BQL_Manager" },
+            new { Label = "Test OTP", Href = "#" }
+        }
+    };
+}
+
+<div class="max-w-md mx-auto">
+
+    @* ── Thành công ── *@
+    @if (Model.IsVerified)
+    {
+        <div class="rounded-2xl border border-emerald-200 bg-white p-8 shadow-sm text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <span class="material-icons text-4xl">check_circle</span>
+            </div>
+            <h2 class="mt-4 text-xl font-bold text-slate-900">Xác minh thành công!</h2>
+            <p class="mt-2 text-sm text-slate-600">@Model.Message</p>
+            <a href="/BQL_Manager/TestSms"
+               class="mt-6 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-700">
+                <span class="material-icons text-base">restart_alt</span>
+                Thử lại
+            </a>
+        </div>
+    }
+    else
+    {
+        @* ── Form chính ── *@
+        <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+
+            <div class="text-center mb-6">
+                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                    <span class="material-icons text-3xl">phone</span>
+                </div>
+                <h2 class="mt-3 text-lg font-bold text-slate-900">Test gửi & xác minh OTP</h2>
+                <p class="mt-1 text-sm text-slate-500">
+                    Nhập số điện thoại để gửi mã OTP, sau đó nhập mã để xác minh.
+                </p>
+            </div>
+
+            @* Alert *@
+            @if (!string.IsNullOrWhiteSpace(Model.Message))
+            {
+                <div class="mb-4 rounded-lg border px-4 py-3 text-sm text-center @(
+                    Model.Message.Contains("thành công") || Model.Message.Contains("OTP đến")
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-red-200 bg-red-50 text-red-700")">
+                    @Model.Message
+                </div>
+            }
+
+            @* Form *@
+            <form method="post" class="space-y-4">
+
+                @* Số điện thoại *@
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-slate-700">
+                        Số điện thoại <span class="text-red-500">*</span>
+                    </label>
+                    <input asp-for="PhoneNumber"
+                           placeholder="VD: 0912345678"
+                           class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm" />
+                </div>
+
+                @* OTP Intent *@
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-slate-700">OTP Intent</label>
+                    <select asp-for="OtpIntent"
+                            asp-items="Html.GetEnumSelectList<PRN222_ApartmentManagement.Models.Enums.OtpIntent>()"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm bg-white">
+                    </select>
+                </div>
+
+                @* ── Khung verify – chỉ hiện khi đã gửi OTP ── *@
+                @if (Model.OtpSent)
+                {
+                    <div class="rounded-xl border border-purple-200 bg-purple-50 p-5 space-y-4">
+                        <div class="flex items-center gap-2 text-purple-700">
+                            <span class="material-icons text-lg">mark_email_unread</span>
+                            <span class="text-sm font-semibold">Nhập mã OTP</span>
+                        </div>
+                        <p class="text-xs text-purple-600">
+                            Mã OTP đã được gửi đến số @Model.PhoneNumber.
+                            Vui lòng nhập mã để xác minh.
+                        </p>
+                        <input asp-for="OtpCode"
+                               type="text"
+                               maxlength="6"
+                               placeholder="Nhập 6 số OTP"
+                               autocomplete="one-time-code"
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               class="w-full px-4 py-3 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-center text-2xl tracking-[0.5em] bg-white" />
+                        <button type="submit"
+                                asp-page-handler="VerifyOtp"
+                                class="w-full rounded-lg bg-purple-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-purple-700 flex items-center justify-center gap-2">
+                            <span class="material-icons text-base">verified</span>
+                            Xác minh OTP
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    @* Nút gửi OTP *@
+                    <button type="submit"
+                            asp-page-handler="SendOtp"
+                            class="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 flex items-center justify-center gap-2">
+                        <span class="material-icons text-base">send</span>
+                        Gửi mã OTP
+                    </button>
+                }
+
+            </form>
+
+            <p class="mt-4 text-center text-xs text-slate-400">
+                Điện thoại phải có định dạng VN: 0xxxxxxxxx (10–11 số).
+            </p>
+        </div>
+    }
+
+</div>
