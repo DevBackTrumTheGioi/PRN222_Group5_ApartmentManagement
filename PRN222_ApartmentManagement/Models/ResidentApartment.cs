@@ -30,6 +30,8 @@ public class ResidentApartment
     /// </summary>
     public bool IsActive { get; set; } = true;
 
+    public DateTime? MoveInDate { get; set; }
+
     public DateTime? MoveOutDate { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;

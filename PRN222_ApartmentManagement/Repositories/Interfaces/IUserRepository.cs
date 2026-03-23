@@ -1,4 +1,5 @@
-﻿using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Models.DTOs;
 
 namespace PRN222_ApartmentManagement.Repositories.Interfaces;
 
@@ -15,5 +16,11 @@ public interface IUserRepository : IGenericRepository<User>
     Task<User?> FindByIdentityCardAsync(string cccd);
     Task<List<User>> GetPagedUsersAsync(string? searchTerm, UserRole? roleFilter, int pageIndex, int pageSize);
     Task<int> CountUsersAsync(string? searchTerm, UserRole? roleFilter);
+    Task<PagedResult<User>> GetPagedResidentsAsync(
+        string? searchTerm,
+        bool? isActive,
+        int pageIndex,
+        int pageSize);
+    Task<User?> GetResidentByIdWithDetailsAsync(int userId);
 }
 
