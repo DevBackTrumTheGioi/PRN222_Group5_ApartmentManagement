@@ -1,0 +1,181 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Resident.Amenities.BookModel
+@{
+    ViewData["Title"] = "Đặt tiện ích";
+}
+
+<div class="max-w-6xl mx-auto px-4">
+    <div class="bg-white p-6 rounded-xl border shadow-sm">
+        <h2 class="text-lg font-bold mb-6">Đặt tiện ích</h2>
+        <form method="post">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Left: form -->
+                <div class="md:col-span-2 space-y-4">
+                    <fieldset class="p-4 bg-slate-50 border rounded-lg">
+                        <legend class="text-sm font-medium text-slate-700 px-2">Chọn tiện ích & thời gian</legend>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700">Tiện ích</label>
+                                <select asp-for="Input.AmenityId" class="form-select w-full" id="amenitySelect">
+                                    <option value="">-- Chọn tiện ích --</option>
+                                    @foreach (var a in Model.Amenities)
+                                    {
+                                        <option value="@a.AmenityId">@a.AmenityName</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Input.AmenityId" class="text-rose-600 text-sm"></span>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700">Ngày</label>
+                                <input asp-for="Input.BookingDate" type="date" class="form-input w-full" id="bookingDate" />
+                                <span asp-validation-for="Input.BookingDate" class="text-rose-600 text-sm"></span>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700">Bắt đầu</label>
+                                <input asp-for="Input.StartTime" type="time" class="form-input w-full" id="startTime" />
+                                <span asp-validation-for="Input.StartTime" class="text-rose-600 text-sm"></span>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700">Kết thúc</label>
+                                <input asp-for="Input.EndTime" type="time" class="form-input w-full" id="endTime" />
+                                <span asp-validation-for="Input.EndTime" class="text-rose-600 text-sm"></span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="p-4 bg-slate-50 border rounded-lg">
+                        <legend class="text-sm font-medium text-slate-700 px-2">Ghi chú</legend>
+                        <div class="mt-2">
+                            <label class="block text-sm text-slate-700">Ghi chú (tuỳ chọn)</label>
+                            <textarea asp-for="Input.Notes" class="form-textarea w-full" rows="4"></textarea>
+                        </div>
+                    </fieldset>
+
+                    <div class="flex items-center gap-3">
+                        <button type="submit" class="btn btn-primary">Xác nhận đặt</button>
+                        <a asp-page="/Resident/Amenities/Index" class="btn btn-secondary">Hủy</a>
+                    </div>
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="mt-4 text-emerald-600">@TempData["Success"]</div>
+                    }
+                </div>
+
+                <!-- Right: details card -->
+                <div class="md:col-span-1">
+                    <div id="amenityDetails" class="p-4 border rounded-lg bg-white sticky top-6">
+                        <h3 class="text-base font-semibold mb-2" id="detailName">Chọn tiện ích để xem chi tiết</h3>
+                        <div class="text-sm text-slate-600 mb-2" id="detailType"></div>
+                        <div class="grid grid-cols-2 gap-2 text-sm text-slate-700 mb-2">
+                            <div> Sức chứa: <span id="detailCapacity">-</span></div>
+                            <div> Giá/giờ: <span id="detailPrice">0</span> VNĐ</div>
+                            <div class="col-span-2">Vị trí: <span id="detailLocation">-</span></div>
+                            <div class="col-span-2 text-xs text-slate-500">Mô tả: <span id="detailDescription">-</span></div>
+                        </div>
+                        <div class="mt-3 text-sm">
+                            <div>Tổng giờ: <span id="detailTotalHours">0</span></div>
+                            <div>Tổng tiền: <span id="detailTotalAmount">0</span> VNĐ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function () {
+            const amenities = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Amenities.Select(a => new { a.AmenityId, a.AmenityName, TypeName = a.AmenityType?.TypeName, Capacity = a.Capacity ?? 0, PricePerHour = a.PricePerHour ?? 0m, Location = a.Location ?? "", Description = a.Description ?? "" })));
+
+            const amenitySelect = document.getElementById('amenitySelect');
+            const detailPanel = document.getElementById('amenityDetails');
+            const detailName = document.getElementById('detailName');
+            const detailType = document.getElementById('detailType');
+            const detailCapacity = document.getElementById('detailCapacity');
+            const detailPrice = document.getElementById('detailPrice');
+            const detailLocation = document.getElementById('detailLocation');
+            const detailDescription = document.getElementById('detailDescription');
+            const detailTotalHours = document.getElementById('detailTotalHours');
+            const detailTotalAmount = document.getElementById('detailTotalAmount');
+
+            const bookingDate = document.getElementById('bookingDate');
+            const startTime = document.getElementById('startTime');
+            const endTime = document.getElementById('endTime');
+
+            function formatNumber(n) {
+                return (n || 0).toLocaleString('vi-VN');
+            }
+
+            function updateDetails() {
+                const id = parseInt(amenitySelect.value || '0');
+                const a = amenities.find(x => x.AmenityId === id);
+                if (!a) {
+                    detailName.textContent = 'Chọn tiện ích để xem chi tiết';
+                    detailType.textContent = '';
+                    detailCapacity.textContent = '-';
+                    detailPrice.textContent = '0';
+                    detailLocation.textContent = '-';
+                    detailDescription.textContent = '-';
+                    updateTotals();
+                    return;
+                }
+
+                detailName.textContent = a.AmenityName;
+                detailType.textContent = a.TypeName || '';
+                detailCapacity.textContent = a.Capacity;
+                detailPrice.textContent = formatNumber(a.PricePerHour);
+                detailLocation.textContent = a.Location;
+                detailDescription.textContent = a.Description;
+
+                updateTotals();
+            }
+
+            function parseTime(value) {
+                if (!value) return null;
+                const parts = value.split(':');
+                return { h: parseInt(parts[0], 10), m: parseInt(parts[1] || '0', 10) };
+            }
+
+            function updateTotals() {
+                const id = parseInt(amenitySelect.value || '0');
+                const a = amenities.find(x => x.AmenityId === id);
+                if (!a) {
+                    detailTotalHours.textContent = '0';
+                    detailTotalAmount.textContent = '0';
+                    return;
+                }
+
+                const s = parseTime(startTime.value);
+                const e = parseTime(endTime.value);
+                if (!s || !e) {
+                    detailTotalHours.textContent = '0';
+                    detailTotalAmount.textContent = '0';
+                    return;
+                }
+
+                const start = s.h + s.m / 60;
+                const end = e.h + e.m / 60;
+                let hours = end - start;
+                if (hours < 0) hours = 0;
+
+                detailTotalHours.textContent = hours.toFixed(2);
+                const amount = Math.round(hours * parseFloat(a.PricePerHour || 0));
+                detailTotalAmount.textContent = formatNumber(amount);
+            }
+
+            amenitySelect.addEventListener('change', updateDetails);
+            startTime.addEventListener('change', updateTotals);
+            endTime.addEventListener('change', updateTotals);
+
+            // initialize if value present
+            updateDetails();
+        })();
+    </script>
+}

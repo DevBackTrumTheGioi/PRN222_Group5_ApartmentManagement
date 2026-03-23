@@ -1,11 +1,15 @@
-﻿﻿@using PRN222_ApartmentManagement.Services.Interfaces
 ﻿@using PRN222_ApartmentManagement.Services.Interfaces
 @inject ISettingService SettingService
 @{
     var apartmentName = await SettingService.GetSettingAsync("ApartmentName", "ApartmentMS");
     var apartmentLogo = await SettingService.GetSettingAsync("ApartmentLogo", "apartment");
     var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
-    
+
+    // role helpers
+    bool isAuthenticated = User.Identity?.IsAuthenticated == true;
+    bool isAdmin = isAuthenticated && (User.IsInRole("Admin") || User.IsInRole("BQL_Manager") || User.IsInRole("BQT_Head"));
+    bool isManager = isAuthenticated && (User.IsInRole("BQL_Manager") || User.IsInRole("BQL_Staff"));
+
     var menuGroups = new[]
     {
         new {
@@ -40,15 +44,12 @@
             Icon = "room_service",
             IsCollapsible = true,
             Items = new[] {
-                new { Icon = "support_agent", Label = "Yêu cầu", Href = User.IsInRole("BQL_Manager") ? "/BQL_Manager/Requests" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "requests" },
-                new { Icon = "escalator_warning", Label = "Yêu cầu chuyển cấp", Href = User.IsInRole("BQL_Manager") ? "/BQL_Manager/Requests/Escalated" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "escalated" },
+                new { Icon = "support_agent", Label = "Yêu cầu", Href = isManager ? "/BQL_Manager/Requests" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "requests" },
+                new { Icon = "escalator_warning", Label = "Yêu cầu chuyển cấp", Href = isManager ? "/BQL_Manager/Requests/Escalated" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "escalated" },
                 new { 
                       Icon = "fitness_center", 
                       Label = "Tiện ích", 
-                      Href = (User.Identity?.IsAuthenticated == true 
-                      && (User.IsInRole("Admin") || User.IsInRole("BQL_Manager") || User.IsInRole("BQT_Head")))
-                      ? "/Admin/Amenities"
-                      : "/Amenities", 
+                      Href = isAdmin ? "/Admin/Amenities" : "/Resident/Amenities", 
                       Key = "amenities" 
                 }
             }
@@ -73,6 +74,11 @@
             }
         }
     };
+
+    // Filter out admin-only groups/items for non-admin users
+    var filteredGroups = menuGroups
+        .Where(g => !(g.GroupName == "Hệ thống" && !isAdmin))
+        .ToArray();
 }
 
 <aside id="main-sidebar" class="fixed left-0 top-0 w-64 h-screen z-50 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 lg:translate-x-0 -translate-x-full">
@@ -96,7 +102,7 @@
     
     <!-- Navigation -->
     <nav class="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
-        @foreach (var group in menuGroups)
+        @foreach (var group in filteredGroups)
         {
             var groupId = "menu-" + group.GroupName.ToLower().Replace(" ", "-");
             var hasActiveItem = group.Items.Any(item => currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase));

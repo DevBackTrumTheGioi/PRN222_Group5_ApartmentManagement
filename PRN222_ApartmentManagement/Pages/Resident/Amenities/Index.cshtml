@@ -1,161 +1,127 @@
 ﻿@page
-@model PRN222_ApartmentManagement.Pages.Amenities.IndexModel
+@model PRN222_ApartmentManagement.Pages.Resident.Amenities.IndexModel
 @{
     ViewData["Title"] = "Tiện ích";
-
-    bool isAdmin = User.Identity?.IsAuthenticated == true &&
-        (User.IsInRole("Admin") || User.IsInRole("BQL_Manager") || User.IsInRole("BQT_Head"));
 }
-@if (isAdmin)
-{
-    ViewData["Title"] = "Admin Dashboard";
-    ViewData["Subtitle"] = "Quản trị hệ thống và cấu hình";
 
-    <div class="space-y-6">
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-                        <span class="material-icons">group</span>
-                    </div>
-                    <div>
-                        <p class="text-sm text-slate-500 font-medium">Người dùng</p>
-                        <h3 class="text-2xl font-bold">@Model.DashboardData.TotalUsers</h3>
-                    </div>
-                </div>
-                <div class="mt-4 text-xs text-emerald-500 font-medium">
-                    @Model.DashboardData.ActiveUsers Đang hoạt động
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-                        <span class="material-icons">domain</span>
-                    </div>
-                    <div>
-                        <p class="text-sm text-slate-500 font-medium">Căn hộ</p>
-                        <h3 class="text-2xl font-bold">@Model.DashboardData.TotalApartments</h3>
-                    </div>
-                </div>
-                <div class="mt-4 text-xs text-slate-500">
-                    @Model.DashboardData.OccupiedApartments / @Model.DashboardData.TotalApartments Đã có người ở
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
-                        <span class="material-icons">security</span>
-                    </div>
-                    <div>
-                        <p class="text-sm text-slate-500 font-medium">Vai trò</p>
-                        <h3 class="text-2xl font-bold">@Model.DashboardData.UsersByRole.Count</h3>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
-                        <span class="material-icons">history</span>
-                    </div>
-                    <div>
-                        <p class="text-sm text-slate-500 font-medium">Log Hệ thống</p>
-                        <h3 class="text-2xl font-bold">Logs</h3>
-                    </div>
-                </div>
-                <div class="mt-4 text-xs">
-                    <a href="/Admin/ActivityLogs" class="text-rose-600 hover:underline">Xem tất cả hoạt động</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Shortcut -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 class="text-lg font-bold mb-4">Quản lý tiện ích</h3>
-            <a href="/Admin/Amenities" class="btn btn-primary">Đi đến trang quản lý tiện ích</a>
+<div class="bg-white p-6 rounded-xl border">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">Tiện ích</h2>
+        <div class="flex items-center gap-2">
+            <a class="btn btn-outline" href="@Url.Page("/Resident/Amenities/MyBookings")">Lịch của tôi</a>
+            <a class="btn btn-primary" href="@Url.Page("/Resident/Amenities/Book")">Đặt tiện ích</a>
         </div>
     </div>
-}
-else
-{
-    <div class="bg-white p-6 rounded-xl border">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold">Lịch tiện ích</h2>
-            <a class="btn btn-primary" href="/Resident/Amenities/Book">Đặt tiện ích</a>
-        </div>
 
-        <div class="mb-4">
-            <label class="text-sm">Chọn tiện ích</label>
-            <select id="amenityFilter" class="form-select w-64">
-                <option value="">Tất cả</option>
-                @foreach (var a in Model.Amenities)
+    <!-- Compact inline search + type filter -->
+    <div class="mb-4 flex items-center gap-4">
+        <div class="flex items-center w-full max-w-3xl bg-white rounded-md border border-slate-200 shadow-sm">
+            <span class="material-icons text-slate-400 px-3">search</span>
+            <input id="amenitySearch" class="flex-1 form-input border-0 py-2 px-2" placeholder="Tìm theo tên tiện ích" />
+            <select id="amenityTypeFilter" class="form-select ml-3 mr-2 w-48">
+                <option value="">Tất cả loại</option>
+                @foreach (var t in Model.AmenityTypes)
                 {
-                    <option value="@a.AmenityId">@a.AmenityName</option>
+                    <option value="@t.AmenityTypeId">@t.TypeName</option>
                 }
             </select>
+            <button id="clearSearchBtn" type="button" title="Xóa" class="text-slate-400 hover:text-slate-600 pr-3" style="display:none;">
+                <span class="material-icons">close</span>
+            </button>
         </div>
 
-        @if (TempData["Success"] != null)
-        {
-            <div class="mb-4 text-emerald-600">@TempData["Success"]</div>
-        }
-
-        <div id="calendar"></div>
+        <div class="ml-auto text-sm text-slate-500">Tìm thấy <span class="font-semibold">@Model.Amenities.Count</span> tiện ích</div>
     </div>
 
-    @section Scripts {
-        <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
-        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-
-                function pad(n) { return n < 10 ? '0' + n : n; }
-                function formatDateLocal(d) {
-                    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-                }
-                function formatTimeLocal(d) {
-                    return pad(d.getHours()) + ':' + pad(d.getMinutes());
-                }
-
-                var calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                    initialView: 'dayGridMonth',
-                    selectable: true,
-                    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
-
-                    events: function (info, successCallback, failureCallback) {
-                        var amenityId = document.getElementById('amenityFilter').value;
-
-                        var params = new URLSearchParams();
-                        params.set('handler', 'Events');
-                        params.set('start', info.startStr);
-                        params.set('end', info.endStr);
-                        if (amenityId) params.set('amenityId', amenityId);
-
-                        fetch('/Amenities?' + params.toString())
-                            .then(r => r.json())
-                            .then(data => successCallback(data))
-                            .catch(err => failureCallback(err));
-                    },
-
-                    select: function (info) {
-                        var params = new URLSearchParams();
-                        params.set('date', formatDateLocal(info.start));
-                        params.set('start', formatTimeLocal(info.start));
-                        params.set('end', formatTimeLocal(info.end));
-
-                        window.location.href = '/Resident/Amenities/Book?' + params.toString();
+    @if (!Model.Amenities.Any())
+    {
+        <div class="p-6 text-center text-slate-500">Không có tiện ích khả dụng vào lúc này.</div>
+    }
+    else
+    {
+        <div class="overflow-x-auto">
+            <table class="w-full table-fixed text-sm">
+                <colgroup>
+                    <col style="width:35%" />
+                    <col style="width:20%" />
+                    <col style="width:8%" />
+                    <col style="width:12%" />
+                    <col style="width:15%" />
+                    <col style="width:10%" />
+                </colgroup>
+                <thead>
+                    <tr class="bg-slate-100 text-left text-slate-700">
+                        <th class="px-3 py-2 font-semibold">Tên</th>
+                        <th class="px-3 py-2 font-semibold">Loại</th>
+                        <th class="px-3 py-2 font-semibold text-center">Sức chứa</th>
+                        <th class="px-3 py-2 font-semibold text-center">Giá/giờ</th>
+                        <th class="px-3 py-2 font-semibold">Vị trí</th>
+                        <th class="px-3 py-2 font-semibold text-center">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="amenityTableBody">
+                    @foreach (var a in Model.Amenities)
+                    {
+                        <tr data-amenity-id="@a.AmenityId" data-type-id="@a.AmenityTypeId" class="border-t hover:bg-slate-50">
+                            <td class="px-3 py-3 align-middle">
+                                <div class="font-medium">@a.AmenityName</div>
+                                @if (!string.IsNullOrEmpty(a.Description))
+                                {
+                                    <div class="text-xs text-slate-400 mt-1">@a.Description</div>
+                                }
+                            </td>
+                            <td class="px-3 py-3 text-slate-600 align-middle">@a.AmenityType?.TypeName</td>
+                            <td class="px-3 py-3 text-center align-middle">@a.Capacity</td>
+                            <td class="px-3 py-3 text-center align-middle">@String.Format("{0:N0}", a.PricePerHour ?? 0)</td>
+                            <td class="px-3 py-3 align-middle">@a.Location</td>
+                            <td class="px-3 py-3 text-center align-middle whitespace-nowrap">
+                                <a href="@Url.Page("/Resident/Amenities/Book", new { amenityId = a.AmenityId })" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-md">Đặt</a>
+                            </td>
+                        </tr>
                     }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const typeFilter = document.getElementById('amenityTypeFilter');
+            const searchInput = document.getElementById('amenitySearch');
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            function debounce(fn, delay) {
+                let t;
+                return function (...args) {
+                    clearTimeout(t);
+                    t = setTimeout(() => fn.apply(this, args), delay);
+                };
+            }
+
+            function applyFilters() {
+                const typeVal = typeFilter.value;
+                const text = searchInput.value.trim().toLowerCase();
+                const rows = document.querySelectorAll('#amenityTableBody tr');
+                rows.forEach(r => {
+                    const typeId = r.getAttribute('data-type-id') || '';
+                    const name = r.querySelector('td')?.innerText.trim().toLowerCase() || '';
+
+                    const matchesType = !typeVal || typeId === typeVal;
+                    const matchesText = !text || name.indexOf(text) !== -1;
+
+                    r.style.display = (matchesType && matchesText) ? '' : 'none';
                 });
 
-                calendar.render();
+                clearBtn.style.display = searchInput.value ? 'inline-block' : 'none';
+            }
 
-                document.getElementById('amenityFilter')
-                    .addEventListener('change', () => calendar.refetchEvents());
-            });
-        </script>
-    }
+            const debouncedApply = debounce(applyFilters, 250);
+
+            searchInput.addEventListener('input', debouncedApply);
+            clearBtn.addEventListener('click', function () { searchInput.value = ''; applyFilters(); searchInput.focus(); });
+            typeFilter.addEventListener('change', applyFilters);
+        });
+    </script>
 }

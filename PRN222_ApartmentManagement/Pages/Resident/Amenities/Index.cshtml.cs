@@ -19,19 +19,28 @@ public class IndexModel : PageModel
 
     public List<Amenity> Amenities { get; set; } = new();
 
+    public List<AmenityType> AmenityTypes { get; set; } = new();
+
     [BindProperty(SupportsGet = true)]
     public int? AmenityFilter { get; set; }
 
     public async Task OnGetAsync()
     {
-        Amenities = await _context.Amenities.Where(a => a.IsActive && !a.IsDeleted).ToListAsync();
+        Amenities = await _context.Amenities
+            .Include(a => a.AmenityType)
+            .Where(a => a.IsActive && !a.IsDeleted)
+            .OrderBy(a => a.AmenityName)
+            .ToListAsync();
+
+        AmenityTypes = await _context.AmenityTypes
+            .Where(t => t.IsActive && !t.IsDeleted)
+            .OrderBy(t => t.TypeName)
+            .ToListAsync();
     }
 
-    // JSON endpoint for calendar events
-    // Accept strings and parse to avoid model binder issues with different date formats
+    // JSON endpoint for calendar events (kept for compatibility but resident index no longer shows calendar)
     public async Task<IActionResult> OnGetEventsAsync(int? amenityId, string? start, string? end)
     {
-        // if amenityId is not provided in handler call, use bound filter
         if (!amenityId.HasValue) amenityId = AmenityFilter;
 
         DateTime? startDt = null, endDt = null;
