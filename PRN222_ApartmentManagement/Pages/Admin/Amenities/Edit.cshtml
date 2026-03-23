@@ -1,0 +1,66 @@
+@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.Admin.Amenities.EditModel
+@{
+    ViewData["Title"] = "Sửa tiện ích";
+}
+
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white p-6 rounded-xl border shadow-sm">
+        <h2 class="text-lg font-bold mb-4">Sửa tiện ích</h2>
+
+        <form method="post">
+            <input type="hidden" asp-for="Input.AmenityId" />
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label class="text-sm font-medium text-slate-700">Tên tiện ích <span class="text-rose-600">*</span></label>
+                    <input asp-for="Input.AmenityName" class="form-input w-full mt-1 bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <span asp-validation-for="Input.AmenityName" class="text-rose-600 text-sm"></span>
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium text-slate-700">Loại tiện ích</label>
+                    <select asp-for="Input.AmenityTypeId" asp-items="Model.AmenityTypeList" class="form-select w-full mt-1 bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">-- Chọn loại (tuỳ chọn) --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium text-slate-700">Địa điểm</label>
+                    <input asp-for="Input.Location" class="form-input w-full mt-1 bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm font-medium text-slate-700">Sức chứa (người)</label>
+                        <input asp-for="Input.Capacity" type="number" min="1" class="form-input w-full mt-1 bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-slate-700">Giá/giờ (VNĐ)</label>
+                        <input asp-for="Input.PricePerHour" type="number" step="0.01" min="0" class="form-input w-full mt-1 bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium text-slate-700">Mô tả</label>
+                    <textarea asp-for="Input.Description" rows="4" class="form-textarea w-full mt-1 bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <label class="inline-flex items-center gap-2 text-slate-700">
+                        <input asp-for="Input.IsActive" type="checkbox" class="form-checkbox h-4 w-4 text-emerald-600" />
+                        <span class="text-sm">Kích hoạt</span>
+                    </label>
+                </div>
+
+                <div class="flex gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                    <a asp-page="/Admin/Amenities/Index" class="btn btn-secondary">Hủy</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
