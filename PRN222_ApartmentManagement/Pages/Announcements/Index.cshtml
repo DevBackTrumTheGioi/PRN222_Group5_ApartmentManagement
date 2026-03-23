@@ -1,0 +1,113 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Announcements.IndexModel
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Quản lý thông báo";
+    ViewData["CurrentPage"] = "announcements";
+}
+
+<div class="space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Danh sách thông báo</h2>
+        </div>
+        <a asp-page="Create" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium w-fit">
+            <span class="material-icons text-base">add</span>
+            Tạo thông báo
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] is string successMessage)
+    {
+        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700">@successMessage</div>
+    }
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">@errorMessage</div>
+    }
+
+    <form method="get" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="space-y-1">
+            <label class="text-xs font-semibold text-slate-500 uppercase">Tìm kiếm</label>
+            <input asp-for="Search" placeholder="Tiêu đề hoặc nội dung" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+        <div class="space-y-1">
+            <label class="text-xs font-semibold text-slate-500 uppercase">Trạng thái</label>
+            <select asp-for="IsActiveFilter" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="">Tất cả</option>
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Đã tắt</option>
+            </select>
+        </div>
+        <div class="flex items-end gap-2">
+            <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm hover:bg-slate-800">Lọc</button>
+            <a asp-page="Index" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Đặt lại</a>
+        </div>
+    </form>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600">Tiêu đề</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600">Nguồn</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600">Mức ưu tiên</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600">Ngày đăng</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600">Trạng thái</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @if (!Model.Announcements.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="px-4 py-10 text-center text-slate-400">Không có thông báo nào.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model.Announcements)
+                        {
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <p class="font-semibold text-slate-800">@item.Title</p>
+                                        @if (item.IsPinned)
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                                                <span class="material-icons text-sm">push_pin</span>
+                                                Ghim
+                                            </span>
+                                        }
+                                    </div>
+                                    <p class="text-xs text-slate-500 line-clamp-1">@item.Content</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold @(item.Source == "BQT" ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700")">@item.Source</span>
+                                </td>
+                                <td class="px-4 py-3">@item.Priority.GetDisplayName()</td>
+                                <td class="px-4 py-3">@item.PublishedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold @(item.IsActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600")">
+                                        @(item.IsActive ? "Đang hoạt động" : "Đã tắt")
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <a asp-page="Edit" asp-route-id="@item.AnnouncementId" class="px-2.5 py-1.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100">Sửa</a>
+                                        <form method="post" asp-page-handler="Delete" asp-route-id="@item.AnnouncementId" onsubmit="return confirm('Bạn có chắc muốn xóa thông báo này?');">
+                                            <input type="hidden" name="Search" value="@Model.Search" />
+                                            <input type="hidden" name="IsActiveFilter" value="@Model.IsActiveFilter" />
+                                            <button type="submit" class="px-2.5 py-1.5 text-xs font-medium bg-red-50 text-red-700 rounded-lg hover:bg-red-100">Xóa</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -28,6 +28,8 @@ public class Announcement
 
     public bool IsActive { get; set; } = true;
 
+    public bool IsPinned { get; set; } = false;
+
     public bool IsDeleted { get; set; } = false;
 
     [MaxLength(20)]
@@ -42,4 +44,6 @@ public class Announcement
     public DateTime? UpdatedAt { get; set; }
 
     public virtual User Creator { get; set; } = null!;
+    public virtual ICollection<AnnouncementRead> AnnouncementReads { get; set; } = new List<AnnouncementRead>();
+    public virtual ICollection<AnnouncementAttachment> Attachments { get; set; } = new List<AnnouncementAttachment>();
 }

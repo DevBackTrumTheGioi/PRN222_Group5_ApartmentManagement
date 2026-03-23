@@ -128,12 +128,23 @@ public class ResidentDashboardViewModel
     public List<AmenityBooking> UpcomingBookings { get; set; } = new();
     
     // Thông báo
-    public List<Announcement> RecentAnnouncements { get; set; } = new();
+    public List<ResidentAnnouncementPreviewViewModel> RecentAnnouncements { get; set; } = new();
     public int UnreadNotifications { get; set; }
-    
+
     // Xe & Thẻ
     public int RegisteredVehicles { get; set; }
     public int ActiveCards { get; set; }
+}
+
+public class ResidentAnnouncementPreviewViewModel
+{
+    public int AnnouncementId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public string Source { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public bool IsPinned { get; set; }
+    public bool IsRead { get; set; }
 }
 
 public class BQTHeadDashboardViewModel
