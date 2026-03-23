@@ -1,4 +1,4 @@
-﻿﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Repositories.Interfaces;
@@ -58,8 +58,9 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 
     public virtual async Task AddRangeAsync(IEnumerable<T> entities)
     {
-        var entityList = entities.ToList(); // Materialize to avoid multiple enumeration
+        var entityList = entities.ToList();
         await _dbSet.AddRangeAsync(entityList);
+        await _context.SaveChangesAsync();
 
         // Log bulk CREATE
         try

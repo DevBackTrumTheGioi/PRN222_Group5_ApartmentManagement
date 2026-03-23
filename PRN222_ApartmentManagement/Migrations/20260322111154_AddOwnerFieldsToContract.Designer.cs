@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN222_ApartmentManagement.Data;
 
@@ -11,9 +12,11 @@ using PRN222_ApartmentManagement.Data;
 namespace PRN222_ApartmentManagement.Migrations
 {
     [DbContext(typeof(ApartmentDbContext))]
-    partial class ApartmentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260322111154_AddOwnerFieldsToContract")]
+    partial class AddOwnerFieldsToContract
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -999,52 +1002,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.ToTable("RequestComments");
                 });
 
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.ResidentApartment", b =>
-                {
-                    b.Property<int>("ResidentApartmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ResidentApartmentId"));
-
-                    b.Property<int>("ApartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ContractId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("MoveOutDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ResidencyType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ResidentApartmentId");
-
-                    b.HasIndex("ApartmentId");
-
-                    b.HasIndex("ContractId");
-
-                    b.HasIndex("UserId", "ApartmentId", "ContractId")
-                        .IsUnique();
-
-                    b.ToTable("ResidentApartments");
-                });
-
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.ResidentCard", b =>
                 {
                     b.Property<int>("ResidentCardId")
@@ -1879,33 +1836,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("Request");
                 });
 
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.ResidentApartment", b =>
-                {
-                    b.HasOne("PRN222_ApartmentManagement.Models.Apartment", "Apartment")
-                        .WithMany("ResidentApartments")
-                        .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PRN222_ApartmentManagement.Models.Contract", "Contract")
-                        .WithMany("ResidentApartments")
-                        .HasForeignKey("ContractId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PRN222_ApartmentManagement.Models.User", "User")
-                        .WithMany("ResidentApartments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Apartment");
-
-                    b.Navigation("Contract");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.ResidentCard", b =>
                 {
                     b.HasOne("PRN222_ApartmentManagement.Models.User", "Resident")
@@ -2056,8 +1986,6 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.Navigation("Requests");
 
-                    b.Navigation("ResidentApartments");
-
                     b.Navigation("Residents");
 
                     b.Navigation("ServiceOrders");
@@ -2068,8 +1996,6 @@ namespace PRN222_ApartmentManagement.Migrations
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Contract", b =>
                 {
                     b.Navigation("ContractMembers");
-
-                    b.Navigation("ResidentApartments");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Invoice", b =>
@@ -2133,8 +2059,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("RegisteredVisitors");
 
                     b.Navigation("Requests");
-
-                    b.Navigation("ResidentApartments");
 
                     b.Navigation("ResidentCards");
 

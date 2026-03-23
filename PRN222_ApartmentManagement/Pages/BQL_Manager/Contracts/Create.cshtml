@@ -1,0 +1,380 @@
+@page
+@using PRN222_ApartmentManagement.Models
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Contracts.CreateModel
+@{
+    ViewData["Title"] = "Tạo hợp đồng mới";
+    ViewData["CurrentPage"] = "contracts";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Tạo hợp đồng mới",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Manager", Href = "/BQL_Manager" },
+            new { Label = "Hợp đồng", Href = "/BQL_Manager/Contracts" },
+            new { Label = "Tạo mới", Href = "#" }
+        }
+    };
+}
+
+<!-- Modal xác nhận -->
+<div id="confirmModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <span class="material-icons">info</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">Xác nhận tạo hợp đồng?</h3>
+        </div>
+        <p class="text-sm text-slate-600">
+            Hợp đồng sẽ được lưu ở trạng thái <strong>bản nháp</strong>.
+            Bạn có thể xuất Word và tải về để in.
+        </p>
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" onclick="closeConfirmModal()"
+                    class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                Hủy
+            </button>
+            <button type="submit" form="mainForm"
+                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium">
+                Xác nhận
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center gap-2 mb-2">
+        <a asp-page="./Index" class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+            <span class="material-icons text-lg mr-1">arrow_back</span>
+            Quay lại danh sách
+        </a>
+    </div>
+
+    <form id="mainForm" method="post" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-6 space-y-6">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-600">@Model.ErrorMessage</p>
+                </div>
+            }
+
+            <!-- Thông tin hợp đồng -->
+            <div>
+                <h3 class="text-md font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="material-icons text-emerald-600 text-lg">description</span>
+                    Thông tin hợp đồng
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700">Số hợp đồng</label>
+                        <input id="ContractNumberPreview" readonly
+                               value="@Model.ContractNumberPreview"
+                               class="w-full px-4 py-2 border border-slate-200 bg-slate-50 text-slate-600 rounded-lg text-sm cursor-not-allowed" />
+                        <p class="text-xs text-slate-400">Được tạo tự động dựa trên loại hợp đồng.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700">Căn hộ <span class="text-red-500">*</span></label>
+                        <select asp-for="Input.ApartmentId" required
+                                asp-items="@(new SelectList(Model.AvailableApartments, "ApartmentId", "ApartmentNumber"))"
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm bg-white">
+                            <option value="">-- Chọn căn hộ --</option>
+                        </select>
+                        <span asp-validation-for="Input.ApartmentId" class="text-red-500 text-xs"></span>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700">Loại hợp đồng</label>
+                        <select asp-for="Input.ContractType" id="contractTypeSelect" asp-items="Html.GetEnumSelectList<ContractType>()"
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm bg-white">
+                            <option value="">-- Chọn loại --</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700">Ngày bắt đầu <span class="text-red-500">*</span></label>
+                        <input asp-for="Input.StartDate" type="date" required
+                               class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                        <span asp-validation-for="Input.StartDate" class="text-red-500 text-xs"></span>
+                    </div>
+
+                    <!-- Trường cho hợp đồng THUÊ (mặc định ẩn) -->
+                    <div id="rentalFields" class="hidden col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Ngày kết thúc <span class="text-red-500">*</span></label>
+                            <input asp-for="Input.EndDate" type="date"
+                                   class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Tiền thuê hàng tháng (VNĐ)</label>
+                            <input asp-for="Input.MonthlyRent" type="number" step="any" min="0" placeholder="VD: 5000000"
+                                   class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                        </div>
+                        <div class="space-y-2 md:col-span-2">
+                            <label class="text-sm font-medium text-slate-700">Tiền đặt cọc (VNĐ)</label>
+                            <input asp-for="Input.DepositAmount" type="number" step="any" min="0"
+                                   class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                        </div>
+                    </div>
+
+                    <!-- Trường cho hợp đồng MUA BÁN (mặc định ẩn) -->
+                    <div id="purchaseFields" class="hidden col-span-2">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Giá bán (VNĐ) <span class="text-red-500">*</span></label>
+                            <input asp-for="Input.PurchasePrice" id="purchasePriceInput" type="number" step="any" min="0"
+                                   placeholder="VD: 2000000000"
+                                   class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 space-y-2">
+                    <label class="text-sm font-medium text-slate-700">Điều khoản</label>
+                    <textarea asp-for="Input.Terms" rows="3" placeholder="Nhập các điều khoản hợp đồng..."
+                              class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm"></textarea>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 pt-6">
+                <!-- Thông tin chủ hộ -->
+                <h3 class="text-md font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="material-icons text-emerald-600 text-lg">person</span>
+                    Thông tin chủ hộ
+                </h3>
+
+                <!-- Toggle Chủ mới / Chủ cũ -->
+                <div class="mb-5">
+                    <label class="text-sm font-medium text-slate-700 block mb-2">Loại chủ hộ</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="ownerType" value="new" checked
+                                   onchange="toggleOwnerType('new')"
+                                   class="accent-emerald-600 w-4 h-4" />
+                            <span class="text-sm text-slate-700">Chủ hộ mới</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="ownerType" value="existing"
+                                   onchange="toggleOwnerType('existing')"
+                                   class="accent-emerald-600 w-4 h-4" />
+                            <span class="text-sm text-slate-700">Chủ hộ đã có trong hệ thống</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Tìm theo CCCD khi chọn chủ cũ -->
+                <div id="existingOwnerSearch" class="hidden mb-5 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <label class="text-sm font-medium text-slate-700 block mb-2">Nhập CCCD/CMND chủ hộ <span class="text-red-500">*</span></label>
+                    <div class="flex gap-3">
+                        <input type="text" id="searchCccdInput" placeholder="VD: 012345678901"
+                               class="flex-1 px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm" />
+                        <button type="button" onclick="lookupOwner()"
+                                class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium inline-flex items-center gap-2">
+                            <span class="material-icons text-base">search</span>
+                            Tra cứu
+                        </button>
+                    </div>
+                    <p id="searchCccdError" class="text-xs text-red-500 mt-1.5 hidden"></p>
+                    <p id="searchCccdSuccess" class="text-xs text-emerald-600 mt-1.5 hidden"></p>
+                </div>
+
+                <!-- Form chủ mới -->
+                <div id="newOwnerFields">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2 md:col-span-2">
+                            <label class="text-sm font-medium text-slate-700">Họ và tên <span class="text-red-500">*</span></label>
+                            <input asp-for="Input.OwnerFullName" id="OwnerFullName" placeholder="VD: Nguyễn Văn An"
+                                   class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                            <span asp-validation-for="Input.OwnerFullName" class="text-red-500 text-xs"></span>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Số điện thoại <span class="text-red-500">*</span></label>
+                            <input asp-for="Input.OwnerPhone" id="OwnerPhone" placeholder="0xxx xxx xxx"
+                                   class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                            <span asp-validation-for="Input.OwnerPhone" class="text-red-500 text-xs"></span>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Email</label>
+                            <input asp-for="Input.OwnerEmail" type="email" placeholder="email@example.com"
+                                   class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                            <span asp-validation-for="Input.OwnerEmail" class="text-red-500 text-xs"></span>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Ngày sinh</label>
+                            <input asp-for="Input.OwnerDateOfBirth" type="date"
+                                   class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Số CCCD/CMND <span class="text-red-500">*</span></label>
+                            <input asp-for="Input.OwnerIdentityCard" id="OwnerIdentityCard" placeholder="VD: 012345678901"
+                                   class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden fields for existing owner -->
+                <input asp-for="Input.IsExistingOwner" id="IsExistingOwner" type="hidden" value="false" />
+                <input asp-for="Input.ExistingOwnerId" id="ExistingOwnerId" type="hidden" />
+                <input asp-for="Input.ExistingOwnerCccd" id="ExistingOwnerCccd" type="hidden" />
+
+                <!-- Thông tin chủ cũ hiển thị (readonly) -->
+                <div id="existingOwnerInfo" class="hidden mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-icons text-emerald-600 text-lg">check_circle</span>
+                        <span class="text-sm font-semibold text-emerald-700">Đã tìm thấy chủ hộ</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Họ và tên</label>
+                            <input type="text" id="displayOwnerName" readonly
+                                   class="w-full px-3 py-2 border border-emerald-200 bg-white rounded-lg text-sm font-medium text-slate-800" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Điện thoại</label>
+                            <input type="text" id="displayOwnerPhone" readonly
+                                   class="w-full px-3 py-2 border border-emerald-200 bg-white rounded-lg text-sm text-slate-800" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Email</label>
+                            <input type="text" id="displayOwnerEmail" readonly
+                                   class="w-full px-3 py-2 border border-emerald-200 bg-white rounded-lg text-sm text-slate-800" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">CCCD</label>
+                            <input type="text" id="displayOwnerCccd" readonly
+                                   class="w-full px-3 py-2 border border-emerald-200 bg-white rounded-lg text-sm text-slate-800" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
+            <a asp-page="./Index" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                Hủy
+            </a>
+            <button type="button" onclick="openConfirmModal()"
+                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium inline-flex items-center gap-2">
+                <span class="material-icons text-base">save</span>
+                Tạo hợp đồng
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // --- Contract number preview ---
+        async function fetchContractNumber(type) {
+            try {
+                var resp = await fetch(`/BQL_Manager/Contracts/Create?handler=PreviewContractNumber&type=${type}`);
+                var data = await resp.json();
+                document.getElementById('ContractNumberPreview').value = data.contractNumber || '';
+            } catch (e) {
+                console.error('Error fetching contract number:', e);
+            }
+        }
+
+        // --- Toggle rental / purchase fields ---
+        function toggleContractFields() {
+            var select = document.getElementById('contractTypeSelect');
+            var val = select.value;
+
+            // Rental = 1, Purchase = 0
+            document.getElementById('rentalFields').classList.toggle('hidden', val !== '1');
+            document.getElementById('purchaseFields').classList.toggle('hidden', val !== '0');
+
+            // Update preview contract number
+            if (val === '0' || val === '1') {
+                fetchContractNumber(val);
+            }
+        }
+
+        document.getElementById('contractTypeSelect').addEventListener('change', toggleContractFields);
+
+        // --- Toggle Chủ mới / Chủ cũ ---
+        function toggleOwnerType(type) {
+            var isExisting = type === 'existing';
+            document.getElementById('existingOwnerSearch').classList.toggle('hidden', !isExisting);
+            document.getElementById('newOwnerFields').classList.toggle('hidden', isExisting);
+            document.getElementById('existingOwnerInfo').classList.toggle('hidden', true);
+            document.getElementById('IsExistingOwner').value = isExisting ? 'true' : 'false';
+            document.getElementById('ExistingOwnerId').value = '';
+            document.getElementById('ExistingOwnerCccd').value = '';
+            document.getElementById('searchCccdError').classList.add('hidden');
+            document.getElementById('searchCccdSuccess').classList.add('hidden');
+
+            var fn = document.getElementById('OwnerFullName');
+            var ph = document.getElementById('OwnerPhone');
+            var idc = document.getElementById('OwnerIdentityCard');
+            if (isExisting) {
+                fn.removeAttribute('required');
+                ph.removeAttribute('required');
+                idc.removeAttribute('required');
+            } else {
+                fn.setAttribute('required', 'required');
+                ph.setAttribute('required', 'required');
+                idc.setAttribute('required', 'required');
+            }
+        }
+
+        async function lookupOwner() {
+            var cccd = document.getElementById('searchCccdInput').value.trim();
+            var errorEl = document.getElementById('searchCccdError');
+            var successEl = document.getElementById('searchCccdSuccess');
+            errorEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+
+            if (!cccd) {
+                errorEl.textContent = 'Vui lòng nhập CCCD.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                var resp = await fetch(`/BQL_Manager/Contracts/Create?handler=LookupOwner&cccd=${encodeURIComponent(cccd)}`);
+                var data = await resp.json();
+
+                if (!data.found) {
+                    errorEl.textContent = data.message;
+                    errorEl.classList.remove('hidden');
+                    document.getElementById('existingOwnerInfo').classList.add('hidden');
+                    document.getElementById('ExistingOwnerId').value = '';
+                    document.getElementById('ExistingOwnerCccd').value = '';
+                } else {
+                    successEl.textContent = 'Đã tìm thấy: ' + data.fullName;
+                    successEl.classList.remove('hidden');
+                    document.getElementById('existingOwnerInfo').classList.remove('hidden');
+                    document.getElementById('displayOwnerName').value = data.fullName;
+                    document.getElementById('displayOwnerPhone').value = data.phone;
+                    document.getElementById('displayOwnerEmail').value = data.email;
+                    document.getElementById('displayOwnerCccd').value = data.identityCard;
+                    document.getElementById('ExistingOwnerId').value = data.userId;
+                    document.getElementById('ExistingOwnerCccd').value = data.identityCard;
+                }
+            } catch (e) {
+                errorEl.textContent = 'Lỗi khi tra cứu. Vui lòng thử lại.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // Enter key on CCCD input triggers lookup
+        document.getElementById('searchCccdInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                lookupOwner();
+            }
+        });
+
+        // --- Modal controls ---
+        function openConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+        document.getElementById('confirmModal').addEventListener('click', function (e) {
+            if (e.target === this) closeConfirmModal();
+        });
+    </script>
+}

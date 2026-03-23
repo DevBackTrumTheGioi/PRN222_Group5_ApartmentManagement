@@ -41,6 +41,32 @@ public class UserRepository : GenericRepository<User>, IUserRepository
             (!excludeUserId.HasValue || u.UserId != excludeUserId.Value));
     }
 
+    public async Task<bool> PhoneExistsAsync(string phone, int? excludeUserId = null)
+    {
+        return await _dbSet.AnyAsync(u =>
+            u.PhoneNumber == phone &&
+            !u.IsDeleted &&
+            (!excludeUserId.HasValue || u.UserId != excludeUserId.Value));
+    }
+
+    public async Task<bool> IdentityCardExistsAsync(string cccd, int? excludeUserId = null)
+    {
+        return await _dbSet.AnyAsync(u =>
+            u.IdentityCardNumber == cccd &&
+            !u.IsDeleted &&
+            (!excludeUserId.HasValue || u.UserId != excludeUserId.Value));
+    }
+
+    public async Task<User?> FindByPhoneAsync(string phone)
+    {
+        return await _dbSet.FirstOrDefaultAsync(u => u.PhoneNumber == phone && !u.IsDeleted);
+    }
+
+    public async Task<User?> FindByIdentityCardAsync(string cccd)
+    {
+        return await _dbSet.FirstOrDefaultAsync(u => u.IdentityCardNumber == cccd && !u.IsDeleted);
+    }
+
     public async Task<List<User>> GetPagedUsersAsync(string? searchTerm, UserRole? roleFilter, int pageIndex, int pageSize)
     {
         var query = BuildUserQuery(searchTerm, roleFilter);

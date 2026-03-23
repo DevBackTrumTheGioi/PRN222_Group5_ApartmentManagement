@@ -1,4 +1,4 @@
-﻿using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Models;
 
 namespace PRN222_ApartmentManagement.Services.Interfaces;
 
@@ -13,6 +13,7 @@ public interface IAuthService
     Task LogLogoutAsync(int userId, string userName);
     string HashPassword(string password);
     bool VerifyPassword(string password, string hashedPassword);
+    Task<TokenPairResult?> GenerateTokensForUserAsync(int userId, string? ipAddress = null);
 }
 
 public class TokenPairResult

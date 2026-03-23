@@ -72,7 +72,9 @@ public class LoginModel : PageModel
 
             if (isInactiveAccount)
             {
-                return RedirectToPage("/Account/Inactive");
+                HttpContext.Session.SetInt32("PendingUserId", user.UserId);
+                HttpContext.Session.SetString("PendingUsername", user.Username ?? Input.Username);
+                return RedirectToPage("/Account/VerifyPhone");
             }
 
             ModelState.AddModelError(string.Empty, errorMessage);

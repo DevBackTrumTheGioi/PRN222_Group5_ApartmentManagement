@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PRN222_ApartmentManagement.Models.Enums;
 
@@ -33,6 +33,9 @@ public class Contract
     [Column(TypeName = "decimal(18,2)")]
     public decimal? DepositAmount { get; set; }
 
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? PurchasePrice { get; set; }
+
     public ContractStatus Status { get; set; } = ContractStatus.Draft;
 
     public string? Terms { get; set; }
@@ -58,7 +61,24 @@ public class Contract
 
     public bool IsDeleted { get; set; } = false;
 
+    // Thong tin chu ho (luu tru de tao tai khoan khi kich hoat hop dong)
+    [MaxLength(200)]
+    public string? OwnerFullName { get; set; }
+
+    [MaxLength(100)]
+    public string? OwnerEmail { get; set; }
+
+    [MaxLength(20)]
+    public string? OwnerPhone { get; set; }
+
+    [Column(TypeName = "date")]
+    public DateTime? OwnerDateOfBirth { get; set; }
+
+    [MaxLength(20)]
+    public string? OwnerIdentityCard { get; set; }
+
     public virtual Apartment Apartment { get; set; } = null!;
     public virtual User Creator { get; set; } = null!;
     public virtual ICollection<ContractMember> ContractMembers { get; set; } = new List<ContractMember>();
+    public virtual ICollection<ResidentApartment> ResidentApartments { get; set; } = new List<ResidentApartment>();
 }

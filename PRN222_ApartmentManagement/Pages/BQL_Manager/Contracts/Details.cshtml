@@ -1,0 +1,530 @@
+@page "{id:int}"
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Models
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Contracts.DetailsModel
+@{
+    ViewData["Title"] = "Chi tiết hợp đồng";
+    ViewData["CurrentPage"] = "contracts";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Chi tiết hợp đồng",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "Hợp đồng", Href = "/BQL_Manager/Contracts" },
+            new { Label = Model.Contract?.ContractNumber ?? "Chi tiết", Href = "#" }
+        }
+    };
+
+    var contract = Model.Contract;
+    var owner = Model.Owner;
+
+    string StatusLabel(ContractStatus? s) => s switch
+    {
+        ContractStatus.Draft => "Bản nháp",
+        ContractStatus.Active => "Đang hiệu lực",
+        ContractStatus.Expired => "Hết hạn",
+        ContractStatus.Terminated => "Đã chấm dứt",
+        ContractStatus.Cancelled => "Đã hủy",
+        _ => "-"
+    };
+
+    string StatusColor(ContractStatus? s) => s switch
+    {
+        ContractStatus.Active => "emerald",
+        ContractStatus.Draft => "slate",
+        ContractStatus.Expired => "rose",
+        ContractStatus.Terminated => "red",
+        ContractStatus.Cancelled => "slate",
+        _ => "slate"
+    };
+
+    string TypeLabel(ContractType? t) => t switch
+    {
+        ContractType.Rental => "Thuê",
+        ContractType.Purchase => "Mua bán",
+        ContractType.Other => "Khác",
+        _ => "-"
+    };
+
+    string TypeIcon(ContractType? t) => t switch
+    {
+        ContractType.Rental => "key",
+        ContractType.Purchase => "handshake",
+        ContractType.Other => "description",
+        _ => "description"
+    };
+
+    var daysLeft = contract?.EndDate.HasValue == true
+        ? (int)(contract.EndDate!.Value - DateTime.Now).TotalDays
+        : (int?)null;
+
+    string FinacialLabel()
+    {
+        if (contract?.ContractType == ContractType.Rental)
+            return $"{contract.MonthlyRent?.ToString("N0") ?? "-"} VNĐ / tháng";
+        if (contract?.ContractType == ContractType.Purchase)
+            return $"{contract.PurchasePrice?.ToString("N0") ?? "-"} VNĐ";
+        return "-";
+    }
+
+    string Initials(string? name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" :
+        string.Join("", name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2)
+            .Select(w => w[0].ToString().ToUpper()));
+
+    var isDraft = contract?.Status == ContractStatus.Draft;
+    var isActive = contract?.Status == ContractStatus.Active;
+}
+
+@* Modal kich hoat *@
+<div id="activateModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <span class="material-icons">check_circle</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">Kích hoạt hợp đồng?</h3>
+        </div>
+        <p class="text-sm text-slate-600">
+            Hợp đồng sẽ được chuyển sang trạng thái <strong>Đang hiệu lực</strong>
+            và tài khoản cư dân sẽ được tạo tự động với mật khẩu <strong>123456789</strong>.
+        </p>
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" onclick="closeActivateModal()"
+                    class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                Hủy
+            </button>
+            <form method="post" asp-page-handler="Activate" asp-route-id="@contract?.ContractId">
+                <button type="submit"
+                        class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium">
+                    Kích hoạt
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal xoa hop dong *@
+<div id="deleteModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600">
+                <span class="material-icons">delete_forever</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">Xóa hợp đồng?</h3>
+        </div>
+        <p class="text-sm text-slate-600">
+            Hợp đồng <strong>@contract?.ContractNumber</strong> sẽ bị xóa vĩnh viễn khỏi hệ thống.
+            Hành động này <strong>không thể hoàn tác</strong>.
+        </p>
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" onclick="closeDeleteModal()"
+                    class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                Hủy
+            </button>
+            <form method="post" asp-page-handler="Delete" asp-route-id="@contract?.ContractId">
+                <button type="submit"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+                    Xóa
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="space-y-6">
+
+    @* Thong bao *@
+    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+    {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 flex items-center gap-2">
+            <span class="material-icons text-base">check_circle</span>
+            @Model.SuccessMessage
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+            <span class="material-icons text-base">error</span>
+            @Model.ErrorMessage
+        </div>
+    }
+
+    @* ===== HERO HEADER ===== *@
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-4">
+                <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100">
+                    <span class="material-icons text-3xl">@TypeIcon(contract?.ContractType)</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-2xl font-bold text-slate-900">@contract?.ContractNumber</h1>
+                        @{
+                            var badgeColor = StatusColor(contract?.Status);
+                        }
+                        <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-@(badgeColor)-200 bg-@(badgeColor)-50 text-@(badgeColor)-700">
+                            <span class="h-1.5 w-1.5 rounded-full bg-@(badgeColor)-500"></span>
+                            @StatusLabel(contract?.Status)
+                        </span>
+                    </div>
+                    <p class="mt-1 text-sm text-slate-500">
+                        @TypeLabel(contract?.ContractType) · Căn @contract?.Apartment?.ApartmentNumber · Tầng @contract?.Apartment?.Floor
+                    </p>
+                </div>
+            </div>
+
+            @* ACTION BUTTONS *@
+            <div class="flex gap-2 flex-wrap">
+                <a asp-page="Print" asp-route-id="@contract?.ContractId" target="_blank"
+                   class="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-colors shadow-sm">
+                    <span class="material-icons text-base">print</span>
+                    In / Lưu PDF
+                </a>
+                <a asp-page="Index"
+                   class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+                    <span class="material-icons text-base">arrow_back</span>
+                    Quay lại
+                </a>
+                @if (isDraft)
+                {
+                    <button type="button" onclick="openDeleteModal()"
+                            class="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors shadow-sm">
+                        <span class="material-icons text-base">delete_forever</span>
+                        Xóa
+                    </button>
+                    <a asp-page="Edit" asp-route-id="@contract?.ContractId"
+                       class="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-white px-4 py-2 text-sm font-medium text-amber-600 hover:bg-amber-50 transition-colors shadow-sm">
+                        <span class="material-icons text-base">edit</span>
+                        Chỉnh sửa
+                    </a>
+                    <button type="button" onclick="openActivateModal()"
+                            class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors shadow-sm">
+                        <span class="material-icons text-base">check_circle</span>
+                        Kích hoạt
+                    </button>
+                }
+                @if (isActive && contract.ContractType == ContractType.Rental)
+                {
+                    <a asp-page="Terminate" asp-route-id="@contract?.ContractId"
+                       class="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors shadow-sm">
+                        <span class="material-icons text-base">cancel</span>
+                        Chấm dứt
+                    </a>
+                }
+            </div>
+        </div>
+
+        @* STATS ROW *@
+        <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div class="rounded-xl bg-slate-50 p-4 border border-slate-100">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-icons text-slate-400 text-base">calendar_today</span>
+                    <span class="text-xs font-medium text-slate-500 uppercase tracking-wide">Ngày bắt đầu</span>
+                </div>
+                <p class="text-base font-bold text-slate-900">@contract?.StartDate.ToString("dd/MM/yyyy")</p>
+            </div>
+
+            <div class="rounded-xl bg-slate-50 p-4 border border-slate-100">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-icons text-slate-400 text-base">event</span>
+                    <span class="text-xs font-medium text-slate-500 uppercase tracking-wide">Ngày kết thúc</span>
+                </div>
+                <p class="text-base font-bold text-slate-900">
+                    @(contract?.EndDate?.ToString("dd/MM/yyyy") ?? "Không thời hạn")
+                </p>
+                @if (daysLeft.HasValue && daysLeft > 0)
+                {
+                    <p class="text-xs text-emerald-600 mt-0.5 font-medium">Còn @daysLeft ngày</p>
+                }
+                else if (daysLeft.HasValue && daysLeft <= 0)
+                {
+                    <p class="text-xs text-red-500 mt-0.5 font-medium">Đã hết hạn</p>
+                }
+            </div>
+
+            <div class="rounded-xl bg-amber-50 p-4 border border-amber-100">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-icons text-amber-400 text-base">payments</span>
+                    <span class="text-xs font-medium text-amber-600 uppercase tracking-wide">
+                        @(contract?.ContractType == ContractType.Rental ? "Tiền thuê" : contract?.ContractType == ContractType.Purchase ? "Giá bán" : "Giá trị")
+                    </span>
+                </div>
+                <p class="text-base font-bold text-slate-900">@FinacialLabel()</p>
+            </div>
+
+            @if (contract?.ContractType == ContractType.Rental)
+            {
+                <div class="rounded-xl bg-blue-50 p-4 border border-blue-100">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="material-icons text-blue-400 text-base">savings</span>
+                        <span class="text-xs font-medium text-blue-600 uppercase tracking-wide">Đặt cọc</span>
+                    </div>
+                    <p class="text-base font-bold text-slate-900">@(contract.DepositAmount?.ToString("N0") ?? "-") VNĐ</p>
+                </div>
+            }
+            else
+            {
+                <div class="rounded-xl bg-blue-50 p-4 border border-blue-100">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="material-icons text-blue-400 text-base">person</span>
+                        <span class="text-xs font-medium text-blue-600 uppercase tracking-wide">Người tạo</span>
+                    </div>
+                    <p class="text-base font-bold text-slate-900 truncate">@contract?.Creator?.FullName</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* ===== THREE COLUMNS ===== *@
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+        @* COLUMN 1: Chủ hộ *@
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Chủ hộ</h3>
+
+            @if (owner != null)
+            {
+                @* Da kich hoat - hien thi tu bang User *@
+                <div class="flex flex-col items-center text-center gap-3">
+                    <div class="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-2xl font-bold shadow-md">
+                        @Initials(owner.FullName)
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold text-slate-900">@owner.FullName</p>
+                        <p class="text-sm text-slate-500 mt-0.5">
+                            @(owner.ResidentType switch
+                            {
+                                ResidentType.Owner => "Chủ sở hữu",
+                                ResidentType.Tenant => "Người thuê",
+                                ResidentType.FamilyMember => "Thành viên gia đình",
+                                _ => "-"
+                            })
+                        </p>
+                    </div>
+                    <div class="w-full space-y-2 text-sm">
+                        <div class="flex items-center gap-2 rounded-lg bg-slate-50 p-3">
+                            <span class="material-icons text-slate-400 text-base">phone</span>
+                            <a href="tel:@owner.PhoneNumber" class="text-slate-700 hover:text-emerald-600">@(owner.PhoneNumber ?? "-")</a>
+                        </div>
+                        <div class="flex items-center gap-2 rounded-lg bg-slate-50 p-3">
+                            <span class="material-icons text-slate-400 text-base">mail</span>
+                            <span class="text-slate-700 truncate">@(string.IsNullOrWhiteSpace(owner.Email) ? "-" : owner.Email)</span>
+                        </div>
+                        <div class="flex items-center gap-2 rounded-lg bg-slate-50 p-3">
+                            <span class="material-icons text-slate-400 text-base">badge</span>
+                            <span class="text-slate-700">@(owner.IdentityCardNumber ?? "-")</span>
+                        </div>
+                        <div class="flex items-center gap-2 rounded-lg bg-emerald-50 p-3">
+                            <span class="material-icons text-emerald-400 text-base">person</span>
+                            <span class="text-emerald-700 font-medium">Tài khoản: @owner.Username</span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (isDraft)
+            {
+                @* Ban nhap - hien thi tu Contract fields *@
+                <div class="flex flex-col items-center text-center gap-3">
+                    <div class="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-slate-300 to-slate-500 text-white text-2xl font-bold shadow-md">
+                        @Initials(contract?.OwnerFullName)
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold text-slate-900">@(string.IsNullOrWhiteSpace(contract?.OwnerFullName) ? "Chưa có" : contract.OwnerFullName)</p>
+                        <p class="text-sm text-amber-600 font-medium">Chưa kích hoạt</p>
+                    </div>
+                    <div class="w-full space-y-2 text-sm">
+                        <div class="flex items-center gap-2 rounded-lg bg-slate-50 p-3">
+                            <span class="material-icons text-slate-400 text-base">phone</span>
+                            <span class="text-slate-700">@(string.IsNullOrWhiteSpace(contract?.OwnerPhone) ? "-" : contract.OwnerPhone)</span>
+                        </div>
+                        <div class="flex items-center gap-2 rounded-lg bg-slate-50 p-3">
+                            <span class="material-icons text-slate-400 text-base">mail</span>
+                            <span class="text-slate-700 truncate">@(string.IsNullOrWhiteSpace(contract?.OwnerEmail) ? "-" : contract.OwnerEmail)</span>
+                        </div>
+                        <div class="flex items-center gap-2 rounded-lg bg-slate-50 p-3">
+                            <span class="material-icons text-slate-400 text-base">badge</span>
+                            <span class="text-slate-700">@(string.IsNullOrWhiteSpace(contract?.OwnerIdentityCard) ? "-" : contract.OwnerIdentityCard)</span>
+                        </div>
+                        <div class="flex items-center gap-2 rounded-lg bg-amber-50 p-3 border border-amber-100">
+                            <span class="material-icons text-amber-400 text-base">info</span>
+                            <span class="text-amber-700 text-xs">Tài khoản sẽ được tạo khi hợp đồng được kích hoạt</span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="flex flex-col items-center text-center gap-2 py-4">
+                    <span class="material-icons text-4xl text-slate-300">person_off</span>
+                    <p class="text-sm text-slate-400">Chưa có thông tin chủ hộ</p>
+                </div>
+            }
+        </div>
+
+        @* COLUMN 2: Thông tin căn hộ *@
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Căn hộ</h3>
+            <div class="space-y-3">
+                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span class="material-icons text-emerald-500">home</span>
+                    <div>
+                        <p class="text-xs text-slate-400">Căn hộ</p>
+                        <p class="font-bold text-slate-900">Căn @contract?.Apartment?.ApartmentNumber</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span class="material-icons text-slate-400 text-base">layers</span>
+                        <div>
+                            <p class="text-xs text-slate-400">Tầng</p>
+                            <p class="font-semibold text-slate-800">@contract?.Apartment?.Floor</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span class="material-icons text-slate-400 text-base">apartment</span>
+                        <div>
+                            <p class="text-xs text-slate-400">Tòa</p>
+                            <p class="font-semibold text-slate-800">@(string.IsNullOrWhiteSpace(contract?.Apartment?.BuildingBlock) ? "-" : contract?.Apartment?.BuildingBlock)</p>
+                        </div>
+                    </div>
+                </div>
+                @if (contract?.Apartment?.Area.HasValue == true)
+                {
+                    <div class="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span class="material-icons text-slate-400 text-base">square_foot</span>
+                        <div>
+                            <p class="text-xs text-slate-400">Diện tích</p>
+                            <p class="font-semibold text-slate-800">@contract.Apartment.Area.Value.ToString("N1") m²</p>
+                        </div>
+                    </div>
+                }
+                <div class="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span class="material-icons text-slate-400 text-base">category</span>
+                    <div>
+                        <p class="text-xs text-slate-400">Loại</p>
+                        <p class="font-semibold text-slate-800">@(string.IsNullOrWhiteSpace(contract?.Apartment?.ApartmentType) ? "-" : contract?.Apartment?.ApartmentType)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* COLUMN 3: Thông tin hợp đồng *@
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Thông tin hợp đồng</h3>
+            <dl class="space-y-3">
+                <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <dt class="flex items-center gap-2 text-sm text-slate-500">
+                        <span class="material-icons text-base text-slate-400">tag</span>
+                        Số hợp đồng
+                    </dt>
+                    <dd class="font-semibold text-slate-900 text-sm">@contract?.ContractNumber</dd>
+                </div>
+                <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <dt class="flex items-center gap-2 text-sm text-slate-500">
+                        <span class="material-icons text-base text-slate-400">category</span>
+                        Loại
+                    </dt>
+                    <dd class="font-semibold text-slate-900 text-sm">@TypeLabel(contract?.ContractType)</dd>
+                </div>
+                <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <dt class="flex items-center gap-2 text-sm text-slate-500">
+                        <span class="material-icons text-base text-slate-400">person</span>
+                        Người tạo
+                    </dt>
+                    <dd class="font-semibold text-slate-900 text-sm truncate max-w-[140px]">@contract?.Creator?.FullName</dd>
+                </div>
+                <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <dt class="flex items-center gap-2 text-sm text-slate-500">
+                        <span class="material-icons text-base text-slate-400">schedule</span>
+                        Ngày tạo
+                    </dt>
+                    <dd class="font-semibold text-slate-900 text-sm">@contract?.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+                </div>
+                @if (contract?.ContractType == ContractType.Rental)
+                {
+                    <div class="flex justify-between items-center p-3 rounded-xl bg-amber-50 border border-amber-100">
+                        <dt class="flex items-center gap-2 text-sm text-amber-600">
+                            <span class="material-icons text-base">payments</span>
+                            Tiền thuê
+                        </dt>
+                        <dd class="font-bold text-amber-700 text-sm">@contract.MonthlyRent?.ToString("N0") VNĐ</dd>
+                    </div>
+                    <div class="flex justify-between items-center p-3 rounded-xl bg-blue-50 border border-blue-100">
+                        <dt class="flex items-center gap-2 text-sm text-blue-600">
+                            <span class="material-icons text-base">savings</span>
+                            Đặt cọc
+                        </dt>
+                        <dd class="font-bold text-blue-700 text-sm">@contract.DepositAmount?.ToString("N0") VNĐ</dd>
+                    </div>
+                }
+                @if (contract?.ContractType == ContractType.Purchase && contract.PurchasePrice.HasValue)
+                {
+                    <div class="flex justify-between items-center p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                        <dt class="flex items-center gap-2 text-sm text-emerald-600">
+                            <span class="material-icons text-base">paid</span>
+                            Giá bán
+                        </dt>
+                        <dd class="font-bold text-emerald-700 text-sm">@contract.PurchasePrice.Value.ToString("N0") VNĐ</dd>
+                    </div>
+                }
+            </dl>
+        </div>
+    </div>
+
+    @* ===== ĐIỀU KHOẢN ===== *@
+    @if (!string.IsNullOrWhiteSpace(contract?.Terms))
+    {
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Điều khoản bổ sung</h3>
+            <p class="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed bg-slate-50 rounded-xl p-4 border border-slate-100">@contract.Terms</p>
+        </div>
+    }
+
+    @* ===== CHẤM DỨT ===== *@
+    @if (contract?.Status == ContractStatus.Terminated && !string.IsNullOrWhiteSpace(contract.TerminationReason))
+    {
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600">
+                    <span class="material-icons text-xl">cancel</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-red-800">Hợp đồng đã chấm dứt</h3>
+                    <p class="text-xs text-red-500 mt-0.5">@contract.TerminatedAt?.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+            </div>
+            <p class="text-sm text-red-700 bg-white rounded-xl p-4 border border-red-200 leading-relaxed">@contract.TerminationReason</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function openActivateModal() {
+            document.getElementById('activateModal').classList.remove('hidden');
+        }
+
+        function closeActivateModal() {
+            document.getElementById('activateModal').classList.add('hidden');
+        }
+
+        document.getElementById('activateModal').addEventListener('click', function (e) {
+            if (e.target === this) closeActivateModal();
+        });
+
+        function openDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        document.getElementById('deleteModal').addEventListener('click', function (e) {
+            if (e.target === this) closeDeleteModal();
+        });
+    </script>
+}

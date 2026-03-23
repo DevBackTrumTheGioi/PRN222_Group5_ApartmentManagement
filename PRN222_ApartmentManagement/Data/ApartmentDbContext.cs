@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Models;
 
 namespace PRN222_ApartmentManagement.Data;
@@ -52,6 +52,9 @@ public class ApartmentDbContext : DbContext
     public DbSet<Contract> Contracts { get; set; }
     public DbSet<ContractMember> ContractMembers { get; set; }
 
+    // Residency entities
+    public DbSet<ResidentApartment> ResidentApartments { get; set; }
+
     // Activity Log
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
@@ -85,6 +88,32 @@ public class ApartmentDbContext : DbContext
             .HasIndex(u => u.IdentityCardNumber)
             .IsUnique()
             .HasFilter("[IdentityCardNumber] IS NOT NULL");
+
+        modelBuilder.Entity<ResidentApartment>(entity =>
+        {
+            entity.Property(e => e.ResidencyType)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            // 1 user + 1 apartment + 1 contract = unique
+            entity.HasIndex(e => new { e.UserId, e.ApartmentId, e.ContractId })
+                .IsUnique();
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.ResidentApartments)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Apartment)
+                .WithMany(a => a.ResidentApartments)
+                .HasForeignKey(e => e.ApartmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Contract)
+                .WithMany(c => c.ResidentApartments)
+                .HasForeignKey(e => e.ContractId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<Announcement>()
             .Property(a => a.AnnouncementType)
