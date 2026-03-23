@@ -1,4 +1,4 @@
-﻿namespace PRN222_ApartmentManagement.Utils;
+namespace PRN222_ApartmentManagement.Utils;
 
 /// <summary>
 /// Tiện ích validate dữ liệu
@@ -249,12 +249,13 @@ public static class ValidationUtils
     }
 
     /// <summary>
-    /// Validate thông tin cư dân
+    /// Validate thông tin cư dân (User với Role = Resident).
+    /// Caller phải đảm bảo User có Role = Resident trước khi gọi.
     /// </summary>
     public static (bool IsValid, List<string> Errors) ValidateResident(
-        string fullName, 
-        DateTime? dateOfBirth, 
-        string? phoneNumber, 
+        string fullName,
+        DateTime? dateOfBirth,
+        string? phoneNumber,
         string? email)
     {
         var validations = new List<(bool, string)>

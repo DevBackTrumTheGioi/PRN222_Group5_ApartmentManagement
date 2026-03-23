@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Models.DTOs;
 using PRN222_ApartmentManagement.Repositories.Interfaces;
 using PRN222_ApartmentManagement.Services;
 
@@ -41,6 +42,32 @@ public class UserRepository : GenericRepository<User>, IUserRepository
             (!excludeUserId.HasValue || u.UserId != excludeUserId.Value));
     }
 
+    public async Task<bool> PhoneExistsAsync(string phone, int? excludeUserId = null)
+    {
+        return await _dbSet.AnyAsync(u =>
+            u.PhoneNumber == phone &&
+            !u.IsDeleted &&
+            (!excludeUserId.HasValue || u.UserId != excludeUserId.Value));
+    }
+
+    public async Task<bool> IdentityCardExistsAsync(string cccd, int? excludeUserId = null)
+    {
+        return await _dbSet.AnyAsync(u =>
+            u.IdentityCardNumber == cccd &&
+            !u.IsDeleted &&
+            (!excludeUserId.HasValue || u.UserId != excludeUserId.Value));
+    }
+
+    public async Task<User?> FindByPhoneAsync(string phone)
+    {
+        return await _dbSet.FirstOrDefaultAsync(u => u.PhoneNumber == phone && !u.IsDeleted);
+    }
+
+    public async Task<User?> FindByIdentityCardAsync(string cccd)
+    {
+        return await _dbSet.FirstOrDefaultAsync(u => u.IdentityCardNumber == cccd && !u.IsDeleted);
+    }
+
     public async Task<List<User>> GetPagedUsersAsync(string? searchTerm, UserRole? roleFilter, int pageIndex, int pageSize)
     {
         var query = BuildUserQuery(searchTerm, roleFilter);
@@ -75,5 +102,56 @@ public class UserRepository : GenericRepository<User>, IUserRepository
         }
 
         return query;
+    }
+
+    public async Task<PagedResult<User>> GetPagedResidentsAsync(
+        string? searchTerm,
+        bool? isActive,
+        int pageIndex,
+        int pageSize)
+    {
+        var baseQuery = _dbSet
+            .Where(u => !u.IsDeleted && u.Role == UserRole.Resident);
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            baseQuery = baseQuery.Where(u =>
+                u.FullName.Contains(term) ||
+                u.Username.Contains(term) ||
+                (u.PhoneNumber != null && u.PhoneNumber.Contains(term)) ||
+                (u.IdentityCardNumber != null && u.IdentityCardNumber.Contains(term)));
+        }
+
+        if (isActive.HasValue)
+            baseQuery = baseQuery.Where(u => u.IsActive == isActive.Value);
+
+        var totalCount = await baseQuery.CountAsync();
+
+        var items = await baseQuery
+            .OrderByDescending(u => u.CreatedAt)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<User>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<User?> GetResidentByIdWithDetailsAsync(int userId)
+    {
+        return await _dbSet
+            .Include(u => u.Apartment)
+            .Include(u => u.Vehicles.Where(v => !v.IsDeleted))
+            .Include(u => u.ResidentCards)
+            .Include(u => u.Requests.OrderByDescending(r => r.CreatedAt).Take(5))
+            .Include(u => u.ContractMembers.Where(cm => cm.IsActive))
+                .ThenInclude(cm => cm.Contract)
+            .FirstOrDefaultAsync(u => u.UserId == userId && !u.IsDeleted && u.Role == UserRole.Resident);
     }
 }

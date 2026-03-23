@@ -1,0 +1,252 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Account.VerifyPhoneModel
+@{
+    ViewData["Title"] = "Xác minh số điện thoại";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Apartment Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-['Inter'] min-h-screen flex items-center justify-center px-4">
+
+    @* ===== ĐÃ XÁC MINH ===== *@
+    @if (Model.IsVerified)
+    {
+        <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-sm p-8 text-center space-y-6">
+            <div class="mx-auto w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                <span class="material-icons text-3xl">check_circle</span>
+            </div>
+            <div class="space-y-2">
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900">Xác minh thành công!</h1>
+                <p class="text-sm text-slate-600">Tài khoản cư dân của bạn đã được kích hoạt. Nhấn nút bên dưới để vào trang chính.</p>
+            </div>
+            <a asp-page="/Resident/Index"
+               class="inline-flex items-center justify-center w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors">
+                Vào trang chính
+            </a>
+        </div>
+        return;
+    }
+
+    @* ===== CHƯA XÁC MINH ===== *@
+    <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+        @* Header *@
+        <div class="bg-gradient-to-r from-emerald-600 to-emerald-500 px-8 py-8 text-center text-white space-y-2">
+            <div class="mx-auto w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
+                <span class="material-icons text-3xl text-white">phone</span>
+            </div>
+            <h1 class="text-xl font-bold">Xác minh số điện thoại</h1>
+            <p class="text-xs text-emerald-100 leading-relaxed">
+                Vui lòng xác minh số điện thoại để kích hoạt tài khoản cư dân.
+            </p>
+        </div>
+
+        <div class="p-8 space-y-6">
+
+            @* ===== HIỂN THỊ SỐ ĐIỆN THOẠI ===== *@
+            <div id="phoneCard" class="rounded-xl border border-slate-100 bg-slate-50 px-5 py-4">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">Số điện thoại đăng ký</p>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-icons text-emerald-600">smartphone</span>
+                        <span class="text-base font-semibold text-slate-800 font-mono tracking-wide">
+                            @Model.PhoneNumber
+                        </span>
+                    </div>
+
+                    @if (!Model.ChangingPhone && !Model.OtpSent)
+                    {
+                        @* Nút "Không phải số của bạn?" — JS ẩn ngay phần phone card + OTP button *@
+                        <button type="button"
+                                onclick="
+                                    document.getElementById('phoneCard').classList.add('hidden');
+                                    document.getElementById('sendOtpSection').classList.add('hidden');
+                                    document.getElementById('changePhoneForm').classList.remove('hidden');
+                                "
+                                class="text-xs text-slate-500 hover:text-amber-600 transition-colors whitespace-nowrap">
+                            Không phải số của bạn?
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @* ===== CHẾ ĐỘ ĐỔI SỐ ĐIỆN THOẠI ===== *@
+            <div id="changePhoneForm" class="@(Model.ChangingPhone && !Model.OtpSent ? "" : "hidden") rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-4">
+                <div class="flex items-center gap-2 text-sm text-amber-700">
+                    <span class="material-icons text-base text-amber-600">edit</span>
+                    <span class="font-semibold">Nhập số điện thoại mới</span>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage) && Model.ErrorMessage.Contains("hợp lệ"))
+                {
+                    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 flex items-center gap-2">
+                        <span class="material-icons text-base text-red-500">error</span>
+                        @Model.ErrorMessage
+                    </div>
+                }
+
+                <form method="post" asp-page-handler="VerifyNewPhone" class="space-y-3">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Số điện thoại mới</label>
+                        <input asp-for="PhoneNumber" type="tel" placeholder="VD: 0912345678"
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm font-mono" />
+                    </div>
+                    <button type="submit"
+                            class="w-full rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 transition-colors flex items-center justify-center gap-2">
+                        <span class="material-icons text-base">send</span>
+                        Gửi OTP đến số mới
+                    </button>
+                </form>
+
+                <button type="button"
+                        onclick="
+                            document.getElementById('changePhoneForm').classList.add('hidden');
+                            document.getElementById('phoneCard').classList.remove('hidden');
+                            document.getElementById('sendOtpSection').classList.remove('hidden');
+                        "
+                        class="w-full rounded-lg border border-slate-200 px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 transition-colors">
+                    ← Quay lại
+                </button>
+            </div>
+
+            @* ===== CHƯA GỬI OTP — nút gửi ===== *@
+            <div id="sendOtpSection" class="@(Model.ChangingPhone || Model.OtpSent ? "hidden" : "")">
+                @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+                {
+                    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+                        <span class="material-icons text-base text-red-500">error</span>
+                        @Model.ErrorMessage
+                    </div>
+                }
+
+                <form method="post" asp-page-handler="SendOtp">
+                    <button type="submit"
+                            class="w-full rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-[0.98] flex items-center justify-center gap-2">
+                        <span class="material-icons text-base">send</span>
+                        Gửi mã OTP
+                    </button>
+                </form>
+            </div>
+
+            @* ===== ĐÃ GỬI OTP — form nhập ===== *@
+            @if (Model.OtpSent)
+            {
+                @* Một thông báo duy nhất (tránh trùng với SuccessMessage từ server) *@
+                <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 flex items-start gap-2">
+                    <span class="material-icons text-base text-emerald-500 shrink-0">mark_email_read</span>
+                    <p>
+                        @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+                        {
+                            @Model.SuccessMessage
+                        }
+                        else
+                        {
+                            <text>Đã gửi mã OTP đến <strong class="font-mono">@Model.PhoneNumber</strong>. Vui lòng kiểm tra tin nhắn.</text>
+                        }
+                    </p>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+                {
+                    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+                        <span class="material-icons text-base text-red-500">error</span>
+                        @Model.ErrorMessage
+                    </div>
+                }
+
+                @* Form nhập OTP *@
+                <form method="post" asp-page-handler="Verify" class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Nhập mã OTP</label>
+                        <input asp-for="OtpCode" type="text" maxlength="6"
+                               placeholder="• • • • • •"
+                               autocomplete="one-time-code"
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               class="w-full rounded-xl border border-slate-200 px-4 py-4 text-center text-2xl tracking-[0.6em] font-mono focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition-all" />
+                        <p class="text-xs text-slate-400 text-center">Gồm 6 chữ số</p>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-[0.98] flex items-center justify-center gap-2">
+                        <span class="material-icons text-base">verified</span>
+                        Xác minh OTP
+                    </button>
+                </form>
+
+                @* Gửi lại *@
+                <div class="flex flex-col items-center gap-2">
+                    <p class="text-xs text-slate-400">Không nhận được mã?</p>
+                    <button id="resendBtn" type="button" disabled
+                            class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-xs font-medium text-slate-400 bg-slate-50 cursor-not-allowed transition-colors">
+                        <span class="material-icons text-base">refresh</span>
+                        Gửi lại sau <span id="countdown" class="font-mono tabular-nums">60</span>s
+                    </button>
+                    <p class="text-xs text-slate-400">Mã OTP có hiệu lực trong <strong>5 phút</strong></p>
+                </div>
+            }
+
+            @* Footer *@
+            <div class="border-t border-slate-100 pt-4 text-center">
+                <a asp-page="/Account/Login"
+                   class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-600 transition-colors">
+                    <span class="material-icons text-base">logout</span>
+                    Đăng xuất
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.OtpSent && Model.SentAt > 0)
+    {
+        <script>
+            (function() {
+                var sentAt = @Model.SentAt;
+                var cooldown = 60;
+                var resendBtn = document.getElementById('resendBtn');
+                var countdownEl = document.getElementById('countdown');
+
+                function updateCountdown() {
+                    var now = Math.floor(Date.now() / 1000);
+                    var elapsed = now - sentAt;
+                    var remaining = cooldown - elapsed;
+
+                    if (remaining <= 0) {
+                        countdownEl.textContent = '0';
+                        resendBtn.disabled = false;
+                        resendBtn.classList.remove('border-slate-200', 'text-slate-400', 'bg-slate-50', 'cursor-not-allowed');
+                        resendBtn.classList.add('border-amber-200', 'text-amber-600', 'bg-white', 'hover:bg-amber-50', 'cursor-pointer');
+                        resendBtn.innerHTML = '<span class="material-icons text-base">refresh</span> Gửi lại mã OTP';
+                        return;
+                    }
+
+                    countdownEl.textContent = remaining;
+                    setTimeout(updateCountdown, 1000);
+                }
+
+                if (resendBtn && countdownEl) {
+                    updateCountdown();
+
+                    resendBtn.addEventListener('click', function() {
+                        var form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '?handler=Resend';
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+                }
+            })();
+        </script>
+    }
+</body>
+</html>

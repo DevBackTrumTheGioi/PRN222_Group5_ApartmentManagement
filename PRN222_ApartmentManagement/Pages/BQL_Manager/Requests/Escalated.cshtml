@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model PRN222_ApartmentManagement.Pages.BQL_Manager.Requests.EscalatedModel
 @using PRN222_ApartmentManagement.Models.Enums
 @using PRN222_ApartmentManagement.Utils
@@ -40,6 +40,11 @@
             {
                 <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-bold">@Model.OpenCount</span>
             }
+        </a>
+        <a asp-page="ForwardedComplaints"
+           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-rose-600 hover:border-rose-400 transition-colors -mb-px">
+            <span class="material-icons text-base">report</span>
+            Khiếu nại từ BQT
         </a>
     </div>
 
