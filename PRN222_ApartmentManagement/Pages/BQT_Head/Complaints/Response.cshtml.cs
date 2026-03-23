@@ -9,6 +9,7 @@ using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Services.Interfaces;
+using PRN222_ApartmentManagement.Utils;
 
 namespace PRN222_ApartmentManagement.Pages.BQT_Head.Complaints;
 
@@ -17,11 +18,13 @@ public class ResponseModel : PageModel
 {
     private readonly IRequestService _requestService;
     private readonly ApartmentDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public ResponseModel(IRequestService requestService, ApartmentDbContext context)
+    public ResponseModel(IRequestService requestService, ApartmentDbContext context, INotificationService notificationService)
     {
         _requestService = requestService;
         _context = context;
+        _notificationService = notificationService;
     }
 
     public Request Complaint { get; set; } = null!;
@@ -107,6 +110,17 @@ public class ResponseModel : PageModel
         {
             var content = $"[BQT phản hồi] {RespondInput.Content.Trim()}";
             await _requestService.AddCommentAsync(id, userId.Value, content);
+
+            // Tạo notification cho Resident (chủ complaint)
+            await _notificationService.CreateNotificationAsync(
+                complaint.ResidentId,
+                "Phản hồi khiếu nại",
+                $"Khiếu nại {complaint.RequestNumber} đã được BQT phản hồi.",
+                Models.Enums.NotificationType.Request,
+                Models.Enums.ReferenceType.Request,
+                complaint.RequestId,
+                Models.Enums.NotificationPriority.High);
+
             TempData["SuccessMessage"] = "Đã gửi phản hồi cho cư dân thành công.";
             return RedirectToPage(new { id });
         }
@@ -180,6 +194,26 @@ public class ResponseModel : PageModel
             var note = $"[BQT chuyển BQL] Chuyển cho {manager.FullName}. Lý do: {ForwardInput.Reason.Trim()}";
             await _requestService.AddCommentAsync(id, userId.Value, note);
 
+            // Tạo notification cho BQL_Manager được chọn
+            await _notificationService.CreateNotificationAsync(
+                ForwardInput.ManagerId,
+                "Khiếu nại từ BQT",
+                $"BQT đã chuyển khiếu nại {complaint.RequestNumber} cho bạn xử lý. Lý do: {ForwardInput.Reason.Trim()}",
+                Models.Enums.NotificationType.Request,
+                Models.Enums.ReferenceType.Request,
+                complaint.RequestId,
+                Models.Enums.NotificationPriority.High);
+
+            // Tạo notification cho Resident (chủ complaint)
+            await _notificationService.CreateNotificationAsync(
+                complaint.ResidentId,
+                "Cập nhật khiếu nại",
+                $"Khiếu nại {complaint.RequestNumber} đã được chuyển cho BQL xử lý.",
+                Models.Enums.NotificationType.Request,
+                Models.Enums.ReferenceType.Request,
+                complaint.RequestId,
+                Models.Enums.NotificationPriority.Normal);
+
             TempData["SuccessMessage"] = "Đã chuyển khiếu nại cho BQL Manager xử lý.";
             return RedirectToPage(new { id });
         }
@@ -194,6 +228,67 @@ public class ResponseModel : PageModel
 
         await LoadManagerOptionsAsync();
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostUpdateStatusAsync(int id, RequestStatus newStatus)
+    {
+        if (id <= 0) return NotFound();
+
+        var complaint = await _requestService.GetRequestDetailAsync(id);
+        if (complaint == null) return NotFound();
+        if (complaint.RequestType != RequestType.Complaint)
+        {
+            TempData["ErrorMessage"] = "Yêu cầu này không phải khiếu nại gửi BQT.";
+            return RedirectToPage("Index");
+        }
+
+        if (complaint.EscalatedAt.HasValue)
+        {
+            TempData["ErrorMessage"] = "Khiếu nại đã chuyển cho BQL, BQT không thể cập nhật trạng thái.";
+            return RedirectToPage(new { id });
+        }
+
+        if (complaint.Status is RequestStatus.Completed or RequestStatus.Cancelled or RequestStatus.Rejected)
+        {
+            TempData["ErrorMessage"] = "Khiếu nại này đã đóng, không thể cập nhật trạng thái.";
+            return RedirectToPage(new { id });
+        }
+
+        var allowed = new[]
+        {
+            RequestStatus.InProgress,
+            RequestStatus.Completed,
+            RequestStatus.Cancelled,
+            RequestStatus.Rejected
+        };
+
+        if (!allowed.Contains(newStatus))
+        {
+            TempData["ErrorMessage"] = "Trạng thái không hợp lệ.";
+            return RedirectToPage(new { id });
+        }
+
+        try
+        {
+            await _requestService.UpdateStatusAsync(id, newStatus);
+
+            await _notificationService.CreateNotificationAsync(
+                complaint.ResidentId,
+                "Cập nhật trạng thái khiếu nại",
+                $"Khiếu nại {complaint.RequestNumber} đã được BQT cập nhật sang trạng thái: {newStatus.GetDisplayName()}.",
+                NotificationType.Request,
+                ReferenceType.Request,
+                complaint.RequestId,
+                newStatus == RequestStatus.Completed ? NotificationPriority.Normal : NotificationPriority.High);
+
+            TempData["SuccessMessage"] = "Đã cập nhật trạng thái khiếu nại.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+        }
+
+        return RedirectToPage(new { id });
     }
 
     private async Task LoadManagerOptionsAsync()

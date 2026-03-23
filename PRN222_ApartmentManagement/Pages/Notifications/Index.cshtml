@@ -1,0 +1,315 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Notifications.IndexModel
+@{
+    ViewData["Title"] = "Thông báo";
+    ViewData["Subtitle"] = "Tất cả thông báo của bạn";
+    Layout = "_Layout";
+}
+
+<form id="antiForgeryForm" method="post" class="hidden">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Filter Tabs & Actions -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div class="flex items-center gap-2 flex-wrap">
+        <a href="/Notifications"
+           class="px-4 py-2 text-sm font-medium rounded-lg transition-all @(string.IsNullOrEmpty(Model.CurrentTypeFilter) ? "bg-emerald-600 text-white shadow-sm" : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200")">
+            Tất cả
+            <span class="ml-1 text-xs opacity-75">(@Model.TotalCount)</span>
+        </a>
+        @{
+            var types = new[] {
+                ("Request", "Yêu cầu", "📝"),
+                ("Announcement", "Thông báo", "📢"),
+                ("Invoice", "Hóa đơn", "💰"),
+                ("Contract", "Hợp đồng", "📄"),
+                ("Amenity", "Tiện ích", "🏊"),
+                ("System", "Hệ thống", "⚙️")
+            };
+        }
+        @foreach (var (val, label, icon) in types)
+        {
+            <a href="/Notifications?type=@val"
+               class="px-4 py-2 text-sm font-medium rounded-lg transition-all @(Model.CurrentTypeFilter == val ? "bg-emerald-600 text-white shadow-sm" : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200")">
+                @icon @label
+            </a>
+        }
+    </div>
+
+    @if (Model.UnreadCount > 0)
+    {
+        <form method="post" asp-page-handler="MarkAllRead" id="markAllReadForm">
+            <button type="submit"
+                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-all border border-emerald-200">
+                <span class="material-icons text-base">done_all</span>
+                Đánh dấu tất cả đã đọc (@Model.UnreadCount)
+            </button>
+        </form>
+    }
+</div>
+
+<!-- Success/Error Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 flex items-center gap-3">
+        <span class="material-icons">check_circle</span>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+
+<!-- Notification List -->
+@if (Model.Notifications.Count == 0)
+{
+    <div class="flex flex-col items-center justify-center py-20 text-slate-400">
+        <span class="material-icons text-6xl mb-4">notifications_none</span>
+        <p class="text-lg font-medium">Không có thông báo nào</p>
+        <p class="text-sm mt-1">Bạn sẽ nhận được thông báo khi có hoạt động mới</p>
+    </div>
+}
+else
+{
+    <div class="space-y-3" id="notificationList">
+        @foreach (var item in Model.Notifications)
+        {
+            var borderColor = item.Priority switch
+            {
+                "Critical" => "border-l-red-500",
+                "High" => "border-l-amber-500",
+                _ => "border-l-transparent"
+            };
+            var bgColor = item.IsRead ? "bg-white" : "bg-blue-50/50";
+
+            <div class="notification-item group @bgColor border border-slate-200 @borderColor border-l-4 rounded-xl p-4 hover:shadow-md transition-all duration-200"
+                 data-id="@item.NotificationId" data-read="@item.IsRead.ToString().ToLower()">
+                <div class="flex items-start gap-4">
+                    <!-- Icon -->
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xl">
+                        @item.Icon
+                    </div>
+
+                    <!-- Content -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h3 class="text-sm font-semibold text-slate-900 @(item.IsRead ? "" : "font-bold")">
+                                @item.Title
+                            </h3>
+                            @if (!item.IsRead)
+                            {
+                                <span class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
+                            }
+                            @if (item.Priority is "Critical" or "High")
+                            {
+                                <span class="px-2 py-0.5 text-xs font-medium rounded-full @(item.Priority == "Critical" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700")">
+                                    @(item.Priority == "Critical" ? "Khẩn cấp" : "Quan trọng")
+                                </span>
+                            }
+                        </div>
+                        <p class="text-sm text-slate-600 line-clamp-2">@item.Content</p>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-600">
+                                @item.NotificationTypeDisplay
+                            </span>
+                            <span class="text-xs text-slate-400">@item.TimeAgo</span>
+                            @if (item.IsRead && item.ReadAt.HasValue)
+                            {
+                                <span class="text-xs text-slate-400">
+                                    · Đã đọc @item.ReadAt.Value.ToString("dd/MM HH:mm")
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        @if (!item.IsRead)
+                        {
+                            <form method="post" asp-page-handler="MarkAsRead" class="inline">
+                                <input type="hidden" name="id" value="@item.NotificationId" />
+                                <button type="submit" title="Đánh dấu đã đọc"
+                                        class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
+                                    <span class="material-icons text-lg">done</span>
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="flex items-center justify-center gap-2 mt-8">
+            @if (Model.CurrentPage > 1)
+            {
+                <a href="/Notifications?page=@(Model.CurrentPage - 1)@(Model.CurrentTypeFilter != null ? $"&type={Model.CurrentTypeFilter}" : "")"
+                   class="px-3 py-2 text-sm text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                    <span class="material-icons text-base align-middle">chevron_left</span>
+                </a>
+            }
+
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                var isActive = i == Model.CurrentPage;
+                <a href="/Notifications?page=@i@(Model.CurrentTypeFilter != null ? $"&type={Model.CurrentTypeFilter}" : "")"
+                   class="px-3 py-2 text-sm font-medium rounded-lg transition-all @(isActive ? "bg-emerald-600 text-white shadow-sm" : "text-slate-600 bg-white border border-slate-200 hover:bg-slate-50")">
+                    @i
+                </a>
+            }
+
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <a href="/Notifications?page=@(Model.CurrentPage + 1)@(Model.CurrentTypeFilter != null ? $"&type={Model.CurrentTypeFilter}" : "")"
+                   class="px-3 py-2 text-sm text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                    <span class="material-icons text-base align-middle">chevron_right</span>
+                </a>
+            }
+        </nav>
+    }
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        (function () {
+            const list = document.getElementById('notificationList');
+
+            function getAntiForgeryToken() {
+                return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            }
+
+            function getTypeDisplayName(type) {
+                switch ((type || '').toLowerCase()) {
+                    case 'system': return 'Hệ thống';
+                    case 'invoice': return 'Hóa đơn';
+                    case 'request': return 'Yêu cầu';
+                    case 'announcement': return 'Thông báo chung';
+                    case 'contract': return 'Hợp đồng';
+                    case 'amenity': return 'Tiện ích';
+                    default: return 'Khác';
+                }
+            }
+
+            function buildRealtimeItemHtml(notification) {
+                const priority = notification.priority || 'Normal';
+                const borderClass = priority === 'Critical'
+                    ? 'border-l-red-500'
+                    : priority === 'High'
+                        ? 'border-l-amber-500'
+                        : 'border-l-transparent';
+
+                const priorityBadge = priority === 'Critical'
+                    ? '<span class="px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">Khẩn cấp</span>'
+                    : priority === 'High'
+                        ? '<span class="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-700">Quan trọng</span>'
+                        : '';
+
+                return `
+                    <div class="notification-item group bg-blue-50/50 border border-slate-200 ${borderClass} border-l-4 rounded-xl p-4 hover:shadow-md transition-all duration-200 animate-pulse"
+                         data-id="${notification.notificationId}" data-read="false">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xl">
+                                ${notification.icon || '🔔'}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="text-sm font-bold text-slate-900">${notification.title}</h3>
+                                    <span class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 js-unread-dot"></span>
+                                    ${priorityBadge}
+                                </div>
+                                <p class="text-sm text-slate-600 line-clamp-2">${notification.content}</p>
+                                <div class="flex items-center gap-3 mt-2">
+                                    <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-600">${getTypeDisplayName(notification.notificationType)}</span>
+                                    <span class="text-xs text-slate-400">Vừa xong</span>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button type="button" title="Đánh dấu đã đọc"
+                                        class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all js-mark-read"
+                                        data-id="${notification.notificationId}">
+                                    <span class="material-icons text-lg">done</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function attachMarkAsReadHandler() {
+                if (!list) return;
+
+                list.addEventListener('click', async function (e) {
+                    const button = e.target.closest('.js-mark-read');
+                    if (!button) return;
+
+                    const id = button.getAttribute('data-id');
+                    if (!id) return;
+
+                    const token = getAntiForgeryToken();
+                    try {
+                        const response = await fetch(`/Notifications?handler=MarkAsRead&id=${id}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'RequestVerificationToken': token
+                            }
+                        });
+
+                        if (!response.ok) {
+                            location.reload();
+                            return;
+                        }
+
+                        const item = button.closest('.notification-item');
+                        if (item) {
+                            item.dataset.read = 'true';
+                            item.classList.remove('bg-blue-50/50');
+                            item.classList.add('bg-white');
+
+                            const dot = item.querySelector('.js-unread-dot');
+                            if (dot) dot.remove();
+
+                            const title = item.querySelector('h3');
+                            if (title) title.classList.remove('font-bold');
+                        }
+
+                        button.parentElement?.remove();
+                        if (typeof loadUnreadCount === 'function') {
+                            loadUnreadCount();
+                        }
+                    } catch {
+                        location.reload();
+                    }
+                });
+            }
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl('/notificationHub')
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on('ReceiveNotification', function (notification) {
+                if (!list) {
+                    location.reload();
+                    return;
+                }
+
+                list.insertAdjacentHTML('afterbegin', buildRealtimeItemHtml(notification));
+
+                setTimeout(() => {
+                    const newItem = list.firstElementChild;
+                    if (newItem) newItem.classList.remove('animate-pulse');
+                }, 2000);
+
+                if (typeof loadUnreadCount === 'function') {
+                    loadUnreadCount();
+                }
+            });
+
+            connection.start().catch(err => console.error('SignalR error:', err));
+            attachMarkAsReadHandler();
+        })();
+    </script>
+}

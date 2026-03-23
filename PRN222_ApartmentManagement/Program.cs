@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PRN222_ApartmentManagement.Data;
+using PRN222_ApartmentManagement.Hubs;
 using PRN222_ApartmentManagement.Repositories.Implementations;
 using PRN222_ApartmentManagement.Repositories.Interfaces;
 using PRN222_ApartmentManagement.Services;
@@ -12,6 +13,8 @@ using PRN222_ApartmentManagement.Services.Interfaces;
 using PRN222_ApartmentManagement.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSignalR();
 
 builder.Services.AddRazorPages(options =>
 {
@@ -83,6 +86,17 @@ builder.Services
         {
             OnMessageReceived = context =>
             {
+                var path = context.HttpContext.Request.Path;
+                if (path.StartsWithSegments("/notificationHub"))
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    if (!string.IsNullOrEmpty(accessToken))
+                    {
+                        context.Token = accessToken;
+                        return Task.CompletedTask;
+                    }
+                }
+
                 if (context.HttpContext.Items.TryGetValue(AuthCookieHelper.AccessTokenCookieName, out var refreshedToken) &&
                     refreshedToken is string accessTokenFromRefresh &&
                     !string.IsNullOrWhiteSpace(accessTokenFromRefresh))
@@ -197,6 +211,7 @@ builder.Services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
 
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRequestService, RequestService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 var app = builder.Build();
 
@@ -222,6 +237,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.MapHub<NotificationHub>("/notificationHub");
 
 await app.RunAsync();
 

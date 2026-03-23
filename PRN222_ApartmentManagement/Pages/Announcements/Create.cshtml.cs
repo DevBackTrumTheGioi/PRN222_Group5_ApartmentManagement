@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
+using PRN222_ApartmentManagement.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace PRN222_ApartmentManagement.Pages.Announcements;
 
@@ -14,6 +16,7 @@ public class CreateModel : PageModel
 {
     private readonly ApartmentDbContext _context;
     private readonly IWebHostEnvironment _environment;
+    private readonly INotificationService _notificationService;
 
     private static readonly string[] AllowedContentTypes =
     [
@@ -27,10 +30,11 @@ public class CreateModel : PageModel
 
     private const long MaxFileSizeBytes = 20 * 1024 * 1024;
 
-    public CreateModel(ApartmentDbContext context, IWebHostEnvironment environment)
+    public CreateModel(ApartmentDbContext context, IWebHostEnvironment environment, INotificationService notificationService)
     {
         _context = context;
         _environment = environment;
+        _notificationService = notificationService;
     }
 
     [BindProperty]
@@ -129,6 +133,27 @@ public class CreateModel : PageModel
         await _context.SaveChangesAsync();
 
         await SaveAttachmentsAsync(entity.AnnouncementId);
+
+        // Tạo notification cho tất cả Resident
+        var residentIds = await _context.Users
+            .Where(u => u.Role == UserRole.Resident && u.IsActive && !u.IsDeleted)
+            .Select(u => u.UserId)
+            .ToListAsync();
+
+        if (residentIds.Count > 0)
+        {
+            var (notifTitle, notifContent) = Utils.NotificationUtils.CreateAnnouncementNotification(
+                entity.Title, entity.Priority.ToString());
+
+            await _notificationService.CreateBulkNotificationsAsync(
+                residentIds,
+                notifTitle,
+                notifContent,
+                NotificationType.Announcement,
+                ReferenceType.Announcement,
+                entity.AnnouncementId,
+                entity.Priority == AnnouncementPriority.Critical ? NotificationPriority.Critical : NotificationPriority.Normal);
+        }
 
         TempData["SuccessMessage"] = "Tạo thông báo thành công.";
         return RedirectToPage("Index");
