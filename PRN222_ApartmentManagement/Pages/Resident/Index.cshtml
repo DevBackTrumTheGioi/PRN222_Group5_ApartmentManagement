@@ -134,6 +134,13 @@
                             <div class="flex justify-between items-start mb-2">
                                 <div class="flex items-center gap-2">
                                     <span class="px-2 py-0.5 rounded-full @(announcement.Source == "BQT" ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700") text-[10px] font-bold uppercase">@announcement.Source</span>
+                                    @if (announcement.IsPinned)
+                                    {
+                                        <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase inline-flex items-center gap-1">
+                                            <span class="material-icons text-xs">push_pin</span>
+                                            Ghim
+                                        </span>
+                                    }
                                     @if (!announcement.IsRead)
                                     {
                                         <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase">Mới</span>

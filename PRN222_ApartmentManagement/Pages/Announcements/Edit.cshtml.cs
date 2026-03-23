@@ -73,6 +73,8 @@ public class EditModel : PageModel
         public DateTime? ExpiryDate { get; set; }
 
         public bool IsActive { get; set; }
+
+        public bool IsPinned { get; set; }
     }
 
     public async Task<IActionResult> OnGetAsync(int id)
@@ -105,7 +107,8 @@ public class EditModel : PageModel
             Priority = announcement.Priority,
             PublishedDate = announcement.PublishedDate,
             ExpiryDate = announcement.ExpiryDate,
-            IsActive = announcement.IsActive
+            IsActive = announcement.IsActive,
+            IsPinned = announcement.IsPinned
         };
 
         ExistingAttachments = announcement.Attachments.OrderByDescending(x => x.UploadedAt).ToList();
@@ -160,6 +163,7 @@ public class EditModel : PageModel
         announcement.PublishedDate = Input.PublishedDate;
         announcement.ExpiryDate = Input.ExpiryDate;
         announcement.IsActive = Input.IsActive;
+        announcement.IsPinned = Input.IsPinned;
         announcement.UpdatedAt = DateTime.Now;
 
         await RemoveAttachmentsAsync(announcement);

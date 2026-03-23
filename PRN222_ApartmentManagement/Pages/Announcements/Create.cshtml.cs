@@ -65,6 +65,8 @@ public class CreateModel : PageModel
         public DateTime? ExpiryDate { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        public bool IsPinned { get; set; } = false;
     }
 
     public IActionResult OnGet()
@@ -116,6 +118,7 @@ public class CreateModel : PageModel
             PublishedDate = Input.PublishedDate,
             ExpiryDate = Input.ExpiryDate,
             IsActive = Input.IsActive,
+            IsPinned = Input.IsPinned,
             Source = source,
             CreatedBy = userId.Value,
             CreatedAt = DateTime.Now,

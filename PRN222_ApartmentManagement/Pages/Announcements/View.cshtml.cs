@@ -30,6 +30,7 @@ public class ViewModel : PageModel
         public DateTime PublishedDate { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public AnnouncementPriority Priority { get; set; }
+        public bool IsPinned { get; set; }
         public bool IsRead { get; set; }
         public DateTime? ReadAt { get; set; }
     }
@@ -110,7 +111,8 @@ public class ViewModel : PageModel
                         && a.IsActive
                         && a.PublishedDate <= now
                         && (!a.ExpiryDate.HasValue || a.ExpiryDate >= now))
-            .OrderByDescending(a => a.Priority)
+            .OrderByDescending(a => a.IsPinned)
+            .ThenByDescending(a => a.Priority)
             .ThenByDescending(a => a.PublishedDate)
             .Select(a => new AnnouncementItemViewModel
             {
@@ -120,7 +122,8 @@ public class ViewModel : PageModel
                 Source = a.Source,
                 PublishedDate = a.PublishedDate,
                 ExpiryDate = a.ExpiryDate,
-                Priority = a.Priority
+                Priority = a.Priority,
+                IsPinned = a.IsPinned
             })
             .ToListAsync();
 

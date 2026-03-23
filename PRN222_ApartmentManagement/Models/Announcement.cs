@@ -28,6 +28,8 @@ public class Announcement
 
     public bool IsActive { get; set; } = true;
 
+    public bool IsPinned { get; set; } = false;
+
     public bool IsDeleted { get; set; } = false;
 
     [MaxLength(20)]

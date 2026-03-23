@@ -117,7 +117,8 @@ public class DashboardService : IDashboardService
                         && a.IsActive
                         && a.PublishedDate <= now
                         && (!a.ExpiryDate.HasValue || a.ExpiryDate >= now))
-            .OrderByDescending(a => a.CreatedAt)
+            .OrderByDescending(a => a.IsPinned)
+            .ThenByDescending(a => a.CreatedAt)
             .Take(5)
             .Select(a => new ResidentAnnouncementPreviewViewModel
             {
@@ -126,6 +127,7 @@ public class DashboardService : IDashboardService
                 Content = a.Content,
                 Source = a.Source,
                 CreatedAt = a.CreatedAt,
+                IsPinned = a.IsPinned,
                 IsRead = a.AnnouncementReads.Any(ar => ar.UserId == userId)
             })
             .ToListAsync();

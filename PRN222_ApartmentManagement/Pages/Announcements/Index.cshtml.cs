@@ -53,7 +53,8 @@ public class IndexModel : PageModel
         }
 
         Announcements = await query
-            .OrderByDescending(a => a.PublishedDate)
+            .OrderByDescending(a => a.IsPinned)
+            .ThenByDescending(a => a.PublishedDate)
             .ThenByDescending(a => a.CreatedAt)
             .ToListAsync();
 

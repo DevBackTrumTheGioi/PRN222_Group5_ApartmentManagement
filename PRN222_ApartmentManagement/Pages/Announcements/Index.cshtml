@@ -71,7 +71,16 @@
                         {
                             <tr class="hover:bg-slate-50">
                                 <td class="px-4 py-3">
-                                    <p class="font-semibold text-slate-800">@item.Title</p>
+                                    <div class="flex items-center gap-2">
+                                        <p class="font-semibold text-slate-800">@item.Title</p>
+                                        @if (item.IsPinned)
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                                                <span class="material-icons text-sm">push_pin</span>
+                                                Ghim
+                                            </span>
+                                        }
+                                    </div>
                                     <p class="text-xs text-slate-500 line-clamp-1">@item.Content</p>
                                 </td>
                                 <td class="px-4 py-3">
