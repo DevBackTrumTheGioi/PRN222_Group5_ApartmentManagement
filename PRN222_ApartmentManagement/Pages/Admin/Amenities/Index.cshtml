@@ -1,0 +1,100 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Admin.Amenities.IndexModel
+@{
+    ViewData["Title"] = "Quản lý tiện ích";
+}
+
+<div class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-2xl border shadow-sm">
+            <p class="text-sm text-slate-500">Tiện ích</p>
+            <h3 class="text-2xl font-bold">@Model.TotalAmenities</h3>
+            <p class="text-xs text-emerald-600">@Model.ActiveAmenities đang hoạt động</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border shadow-sm">
+            <p class="text-sm text-slate-500">Loại tiện ích</p>
+            <h3 class="text-2xl font-bold">@Model.AmenityTypesCount</h3>
+            <p class="text-xs text-slate-400">Danh mục loại tiện ích</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border shadow-sm">
+            <p class="text-sm text-slate-500">Đặt chỗ hôm nay</p>
+            <h3 class="text-2xl font-bold">@Model.TodayBookings</h3>
+            <p class="text-xs text-slate-400">Bookings chưa hủy hôm nay</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-sm text-slate-500">Hành động</p>
+                <p class="text-xs text-slate-400">Thêm tiện ích mới</p>
+            </div>
+            <a href="@Url.Page("/Admin/Amenities/Create")" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-md shadow-sm">
+                <span class="material-icons">add</span>
+                <span class="hidden sm:inline">Thêm</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl border overflow-x-auto">
+        <h2 class="text-lg font-bold mb-4">Danh sách tiện ích</h2>
+        <table class="w-full table-fixed text-sm">
+            <colgroup>
+                <col style="width:35%" />
+                <col style="width:20%" />
+                <col style="width:8%" />
+                <col style="width:12%" />
+                <col style="width:15%" />
+                <col style="width:10%" />
+            </colgroup>
+            <thead>
+                <tr class="bg-slate-100 text-left text-slate-700">
+                    <th class="px-3 py-2 font-semibold">Tên</th>
+                    <th class="px-3 py-2 font-semibold">Loại</th>
+                    <th class="px-3 py-2 font-semibold text-center">Sức chứa</th>
+                    <th class="px-3 py-2 font-semibold text-center">Giá/giờ</th>
+                    <th class="px-3 py-2 font-semibold text-center">Trạng thái</th>
+                    <th class="px-3 py-2 font-semibold text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model.Amenities)
+                {
+                    <tr class="border-t">
+                        <td class="px-3 py-3 align-middle">@a.AmenityName</td>
+                        <td class="px-3 py-3 align-middle text-slate-600">@a.AmenityType?.TypeName</td>
+                        <td class="px-3 py-3 align-middle text-center text-slate-700">@a.Capacity</td>
+                        <td class="px-3 py-3 align-middle text-center text-slate-700">@String.Format("{0:N0}", a.PricePerHour ?? 0)</td>
+                        <td class="px-3 py-3 align-middle text-center">
+                            @if (a.IsActive)
+                            {
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Đang mở</span>
+                            }
+                            else
+                            {
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-50 text-red-600">Đóng</span>
+                            }
+                        </td>
+                        <td class="px-3 py-3 align-middle text-center whitespace-nowrap">
+                            <div class="inline-flex items-center gap-2">
+                                <a href="@Url.Page("/Admin/Amenities/Edit", new { id = a.AmenityId })" title="Sửa" class="inline-flex items-center justify-center w-9 h-9 rounded-md bg-slate-50 hover:bg-slate-100 text-slate-600">
+                                    <span class="material-icons text-base">edit</span>
+                                </a>
+
+                                <form method="post" asp-page-handler="ToggleActive" asp-route-id="@a.AmenityId" class="inline">
+                                    <button type="submit" title="Bật/Tắt" class="inline-flex items-center justify-center w-9 h-9 rounded-md bg-slate-50 hover:bg-slate-100 text-amber-500">
+                                        <span class="material-icons text-base">@(a.IsActive ? "toggle_on" : "toggle_off")</span>
+                                    </button>
+                                </form>
+
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@a.AmenityId" class="inline" onsubmit="return confirm('Bạn có chắc muốn xóa tiện ích này?');">
+                                    <button type="submit" title="Xóa" class="inline-flex items-center justify-center w-9 h-9 rounded-md bg-slate-50 hover:bg-red-50 text-red-500">
+                                        <span class="material-icons text-base">delete</span>
+                                    </button>
+                                </form>
+
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

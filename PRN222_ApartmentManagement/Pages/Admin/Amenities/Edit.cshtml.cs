@@ -2,11 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 
-namespace PRN222_ApartmentManagement.Pages.Amenities;
+namespace PRN222_ApartmentManagement.Pages.Admin.Amenities;
 
 [Authorize(Policy = "AdminOnly")]
 public class EditModel : PageModel
@@ -21,23 +22,26 @@ public class EditModel : PageModel
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
-    public List<AmenityType> AmenityTypes { get; set; } = new();
+    public IReadOnlyList<SelectListItem> AmenityTypeList { get; set; } = new List<SelectListItem>();
 
     public class InputModel
     {
         public int AmenityId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Vui lòng nhập tên tiện ích.")]
         public string AmenityName { get; set; } = string.Empty;
 
         public int? AmenityTypeId { get; set; }
 
         public string? Location { get; set; }
 
+        [Range(1, int.MaxValue, ErrorMessage = "Sức chứa phải lớn hơn 0.")]
         public int? Capacity { get; set; }
 
+        [Range(0, double.MaxValue, ErrorMessage = "Giá phải >= 0.")]
         public decimal? PricePerHour { get; set; }
 
+        [MaxLength(500)]
         public string? Description { get; set; }
 
         public bool IsActive { get; set; }
@@ -45,10 +49,8 @@ public class EditModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        AmenityTypes = await _context.AmenityTypes.Where(t => !t.IsDeleted && t.IsActive).ToListAsync();
-
         var amenity = await _context.Amenities.FindAsync(id);
-        if (amenity == null || amenity.IsDeleted) return NotFound();
+        if (amenity == null) return NotFound();
 
         Input = new InputModel
         {
@@ -62,6 +64,9 @@ public class EditModel : PageModel
             IsActive = amenity.IsActive
         };
 
+        var types = await _context.AmenityTypes.OrderBy(t => t.TypeName).ToListAsync();
+        AmenityTypeList = types.Select(t => new SelectListItem(t.TypeName, t.AmenityTypeId.ToString())).ToList();
+
         return Page();
     }
 
@@ -69,12 +74,12 @@ public class EditModel : PageModel
     {
         if (!ModelState.IsValid)
         {
-            AmenityTypes = await _context.AmenityTypes.Where(t => !t.IsDeleted && t.IsActive).ToListAsync();
+            await OnGetAsync(Input.AmenityId);
             return Page();
         }
 
         var amenity = await _context.Amenities.FindAsync(Input.AmenityId);
-        if (amenity == null || amenity.IsDeleted) return NotFound();
+        if (amenity == null) return NotFound();
 
         amenity.AmenityName = Input.AmenityName;
         amenity.AmenityTypeId = Input.AmenityTypeId;
@@ -86,6 +91,6 @@ public class EditModel : PageModel
 
         await _context.SaveChangesAsync();
 
-        return RedirectToPage("Index");
+        return RedirectToPage("/Admin/Amenities/Index");
     }
 }
