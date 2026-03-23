@@ -1,0 +1,358 @@
+@page "{id:int}"
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Contracts.PrintModel
+@{
+    ViewData["Title"] = "Hợp đồng - In";
+    ViewData["CurrentPage"] = "contracts";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "In hợp đồng",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "Hợp đồng", Href = "/BQL_Manager/Contracts" },
+            new { Label = Model.Contract?.ContractNumber ?? "Chi tiết", Href = $"/BQL_Manager/Contracts/Details/{Model.Contract?.ContractId}" },
+            new { Label = "In", Href = "#" }
+        }
+    };
+
+    var contract = Model.Contract;
+    var ownerMember = contract?.ContractMembers?.FirstOrDefault(m => m.MemberRole == MemberRole.ContractOwner);
+    // Ưu tiên lấy từ Contract fields (Draft) trước, rồi mới từ User (Active)
+    var ownerName = !string.IsNullOrWhiteSpace(contract?.OwnerFullName)
+        ? contract.OwnerFullName
+        : (ownerMember?.Resident?.FullName ?? "-");
+    var ownerPhone = !string.IsNullOrWhiteSpace(contract?.OwnerPhone)
+        ? contract.OwnerPhone
+        : (ownerMember?.Resident?.PhoneNumber ?? "-");
+    var ownerIdentity = !string.IsNullOrWhiteSpace(contract?.OwnerIdentityCard)
+        ? contract.OwnerIdentityCard
+        : (ownerMember?.Resident?.IdentityCardNumber ?? "-");
+    var ownerEmail = !string.IsNullOrWhiteSpace(contract?.OwnerEmail)
+        ? contract.OwnerEmail
+        : (ownerMember?.Resident?.Email ?? "-");
+
+    string GetTypeLabel(ContractType? type) => type switch
+    {
+        ContractType.Rental => "CHO THUÊ",
+        ContractType.Purchase => "MUA BÁN",
+        ContractType.Other => "KHÁC",
+        _ => "-"
+    };
+}
+
+<style>
+    .contract-paper {
+        color: #0f172a;
+        font-family: "Times New Roman", Times, serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 32px 40px;
+    }
+
+    .contract-section-title {
+        font-weight: 700;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #1e293b;
+        margin-top: 20px;
+        margin-bottom: 8px;
+    }
+
+    .contract-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .contract-table td {
+        padding: 4px 8px;
+        vertical-align: top;
+    }
+
+    .contract-table td:first-child {
+        width: 160px;
+        color: #475569;
+    }
+
+    .contract-table td:last-child {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .contract-signature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 80px;
+        margin-top: 48px;
+    }
+
+    .contract-signature-item {
+        text-align: center;
+    }
+
+    .contract-signature-item .label {
+        font-weight: 700;
+        font-size: 13px;
+        text-transform: uppercase;
+    }
+
+    .contract-signature-item .sublabel {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    .contract-signature-item .signature-box {
+        height: 80px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 4px;
+        font-size: 13px;
+        color: #94a3b8;
+    }
+
+    .contract-signature-item .name {
+        font-weight: 700;
+        font-size: 13px;
+        margin-top: 4px;
+        color: #0f172a;
+    }
+
+    @@media (max-width: 767px) {
+        .contract-paper {
+            padding: 16px;
+        }
+        .contract-signature-grid {
+            grid-template-columns: 1fr;
+            gap: 32px;
+        }
+        .contract-table td:first-child {
+            width: 120px;
+        }
+    }
+
+    @@media print {
+        #main-sidebar,
+        header,
+        footer,
+        .print-hidden {
+            display: none !important;
+        }
+
+        body {
+            background: #ffffff !important;
+        }
+
+        body > div.flex.flex-col.min-h-screen.transition-all.duration-300.lg\:ml-64 {
+            margin-left: 0 !important;
+            min-height: auto !important;
+            display: block !important;
+        }
+
+        main {
+            padding: 0 !important;
+            display: block !important;
+        }
+
+        .contract-page-shell {
+            max-width: none !important;
+            margin: 0 !important;
+        }
+
+        .contract-paper-wrapper {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+    }
+</style>
+
+<div class="contract-page-shell max-w-5xl mx-auto space-y-6">
+    <div class="flex items-center justify-between gap-3 print-hidden">
+        <a href="/BQL_Manager/Contracts/Details/@contract?.ContractId" class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+            <span class="material-icons text-lg mr-1">arrow_back</span>
+            Quay lại chi tiết
+        </a>
+        <button type="button"
+                onclick="window.print()"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-semibold shadow-sm">
+            <span class="material-icons text-base">print</span>
+            In / Lưu PDF
+        </button>
+    </div>
+
+    @if (contract == null)
+    {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Không tìm thấy hợp đồng.
+        </div>
+    }
+    else
+    {
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden contract-paper-wrapper">
+            <div class="p-6 md:p-8">
+                <div class="contract-paper">
+                    @* ===== HEADER ===== *@
+                    <div style="text-align:center; margin-bottom:24px;">
+                        <p style="font-weight:700; font-size:13px; text-transform:uppercase; margin:0;">Cộng hòa xã hội chủ nghĩa Việt Nam</p>
+                        <p style="font-style:italic; font-size:13px; margin:4px 0 16px;">Độc lập - Tự do - Hạnh phúc</p>
+                        <hr style="border:none; border-top:1px solid #000; margin:0 0 16px;" />
+                    </div>
+
+                    <div style="text-align:center; margin-bottom:24px;">
+                        <p style="font-weight:700; font-size:20px; text-transform:uppercase; margin:0;">Hợp đồng</p>
+                        <p style="font-weight:700; font-size:16px; font-style:italic; margin:4px 0;">@GetTypeLabel(contract.ContractType)</p>
+                        <p style="font-size:14px; margin:4px 0;">Số: @contract.ContractNumber</p>
+                        <p style="font-size:13px; color:#475569; margin:0;">Ngày lập: @contract.StartDate.ToString("dd/MM/yyyy")</p>
+                    </div>
+
+                    @* ===== PARTIES ===== *@
+                    <div class="contract-section-title">I. Các bên tham gia hợp đồng</div>
+                    <table class="contract-table">
+                        <tr>
+                            <td>Bên A (Bên cho thuê/bán):</td>
+                            <td>Công ty quản lý tòa nhà căn hộ</td>
+                        </tr>
+                        <tr>
+                            <td>Bên B (Bên thuê/mua):</td>
+                            <td>@ownerName</td>
+                        </tr>
+                        <tr>
+                            <td>Số CCCD/CMND:</td>
+                            <td>@ownerIdentity</td>
+                        </tr>
+                        <tr>
+                            <td>Điện thoại:</td>
+                            <td>@ownerPhone</td>
+                        </tr>
+                    </table>
+
+                    @* ===== APARTMENT ===== *@
+                    <div class="contract-section-title">II. Thông tin căn hộ</div>
+                    <table class="contract-table">
+                        <tr>
+                            <td>Căn hộ số:</td>
+                            <td>@contract.Apartment?.ApartmentNumber</td>
+                        </tr>
+                        <tr>
+                            <td>Tầng:</td>
+                            <td>@(contract.Apartment?.Floor.ToString() ?? "-")</td>
+                        </tr>
+                        <tr>
+                            <td>Tòa:</td>
+                            <td>@(string.IsNullOrWhiteSpace(contract.Apartment?.BuildingBlock) ? "-" : contract.Apartment.BuildingBlock)</td>
+                        </tr>
+                        <tr>
+                            <td>Diện tích:</td>
+                            <td>@(contract.Apartment?.Area.HasValue == true ? $"{contract.Apartment.Area.Value:N2} m²" : "-")</td>
+                        </tr>
+                    </table>
+
+                    @* ===== TERMS ===== *@
+                    <div class="contract-section-title">III. Điều khoản hợp đồng</div>
+                    <table class="contract-table">
+                        <tr>
+                            <td>Loại hợp đồng:</td>
+                            <td>@GetTypeLabel(contract.ContractType)</td>
+                        </tr>
+                        <tr>
+                            <td>Ngày bắt đầu:</td>
+                            <td>@contract.StartDate.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                        <tr>
+                            <td>Ngày kết thúc:</td>
+                            <td>@(contract.EndDate?.ToString("dd/MM/yyyy") ?? "Không xác định (không thời hạn)")</td>
+                        </tr>
+                        @if (contract.ContractType == ContractType.Rental)
+                        {
+                            <tr>
+                                <td>Tiền thuê hàng tháng:</td>
+                                <td>@(contract.MonthlyRent.HasValue ? $"{contract.MonthlyRent.Value:N0} VNĐ" : "-")</td>
+                            </tr>
+                            <tr>
+                                <td>Tiền đặt cọc:</td>
+                                <td>@(contract.DepositAmount.HasValue ? $"{contract.DepositAmount.Value:N0} VNĐ" : "-")</td>
+                            </tr>
+                        }
+                        @if (contract.ContractType == ContractType.Purchase)
+                        {
+                            <tr>
+                                <td>Giá bán:</td>
+                                <td>@(contract.PurchasePrice.HasValue ? $"{contract.PurchasePrice.Value:N0} VNĐ" : "-")</td>
+                            </tr>
+                        }
+                    </table>
+
+                    @* ===== ADDITIONAL TERMS ===== *@
+                    @if (!string.IsNullOrWhiteSpace(contract.Terms))
+                    {
+                        <div class="contract-section-title">IV. Điều khoản bổ sung</div>
+                        <p style="font-size:13px; white-space:pre-wrap; line-height:1.7; margin:0 0 16px;">@contract.Terms</p>
+                    }
+
+                    @* ===== MEMBERS ===== *@
+                    @if (ownerMember != null)
+                    {
+                        <div class="contract-section-title">V. Thành viên trong hợp đồng</div>
+                        <table class="contract-table">
+                            <tr>
+                                <td>@ownerName</td>
+                                <td>Chủ hộ — @ownerPhone</td>
+                            </tr>
+                        </table>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(contract?.OwnerFullName))
+                    {
+                        <div class="contract-section-title">V. Thành viên trong hợp đồng</div>
+                        <table class="contract-table">
+                            <tr>
+                                <td>@ownerName</td>
+                                <td>Chủ hộ — @ownerPhone</td>
+                            </tr>
+                        </table>
+                    }
+
+                    <hr style="border:none; border-top:1px solid #000; margin-top:24px;" />
+
+                    @* ===== SIGNATURES ===== *@
+                    <div class="contract-signature-grid">
+                        <div class="contract-signature-item">
+                            <div class="label">Bên A</div>
+                            <div class="sublabel">(Ký và ghi rõ họ tên)</div>
+                            <div class="signature-box">Chữ ký</div>
+                            <div class="name">@contract.Creator?.FullName</div>
+                        </div>
+                        <div class="contract-signature-item">
+                            <div class="label">Bên B</div>
+                            <div class="sublabel">(Ký và ghi rõ họ tên)</div>
+                            <div class="signature-box">Chữ ký</div>
+                            <div class="name">@ownerName</div>
+                        </div>
+                    </div>
+
+                    <p style="text-align:center; font-size:11px; color:#94a3b8; margin-top:32px;">
+                        Hợp đồng số: @contract.ContractNumber — Ngày in: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3 print-hidden">
+                <p class="text-xs text-slate-400">
+                    <span class="material-icons text-xs align-text-top">info</span>
+                    Sử dụng trình duyệt để in hoặc lưu thành PDF.
+                </p>
+                <button type="button"
+                        onclick="window.print()"
+                        class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-semibold shadow-sm">
+                    <span class="material-icons text-base">download</span>
+                    In / Lưu PDF
+                </button>
+            </div>
+        </div>
+    }
+</div>

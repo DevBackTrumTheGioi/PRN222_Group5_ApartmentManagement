@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PRN222_ApartmentManagement.Models.Enums;
 
@@ -46,5 +46,6 @@ public class Apartment
     public virtual ICollection<AmenityBooking> AmenityBookings { get; set; } = new List<AmenityBooking>();
     public virtual ICollection<ApartmentService> ApartmentServices { get; set; } = new List<ApartmentService>();
     public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
+    public virtual ICollection<ResidentApartment> ResidentApartments { get; set; } = new List<ResidentApartment>();
     public virtual ICollection<ServiceOrder> ServiceOrders { get; set; } = new List<ServiceOrder>();
 }

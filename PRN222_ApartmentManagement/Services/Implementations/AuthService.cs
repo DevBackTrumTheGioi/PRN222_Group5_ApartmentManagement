@@ -317,4 +317,12 @@ public class AuthService : IAuthService
     {
         await _activityLogService.LogLogoutAsync(userId, userName);
     }
+
+    public async Task<TokenPairResult?> GenerateTokensForUserAsync(int userId, string? ipAddress = null)
+    {
+        var user = await _userRepository.GetActiveByIdAsync(userId);
+        if (user == null || user.IsDeleted)
+            return null;
+        return await GenerateTokenPairAsync(user, ipAddress);
+    }
 }
