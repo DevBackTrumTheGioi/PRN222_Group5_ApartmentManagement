@@ -74,6 +74,7 @@ public class User
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
     public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public virtual ICollection<AnnouncementRead> AnnouncementReads { get; set; } = new List<AnnouncementRead>();
     public virtual ICollection<Contract> CreatedContracts { get; set; } = new List<Contract>();
 
     // Resident navigation properties

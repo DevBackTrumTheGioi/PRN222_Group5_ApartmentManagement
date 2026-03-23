@@ -1,0 +1,89 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Announcements.ViewModel
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Thông báo";
+    ViewData["CurrentPage"] = "announcements";
+}
+
+<div class="max-w-5xl mx-auto space-y-6">
+    <div>
+        <h2 class="text-xl font-bold text-slate-900">Thông báo cư dân</h2>
+        <p class="text-sm text-slate-500">Xem thông báo mới nhất và đánh dấu đã đọc.</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] is string successMessage)
+    {
+        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700">@successMessage</div>
+    }
+
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">@errorMessage</div>
+    }
+
+    <div class="space-y-4">
+        @if (!Model.Announcements.Any())
+        {
+            <div class="bg-white border border-slate-200 rounded-xl p-10 text-center text-slate-400">
+                <span class="material-icons text-5xl mb-2">campaign</span>
+                <p>Hiện chưa có thông báo nào.</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model.Announcements)
+            {
+                <div id="announcement-@item.AnnouncementId" class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm scroll-mt-24">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold @(item.Source == "BQT" ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700")">@item.Source</span>
+                                @if (item.IsPinned)
+                                {
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                                        <span class="material-icons text-sm">push_pin</span>
+                                        Ghim
+                                    </span>
+                                }
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">@item.Priority.GetDisplayName()</span>
+                                @if (item.IsRead)
+                                {
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Đã đọc</span>
+                                }
+                                else
+                                {
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Chưa đọc</span>
+                                }
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900">
+                                <a asp-page="/Announcements/Details" asp-route-id="@item.AnnouncementId" class="hover:text-emerald-700 transition-colors">@item.Title</a>
+                            </h3>
+                            <p class="text-sm text-slate-600 mt-2 whitespace-pre-line">@item.Content</p>
+                            <div class="mt-3 text-xs text-slate-500 space-x-4">
+                                <span>Đăng: @item.PublishedDate.ToString("dd/MM/yyyy HH:mm")</span>
+                                @if (item.ExpiryDate.HasValue)
+                                {
+                                    <span>Hết hạn: @item.ExpiryDate.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                                @if (item.IsRead && item.ReadAt.HasValue)
+                                {
+                                    <span>Đã đọc lúc: @item.ReadAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                            </div>
+                        </div>
+
+                        @if (!item.IsRead)
+                        {
+                            <form method="post" asp-page-handler="MarkAsRead" asp-route-announcementId="@item.AnnouncementId">
+                                <button type="submit" class="px-3 py-2 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 whitespace-nowrap">
+                                    Đánh dấu đã đọc
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
