@@ -1,0 +1,250 @@
+@page
+@using PRN222_ApartmentManagement.Models
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Residents.IndexModel
+@{
+    ViewData["Title"] = "Quản lý cư dân";
+    ViewData["CurrentPage"] = "residents";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Quản lý cư dân",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Manager", Href = "/BQL_Manager" },
+            new { Label = "Cư dân", Href = "#" }
+        }
+    };
+
+    var activeCount = Model.Rows.Count(r => r.IsActive);
+    var inactiveCount = Model.Rows.Count(r => !r.IsActive);
+    var faceRegisteredCount = Model.Rows.Count(r => r.IsFaceRegistered);
+}
+
+<div class="space-y-6">
+
+    @* ===== STATS ROW ===== *@
+    <section class="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Tổng cư dân</p>
+                    <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@Model.TotalItems</p>
+                    <p class="mt-1 text-xs text-slate-400">Đang hiển thị theo bộ lọc</p>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <span class="material-icons">people</span>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-xl border border-emerald-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-emerald-600">Hoạt động</p>
+                    <p class="mt-3 text-3xl font-bold tracking-tight text-emerald-700">@activeCount</p>
+                    <p class="mt-1 text-xs text-emerald-400">Tài khoản đang mở</p>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                    <span class="material-icons">check_circle</span>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-xl border border-red-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-red-600">Chưa xác thực</p>
+                    <p class="mt-3 text-3xl font-bold tracking-tight text-red-700">@inactiveCount</p>
+                    <p class="mt-1 text-xs text-red-400">Chưa kích hoạt</p>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-500">
+                    <span class="material-icons">cancel</span>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-xl border border-amber-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-amber-600">Đã đăng ký Face ID</p>
+                    <p class="mt-3 text-3xl font-bold tracking-tight text-amber-700">@faceRegisteredCount</p>
+                    <p class="mt-1 text-xs text-amber-400">Face Auth đã kích hoạt</p>
+                </div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
+                    <span class="material-icons">face</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* ===== STATUS MESSAGE ===== *@
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            @Model.StatusMessage
+        </div>
+    }
+
+    @* ===== FILTER FORM ===== *@
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="mb-5 flex items-start justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">Bộ lọc cư dân</h2>
+                <p class="mt-1 text-sm text-slate-500">Tìm kiếm và lọc cư dân theo trạng thái tài khoản.</p>
+            </div>
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                <span class="material-icons">filter_alt</span>
+            </div>
+        </div>
+
+        <form method="get" class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div class="space-y-2">
+                <label for="SearchTerm" class="text-sm font-medium text-slate-700">Tìm kiếm</label>
+                <input id="SearchTerm" name="searchTerm" value="@Model.SearchTerm" placeholder="Tên, CCCD, số điện thoại..."
+                       class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div class="space-y-2">
+                <label for="StatusFilter" class="text-sm font-medium text-slate-700">Trạng thái tài khoản</label>
+                <select id="StatusFilter" name="statusfilter"
+                        class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Tất cả</option>
+                    <option value="true" selected="@(Model.StatusFilter == true)">Hoạt động</option>
+                    <option value="false" selected="@(Model.StatusFilter == false)">Chưa xác thực</option>
+                </select>
+            </div>
+            <div class="xl:col-span-3 flex flex-wrap items-center gap-3 pt-2">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700">
+                    <span class="material-icons text-base">filter_alt</span>
+                    Lọc danh sách
+                </button>
+                <a asp-page="./Index" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50">
+                    <span class="material-icons text-base">restart_alt</span>
+                    Xóa bộ lọc
+                </a>
+            </div>
+        </form>
+    </section>
+
+    @* ===== TABLE ===== *@
+    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <h3 class="text-base font-semibold text-slate-900">Danh sách cư dân</h3>
+                <p class="text-xs text-slate-500 mt-0.5">@Model.TotalItems cư dân</p>
+            </div>
+            <span class="material-icons text-slate-300">table_rows</span>
+        </div>
+
+        @if (Model.Rows.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-500">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Họ tên</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Điện thoại</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">CCCD</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Face ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Trạng thái</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Ngày tạo</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var row in Model.Rows)
+                        {
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div>
+                                        <p class="font-semibold text-slate-900">@row.FullName</p>
+                                        <p class="text-xs text-slate-400">@@@row.Username</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">@row.PhoneNumber</td>
+                                <td class="px-6 py-4 text-slate-600">@row.IdentityCardNumber</td>
+                                <td class="px-6 py-4">
+                                    @if (row.IsFaceRegistered)
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                                            <span class="material-icons text-xs">check_circle</span>
+                                            Đã đăng ký
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500 ring-1 ring-slate-200">
+                                            <span class="material-icons text-xs">cancel</span>
+                                            Chưa đăng ký
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @row.IsActiveCss">
+                                        @row.IsActiveLabel
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">@row.CreatedAt</td>
+                                <td class="px-6 py-4 text-right">
+                                    <a asp-page="Details" asp-route-id="@row.UserId"
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium transition-colors">
+                                        <span class="material-icons text-base">visibility</span>
+                                        Xem
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @* Pagination *@
+            <div class="px-6 py-4 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between flex-wrap gap-4">
+                <p class="text-sm text-slate-500">
+                    Hiển thị <span class="font-medium text-slate-900">@(((Model.PageIndex - 1) * Model.PageSize) + 1)</span> -
+                    <span class="font-medium text-slate-900">@Math.Min(Model.PageIndex * Model.PageSize, Model.TotalItems)</span>
+                    trong tổng số <span class="font-medium text-slate-900">@Model.TotalItems</span> bản ghi
+                </p>
+                <div class="flex items-center gap-2">
+                    @{
+                        int prev = Model.PageIndex - 1;
+                        int next = Model.PageIndex + 1;
+                    }
+                    <a href="?pageIndex=@prev&pageSize=@Model.PageSize&searchTerm=@Model.SearchTerm&statusfilter=@Model.StatusFilter"
+                       class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors @(Model.PageIndex == 1 ? "opacity-50 pointer-events-none" : "")">
+                        Trước
+                    </a>
+                    <div class="flex items-center gap-1">
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            if (i == 1 || i == Model.TotalPages || (i >= Model.PageIndex - 2 && i <= Model.PageIndex + 2))
+                            {
+                                <a href="?pageIndex=@i&pageSize=@Model.PageSize&searchTerm=@Model.SearchTerm&statusfilter=@Model.StatusFilter"
+                                   class="min-w-[36px] px-3 py-1 rounded-lg text-sm font-medium text-center transition-colors @(i == Model.PageIndex ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-50")">
+                                    @i
+                                </a>
+                            }
+                            else if (i == Model.PageIndex - 3 || i == Model.PageIndex + 3)
+                            {
+                                <span class="px-1 text-slate-400">…</span>
+                            }
+                        }
+                    </div>
+                    <a href="?pageIndex=@next&pageSize=@Model.PageSize&searchTerm=@Model.SearchTerm&statusfilter=@Model.StatusFilter"
+                       class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors @(Model.PageIndex == Model.TotalPages ? "opacity-50 pointer-events-none" : "")">
+                        Sau
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="py-16 text-center">
+                <span class="material-icons text-5xl text-slate-200">person_off</span>
+                <p class="mt-4 text-slate-500 font-medium">Không tìm thấy cư dân nào</p>
+                <p class="mt-1 text-sm text-slate-400">Thử thay đổi bộ lọc hoặc thêm cư dân mới.</p>
+                <a asp-page="./Index" class="mt-4 inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                    <span class="material-icons text-base">restart_alt</span>
+                    Xóa bộ lọc
+                </a>
+            </div>
+        }
+    </section>
+</div>

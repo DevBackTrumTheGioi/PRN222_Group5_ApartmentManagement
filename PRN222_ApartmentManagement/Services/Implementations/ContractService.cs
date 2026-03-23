@@ -207,6 +207,7 @@ public class ContractService : IContractService
                 ContractId = contract.ContractId,
                 ResidencyType = residencyType,
                 IsActive = true,
+                MoveInDate = contract.StartDate,
                 CreatedAt = DateTime.Now
             };
             await _residentApartmentRepository.AddAsync(residentApartment);
