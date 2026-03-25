@@ -7,7 +7,7 @@ using PRN222_ApartmentManagement.Repositories.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Residents;
 
-[Authorize(Roles = "BQL_Manager")]
+[Authorize(Policy = "AdminAndBQLManager")]
 public class DetailsModel : PageModel
 {
     private readonly IUserRepository _userRepository;

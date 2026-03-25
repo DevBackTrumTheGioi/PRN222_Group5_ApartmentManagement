@@ -51,8 +51,8 @@ public static class DataSeeder
                     for (int unit = 1; unit <= 4; unit++)
                     {
                         var typeIndex = (floor + unit) % 5;
-                        var status = (floor * unit) % 10 == 0 ? ApartmentStatus.Available : 
-                                     (floor * unit) % 7 == 0 ? ApartmentStatus.Maintenance : ApartmentStatus.Occupied;
+                        var status = (floor * unit) % 10 == 0 ? ApartmentStatus.Available :
+                                     (floor * unit) % 7 == 0 ? ApartmentStatus.Reserved : ApartmentStatus.Occupied;
                         
                         apartments.Add(new Apartment
                         {
