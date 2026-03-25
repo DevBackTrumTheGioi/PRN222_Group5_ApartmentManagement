@@ -1,6 +1,12 @@
 @{
 Layout = null;
 var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
+var pageHeader = ViewData["PageHeader"] ?? new
+{
+    Title = ViewData["Title"]?.ToString() ?? string.Empty,
+    Subtitle = ViewData["Subtitle"]?.ToString() ?? string.Empty
+};
+ViewData["PageHeader"] = pageHeader;
 }
 
 <!DOCTYPE html>
@@ -9,9 +15,7 @@ var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Apartment Management</title>
-    <!-- Tailwind CSS Only -->
     <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
@@ -23,67 +27,19 @@ var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased overflow-x-hidden">
-    <!-- Fixed Sidebar -->
     <partial name="Components/Sidebar" />
 
-    <!-- Main Content Area -->
     <div class="flex flex-col min-h-screen transition-all duration-300 lg:ml-64">
-        <!-- Dashboard Header / Tool Bar - Fixed -->
-        <header class="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4">
-            @if (ViewData["PageHeader"] != null)
-            {
-                @await Html.PartialAsync("Components/PageHeader", ViewData["PageHeader"])
-            }
-            else
-            {
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">@ViewData["Title"]</h1>
-                        @if (ViewData["Subtitle"] != null)
-                        {
-                            <p class="text-sm text-slate-500 mt-1">@ViewData["Subtitle"]</p>
-                        }
-                    </div>
-                    <!-- Right side of header (User actions, notifications button, etc.) -->
-                    <div class="flex items-center gap-4">
-                        <!-- Notification Bell Dropdown -->
-                        <div class="relative" id="notifBellWrapper">
-                            <button id="notifBellBtn" class="p-2 text-slate-400 hover:text-emerald-600 transition-colors relative"
-                                    onclick="toggleNotifDropdown()">
-                                <span class="material-icons">notifications</span>
-                                <span id="notifBadge" class="absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white hidden">0</span>
-                            </button>
-                            <!-- Dropdown -->
-                            <div id="notifDropdown" class="absolute right-0 top-full mt-2 w-96 bg-white rounded-xl shadow-xl border border-slate-200 z-50 hidden overflow-hidden">
-                                <div class="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
-                                    <h3 class="text-sm font-semibold text-slate-900">Thông báo</h3>
-                                    <button onclick="markAllReadFromDropdown()" class="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
-                                        Đánh dấu tất cả đã đọc
-                                    </button>
-                                </div>
-                                <div id="notifDropdownList" class="max-h-80 overflow-y-auto">
-                                    <div class="flex items-center justify-center py-8 text-slate-400">
-                                        <span class="material-icons animate-spin mr-2">refresh</span> Đang tải...
-                                    </div>
-                                </div>
-                                <a href="/Notifications" class="block text-center py-3 text-sm font-medium text-emerald-600 hover:bg-emerald-50 border-t border-slate-200 transition-colors">
-                                    Xem tất cả thông báo
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+        <header class="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/80 px-6 py-4 backdrop-blur-md">
+            @await Html.PartialAsync("Components/PageHeader", pageHeader)
         </header>
 
-        <!-- Page Content -->
         <main class="flex-1 p-4 md:p-6 lg:p-8">
             @RenderBody()
         </main>
 
-        <!-- Footer (Optional) -->
-        <footer class="py-6 px-8 border-t border-slate-200 bg-white">
-            <p class="text-sm text-slate-500 text-center">
+        <footer class="border-t border-slate-200 bg-white px-8 py-6">
+            <p class="text-center text-sm text-slate-500">
                 &copy; @DateTime.Now.Year - Apartment Management System Group 5 - PRN222
             </p>
         </footer>
@@ -104,7 +60,6 @@ var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
             }
         }
 
-        // === Notification Bell & Dropdown ===
         let notifDropdownOpen = false;
 
         function toggleNotifDropdown() {
@@ -118,7 +73,6 @@ var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
             }
         }
 
-        // Đóng dropdown khi click ra ngoài
         document.addEventListener('click', function (e) {
             const wrapper = document.getElementById('notifBellWrapper');
             if (wrapper && !wrapper.contains(e.target)) {
@@ -204,7 +158,6 @@ var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
             .catch(() => {});
         }
 
-        // === SignalR Connection (Global) ===
         (function () {
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/notificationHub")
@@ -235,7 +188,6 @@ var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
                 });
         })();
 
-        // Fallback: load unread count on page load
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', loadUnreadCount);
         } else {

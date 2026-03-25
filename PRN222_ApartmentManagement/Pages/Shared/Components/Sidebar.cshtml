@@ -3,105 +3,178 @@
 @{
     var apartmentName = await SettingService.GetSettingAsync("ApartmentName", "ApartmentMS");
     var apartmentLogo = await SettingService.GetSettingAsync("ApartmentLogo", "apartment");
-    var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
-    
-    var menuGroups = new[]
+    var currentPage = ViewData["CurrentPage"]?.ToString() ?? string.Empty;
+
+    var isAdmin = User.IsInRole("Admin");
+    var isBqlManager = User.IsInRole("BQL_Manager");
+    var isBqlStaff = User.IsInRole("BQL_Staff");
+    var isResident = User.IsInRole("Resident");
+    var isBqtHead = User.IsInRole("BQT_Head");
+    var isBqtMember = User.IsInRole("BQT_Member");
+
+    var dashboardHref = isAdmin ? "/Admin"
+        : isBqlManager ? "/BQL_Manager"
+        : isBqlStaff ? "/BQL_Staff"
+        : isResident ? "/Resident"
+        : isBqtHead ? "/BQT_Head"
+        : isBqtMember ? "/BQT_Member"
+        : "/";
+
+    var menuGroups = new List<SidebarMenuGroup>
     {
-        new {
+        new()
+        {
             GroupName = "Tổng quan",
             Icon = "dashboard",
             IsCollapsible = false,
-            Items = new[] {
-                new { Icon = "dashboard", Label = "Dashboard", Href = "/", Key = "dashboard" }
-            }
-        },
-        new {
-            GroupName = "Quản lý",
-            Icon = "business",
-            IsCollapsible = true,
-            Items = new[] {
-                new { Icon = "apartment", Label = "Căn hộ", Href = "/Apartments", Key = "apartments" },
-                new { Icon = "description", Label = "Hợp đồng", Href = "/BQL_Manager/Contracts", Key = "contracts" },
-                new { Icon = "people", Label = "Cư dân", Href = "/BQL_Manager/Residents", Key = "residents" },
-                new { Icon = "credit_card", Label = "Thẻ căn hộ", Href = "/BQL_Manager/Cards", Key = "residentcards" }
-            }
-        },
-        new {
-            GroupName = "Tài chính",
-            Icon = "payments",
-            IsCollapsible = true,
-            Items = new[] {
-                new { Icon = "receipt_long", Label = "Hóa đơn", Href = "/Invoices", Key = "invoices" },
-                new { Icon = "account_balance_wallet", Label = "Thanh toán", Href = "/Payments", Key = "payments" },
-                new { Icon = "analytics", Label = "Báo cáo", Href = "/FinancialReports", Key = "financialreports" }
-            }
-        },
-        new {
-            GroupName = "Dịch vụ",
-            Icon = "room_service",
-            IsCollapsible = true,
-            Items = new[] {
-                new { Icon = "support_agent", Label = "Yêu cầu", Href = User.IsInRole("BQL_Manager") ? "/BQL_Manager/Requests" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "requests" },
-                new { Icon = "escalator_warning", Label = "Yêu cầu chuyển cấp", Href = User.IsInRole("BQL_Manager") ? "/BQL_Manager/Requests/Escalated" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "escalated" },
-                new { Icon = "fitness_center", Label = "Tiện ích", Href = "/Amenities", Key = "amenities" }
-            }
-        },
-        new {
-            GroupName = "Truyền thông",
-            Icon = "notifications",
-            IsCollapsible = true,
-            Items = new[] {
-                new { Icon = "campaign", Label = "Thông báo", Href = User.IsInRole("Resident") ? "/Announcements/View" : "/Announcements/Index", Key = "announcements" }
-            }
-        },
-        new {
-            GroupName = "Hệ thống",
-            Icon = "settings",
-            IsCollapsible = true,
-            Items = new[] {
-                new { Icon = "manage_accounts", Label = "Người dùng", Href = "/Admin/Users", Key = "users" },
-                new { Icon = "history", Label = "Lịch sử hệ thống", Href = "/Admin/ActivityLogs", Key = "activitylogs" },
-                new { Icon = "settings", Label = "Cấu hình", Href = "/Admin/Settings", Key = "settings" },
-                new { Icon = "lock", Label = "Đổi mật khẩu", Href = "/Account/ChangePassword", Key = "changepassword" }
+            Items = new List<SidebarMenuItem>
+            {
+                new() { Icon = "dashboard", Label = "Dashboard", Href = dashboardHref, Key = "dashboard" }
             }
         }
     };
+
+    if (isBqlManager)
+    {
+        menuGroups.Add(new SidebarMenuGroup
+        {
+            GroupName = "Quản lý",
+            Icon = "business",
+            IsCollapsible = true,
+            Items = new List<SidebarMenuItem>
+            {
+                new() { Icon = "description", Label = "Hợp đồng", Href = "/BQL_Manager/Contracts", Key = "contracts" },
+                new() { Icon = "people", Label = "Cư dân", Href = "/BQL_Manager/Residents", Key = "residents" },
+                new() { Icon = "credit_card", Label = "Thẻ căn hộ", Href = "/BQL_Manager/Cards", Key = "residentcards" }
+            }
+        });
+    }
+
+    var workItems = new List<SidebarMenuItem>();
+    if (isBqlManager)
+    {
+        workItems.Add(new SidebarMenuItem { Icon = "assignment", Label = "Yêu cầu cư dân", Href = "/BQL_Manager/Requests", Key = "requests" });
+        workItems.Add(new SidebarMenuItem { Icon = "escalator_warning", Label = "Yêu cầu chuyển cấp", Href = "/BQL_Manager/Requests/Escalated", Key = "escalated" });
+    }
+
+    if (isBqlStaff)
+    {
+        workItems.Add(new SidebarMenuItem { Icon = "assignment_ind", Label = "Việc được giao", Href = "/BQL_Staff/Requests/Assigned", Key = "assigned" });
+    }
+
+    if (isResident)
+    {
+        workItems.Add(new SidebarMenuItem { Icon = "support_agent", Label = "Yêu cầu của tôi", Href = "/Resident/Requests/MyRequests", Key = "requests" });
+        workItems.Add(new SidebarMenuItem { Icon = "face", Label = "Face ID", Href = "/Resident/FaceAuth/Status", Key = "faceauth" });
+    }
+
+    if (workItems.Count > 0)
+    {
+        menuGroups.Add(new SidebarMenuGroup
+        {
+            GroupName = "Công việc",
+            Icon = "work_outline",
+            IsCollapsible = workItems.Count > 1,
+            Items = workItems
+        });
+    }
+
+    var financeItems = new List<SidebarMenuItem>();
+    if (isBqlManager || isBqlStaff || isResident)
+    {
+        financeItems.Add(new SidebarMenuItem { Icon = "receipt_long", Label = "Hóa đơn", Href = "/Invoices", Key = "invoices" });
+        financeItems.Add(new SidebarMenuItem { Icon = "payments", Label = "Thanh toán", Href = "/Payments", Key = "payments" });
+    }
+
+    if (isBqlManager || isBqtHead || isBqtMember)
+    {
+        financeItems.Add(new SidebarMenuItem { Icon = "analytics", Label = "Báo cáo tài chính", Href = "/FinancialReports", Key = "financialreports" });
+    }
+
+    if (financeItems.Count > 0)
+    {
+        menuGroups.Add(new SidebarMenuGroup
+        {
+            GroupName = "Tài chính",
+            Icon = "account_balance_wallet",
+            IsCollapsible = financeItems.Count > 1,
+            Items = financeItems
+        });
+    }
+
+    var announcementHref = isResident ? "/Announcements/View" : "/Announcements/Index";
+    menuGroups.Add(new SidebarMenuGroup
+    {
+        GroupName = "Truyền thông",
+        Icon = "campaign",
+        IsCollapsible = false,
+        Items = new List<SidebarMenuItem>
+        {
+            new() { Icon = "campaign", Label = "Thông báo", Href = announcementHref, Key = "announcements" }
+        }
+    });
+
+    if (isAdmin)
+    {
+        menuGroups.Add(new SidebarMenuGroup
+        {
+            GroupName = "Hệ thống",
+            Icon = "settings",
+            IsCollapsible = true,
+            Items = new List<SidebarMenuItem>
+            {
+                new() { Icon = "manage_accounts", Label = "Người dùng", Href = "/Admin/Users", Key = "users" },
+                new() { Icon = "history", Label = "Nhật ký hệ thống", Href = "/Admin/ActivityLogs", Key = "activitylogs" },
+                new() { Icon = "tune", Label = "Cấu hình", Href = "/Admin/Settings", Key = "settings" },
+                new() { Icon = "database", Label = "Seed dữ liệu", Href = "/Admin/SeedData", Key = "seeddata" }
+            }
+        });
+    }
+
+    menuGroups.Add(new SidebarMenuGroup
+    {
+        GroupName = "Tài khoản",
+        Icon = "manage_accounts",
+        IsCollapsible = false,
+        Items = new List<SidebarMenuItem>
+        {
+            new() { Icon = "lock", Label = "Đổi mật khẩu", Href = "/Account/ChangePassword", Key = "changepassword" }
+        }
+    });
 }
 
-<aside id="main-sidebar" class="fixed left-0 top-0 w-64 h-screen z-50 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 lg:translate-x-0 -translate-x-full">
-    <!-- Logo -->
-    <div class="h-16 p-4 flex items-center gap-3 border-b border-slate-100">
-        <div class="w-9 h-9 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+<aside id="main-sidebar" class="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-300 lg:translate-x-0 -translate-x-full">
+    <div class="flex h-16 items-center gap-3 border-b border-slate-100 p-4">
+        <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-emerald-500">
             @if (!string.IsNullOrEmpty(apartmentLogo) && apartmentLogo.StartsWith("/"))
             {
-                <img src="@apartmentLogo" alt="Logo" class="w-full h-full object-cover" />
+                <img src="@apartmentLogo" alt="Logo" class="h-full w-full object-cover" />
             }
             else
             {
-                <span class="material-icons text-white text-xl">@apartmentLogo</span>
+                <span class="material-icons text-xl text-white">@apartmentLogo</span>
             }
         </div>
         <div class="min-w-0">
-            <span class="font-bold text-base tracking-tight text-slate-900 block">@apartmentName</span>
+            <span class="block text-base font-bold tracking-tight text-slate-900">@apartmentName</span>
             <p class="text-xs text-slate-500">Quản lý chung cư</p>
         </div>
     </div>
-    
-    <!-- Navigation -->
-    <nav class="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
+
+    <nav class="flex-1 space-y-2 overflow-y-auto px-3 py-4">
         @foreach (var group in menuGroups)
         {
             var groupId = "menu-" + group.GroupName.ToLower().Replace(" ", "-");
             var hasActiveItem = group.Items.Any(item => currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase));
-            
+            var isExpanded = hasActiveItem || !group.IsCollapsible;
+
             if (!group.IsCollapsible)
             {
-                // Non-collapsible group - render items directly
                 foreach (var item in group.Items)
                 {
-                    bool isActive = currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase);
-                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors @(isActive ? "bg-emerald-50 text-emerald-700 font-semibold" : "text-slate-600 hover:bg-slate-50")" 
-                       href="@item.Href">
+                    var isActive = currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase);
+                    <a href="@item.Href"
+                       class="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors @(isActive ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-600 hover:bg-slate-50")">
                         <span class="material-icons text-xl @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
                         <span class="text-sm">@item.Label</span>
                     </a>
@@ -109,28 +182,26 @@
             }
             else
             {
-                // Collapsible group
                 <div class="space-y-1">
-                    <!-- Group Header -->
-                    <button type="button" 
-                            class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors @(hasActiveItem ? "bg-emerald-50/50" : "hover:bg-slate-50")"
+                    <button type="button"
+                            class="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors @(hasActiveItem ? "bg-emerald-50/50" : "hover:bg-slate-50")"
                             onclick="toggleMenu('@groupId')">
                         <div class="flex items-center gap-3">
                             <span class="material-icons text-xl text-slate-400">@group.Icon</span>
                             <span class="text-sm font-medium text-slate-700">@group.GroupName</span>
                         </div>
-                        <span class="material-icons text-lg text-slate-400 transition-transform duration-200" id="@groupId-icon">
+                        <span id="@groupId-icon"
+                              class="material-icons text-lg text-slate-400 transition-transform duration-200 @(isExpanded ? "rotate-180" : string.Empty)">
                             expand_more
                         </span>
                     </button>
-                    
-                    <!-- Group Items -->
-                    <div id="@groupId" class="pl-3 space-y-1 @(hasActiveItem ? "" : "hidden")">
+
+                    <div id="@groupId" class="space-y-1 pl-3 @(isExpanded ? string.Empty : "hidden")">
                         @foreach (var item in group.Items)
                         {
-                            bool isActive = currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase);
-                            <a class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors @(isActive ? "bg-emerald-50 text-emerald-700 font-semibold" : "text-slate-600 hover:bg-slate-50")" 
-                               href="@item.Href">
+                            var isActive = currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase);
+                            <a href="@item.Href"
+                               class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors @(isActive ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-600 hover:bg-slate-50")">
                                 <span class="material-icons text-lg @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
                                 <span class="text-sm">@item.Label</span>
                             </a>
@@ -140,38 +211,56 @@
             }
         }
     </nav>
-    
-    <!-- User Profile -->
-    <div class="p-3 border-t border-slate-200">
-        <div class="bg-slate-50 p-3 rounded-lg flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                <span class="material-icons text-emerald-600 text-xl">person</span>
+
+    <div class="border-t border-slate-200 p-3">
+        <div class="flex items-center gap-3 rounded-lg bg-slate-50 p-3">
+            <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                <span class="material-icons text-xl text-emerald-600">person</span>
             </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-slate-900 truncate">@(User.Identity?.IsAuthenticated == true ? User.FindFirst("FullName")?.Value : "Guest")</p>
-                <p class="text-xs text-slate-500 truncate">@(User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Not logged in")</p>
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-semibold text-slate-900">@(User.Identity?.IsAuthenticated == true ? User.FindFirst("FullName")?.Value : "Guest")</p>
+                <p class="truncate text-xs text-slate-500">@(User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Not logged in")</p>
             </div>
-            <a href="/Account/Logout" class="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="Đăng xuất">
+            <a href="/Account/Logout" class="p-1.5 text-slate-400 transition-colors hover:text-red-500" title="Đăng xuất">
                 <span class="material-icons">logout</span>
             </a>
         </div>
     </div>
 </aside>
 
-
-
 <script>
 function toggleMenu(menuId) {
     const menu = document.getElementById(menuId);
     const icon = document.getElementById(menuId + '-icon');
-    
+
+    if (!menu || !icon) {
+        return;
+    }
+
     if (menu.classList.contains('hidden')) {
         menu.classList.remove('hidden');
-        icon.style.transform = 'rotate(180deg)';
+        icon.classList.add('rotate-180');
     } else {
         menu.classList.add('hidden');
-        icon.style.transform = 'rotate(0deg)';
+        icon.classList.remove('rotate-180');
     }
 }
 </script>
 
+@functions {
+    private sealed class SidebarMenuGroup
+    {
+        public string GroupName { get; init; } = string.Empty;
+        public string Icon { get; init; } = string.Empty;
+        public bool IsCollapsible { get; init; }
+        public List<SidebarMenuItem> Items { get; init; } = new();
+    }
+
+    private sealed class SidebarMenuItem
+    {
+        public string Icon { get; init; } = string.Empty;
+        public string Label { get; init; } = string.Empty;
+        public string Href { get; init; } = string.Empty;
+        public string Key { get; init; } = string.Empty;
+    }
+}
