@@ -127,7 +127,7 @@
     }
     else
     {
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
                 <h3 class="text-base font-bold text-slate-900 mb-4">Phản hồi cư dân (BQT)</h3>
                 <form method="post" asp-page-handler="Respond" asp-route-id="@req.RequestId" class="space-y-3">
@@ -173,6 +173,50 @@
                     </button>
                 </form>
             </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <h3 class="text-base font-bold text-slate-900 mb-4">Cập nhật trạng thái</h3>
+                <div class="space-y-2">
+                    @if (req.Status != RequestStatus.InProgress)
+                    {
+                        <form method="post" asp-page-handler="UpdateStatus" asp-route-id="@req.RequestId">
+                            <input type="hidden" name="newStatus" value="@RequestStatus.InProgress" />
+                            <button type="submit"
+                                    class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium transition-colors">
+                                <span class="material-icons text-base">sync</span>
+                                Chuyển sang Đang xử lý
+                            </button>
+                        </form>
+                    }
+
+                    <form method="post" asp-page-handler="UpdateStatus" asp-route-id="@req.RequestId">
+                        <input type="hidden" name="newStatus" value="@RequestStatus.Completed" />
+                        <button type="submit"
+                                class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-sm font-medium transition-colors">
+                            <span class="material-icons text-base">check_circle</span>
+                            Hoàn thành
+                        </button>
+                    </form>
+
+                    <form method="post" asp-page-handler="UpdateStatus" asp-route-id="@req.RequestId">
+                        <input type="hidden" name="newStatus" value="@RequestStatus.Rejected" />
+                        <button type="submit"
+                                class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-medium transition-colors">
+                            <span class="material-icons text-base">block</span>
+                            Từ chối
+                        </button>
+                    </form>
+
+                    <form method="post" asp-page-handler="UpdateStatus" asp-route-id="@req.RequestId">
+                        <input type="hidden" name="newStatus" value="@RequestStatus.Cancelled" />
+                        <button type="submit"
+                                class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-sm font-medium transition-colors">
+                            <span class="material-icons text-base">cancel</span>
+                            Hủy khiếu nại
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     }
 
@@ -207,4 +251,28 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const requestId = @Model.Complaint.RequestId;
+
+            function getRefType(notification) {
+                return notification?.referenceType ?? notification?.ReferenceType;
+            }
+
+            function getRefId(notification) {
+                return Number(notification?.referenceId ?? notification?.ReferenceId ?? 0);
+            }
+
+            window.addEventListener('app:notification-received', function (event) {
+                const notification = event.detail;
+                const refType = getRefType(notification);
+                const refId = getRefId(notification);
+
+                if (String(refType).toLowerCase() !== 'request') return;
+                if (refId !== requestId) return;
+
+                window.location.reload();
+            });
+        })();
+    </script>
 }

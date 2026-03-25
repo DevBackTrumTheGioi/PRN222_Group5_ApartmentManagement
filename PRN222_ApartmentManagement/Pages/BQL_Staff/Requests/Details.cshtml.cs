@@ -13,10 +13,12 @@ namespace PRN222_ApartmentManagement.Pages.BQL_Staff.Requests;
 public class DetailsModel : PageModel
 {
     private readonly IRequestService _requestService;
+    private readonly INotificationService _notificationService;
 
-    public DetailsModel(IRequestService requestService)
+    public DetailsModel(IRequestService requestService, INotificationService notificationService)
     {
         _requestService = requestService;
+        _notificationService = notificationService;
     }
 
     public Request Request { get; set; } = null!;
@@ -68,7 +70,30 @@ public class DetailsModel : PageModel
 
         try
         {
-            await _requestService.AddCommentAsync(id, userId.Value, Input.Content);
+            var trimmedContent = Input.Content.Trim();
+            await _requestService.AddCommentAsync(id, userId.Value, trimmedContent);
+
+            await _notificationService.CreateNotificationAsync(
+                request.ResidentId,
+                "BQL đã phản hồi yêu cầu",
+                $"Yêu cầu {request.RequestNumber} vừa có phản hồi mới từ BQL.",
+                NotificationType.Request,
+                ReferenceType.Request,
+                request.RequestId,
+                NotificationPriority.Normal);
+
+            if (request.EscalatedTo.HasValue && request.EscalatedTo.Value != request.ResidentId)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    request.EscalatedTo.Value,
+                    "Nhân viên BQL đã phản hồi yêu cầu",
+                    $"Yêu cầu {request.RequestNumber} vừa có phản hồi mới từ nhân viên BQL.",
+                    NotificationType.Request,
+                    ReferenceType.Request,
+                    request.RequestId,
+                    NotificationPriority.Normal);
+            }
+
             TempData["SuccessMessage"] = "Bình luận đã được gửi.";
         }
         catch (InvalidOperationException ex)

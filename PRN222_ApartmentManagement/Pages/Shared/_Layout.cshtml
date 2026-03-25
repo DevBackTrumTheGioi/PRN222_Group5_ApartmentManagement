@@ -1,4 +1,4 @@
-﻿﻿@{
+@{
 Layout = null;
 var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
 }
@@ -46,10 +46,31 @@ var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
                     </div>
                     <!-- Right side of header (User actions, notifications button, etc.) -->
                     <div class="flex items-center gap-4">
-                        <button class="p-2 text-slate-400 hover:text-emerald-600 transition-colors relative">
-                            <span class="material-icons">notifications</span>
-                            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                        </button>
+                        <!-- Notification Bell Dropdown -->
+                        <div class="relative" id="notifBellWrapper">
+                            <button id="notifBellBtn" class="p-2 text-slate-400 hover:text-emerald-600 transition-colors relative"
+                                    onclick="toggleNotifDropdown()">
+                                <span class="material-icons">notifications</span>
+                                <span id="notifBadge" class="absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white hidden">0</span>
+                            </button>
+                            <!-- Dropdown -->
+                            <div id="notifDropdown" class="absolute right-0 top-full mt-2 w-96 bg-white rounded-xl shadow-xl border border-slate-200 z-50 hidden overflow-hidden">
+                                <div class="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
+                                    <h3 class="text-sm font-semibold text-slate-900">Thông báo</h3>
+                                    <button onclick="markAllReadFromDropdown()" class="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
+                                        Đánh dấu tất cả đã đọc
+                                    </button>
+                                </div>
+                                <div id="notifDropdownList" class="max-h-80 overflow-y-auto">
+                                    <div class="flex items-center justify-center py-8 text-slate-400">
+                                        <span class="material-icons animate-spin mr-2">refresh</span> Đang tải...
+                                    </div>
+                                </div>
+                                <a href="/Notifications" class="block text-center py-3 text-sm font-medium text-emerald-600 hover:bg-emerald-50 border-t border-slate-200 transition-colors">
+                                    Xem tất cả thông báo
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             }
@@ -68,6 +89,7 @@ var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
         </footer>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     <script>
         function toggleMenu(id) {
@@ -80,6 +102,144 @@ var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
                 menu.classList.add('hidden');
                 icon.style.transform = 'rotate(0deg)';
             }
+        }
+
+        // === Notification Bell & Dropdown ===
+        let notifDropdownOpen = false;
+
+        function toggleNotifDropdown() {
+            const dropdown = document.getElementById('notifDropdown');
+            notifDropdownOpen = !notifDropdownOpen;
+            if (notifDropdownOpen) {
+                dropdown.classList.remove('hidden');
+                loadRecentNotifications();
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        // Đóng dropdown khi click ra ngoài
+        document.addEventListener('click', function (e) {
+            const wrapper = document.getElementById('notifBellWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                const dropdown = document.getElementById('notifDropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+                notifDropdownOpen = false;
+            }
+        });
+
+        function updateBadge(count) {
+            const badge = document.getElementById('notifBadge');
+            if (!badge) return;
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function loadUnreadCount() {
+            fetch('/Notifications?handler=UnreadCount', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => updateBadge(data.count))
+            .catch(() => {});
+        }
+
+        function loadRecentNotifications() {
+            const list = document.getElementById('notifDropdownList');
+            if (!list) return;
+
+            fetch('/Notifications?handler=Recent', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.items || data.items.length === 0) {
+                    list.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-8 text-slate-400">
+                            <span class="material-icons text-3xl mb-2">notifications_none</span>
+                            <p class="text-sm">Không có thông báo</p>
+                        </div>`;
+                    return;
+                }
+
+                list.innerHTML = data.items.map(n => `
+                    <div class="px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-100 last:border-0 ${n.isRead ? '' : 'bg-blue-50/30'}"
+                         onclick="window.location.href='/Notifications'">
+                        <div class="flex items-start gap-3">
+                            <span class="text-lg flex-shrink-0 mt-0.5">${n.icon}</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <p class="text-sm ${n.isRead ? 'text-slate-700' : 'font-semibold text-slate-900'} truncate">${n.title}</p>
+                                    ${n.isRead ? '' : '<span class="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></span>'}
+                                </div>
+                                <p class="text-xs text-slate-500 truncate mt-0.5">${n.content}</p>
+                                <p class="text-xs text-slate-400 mt-1">${n.timeAgo}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            })
+            .catch(() => {
+                list.innerHTML = '<div class="py-4 text-center text-slate-400 text-sm">Lỗi tải thông báo</div>';
+            });
+        }
+
+        function markAllReadFromDropdown() {
+            fetch('/Notifications?handler=MarkAllRead', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(r => r.json())
+            .then(() => {
+                updateBadge(0);
+                loadRecentNotifications();
+            })
+            .catch(() => {});
+        }
+
+        // === SignalR Connection (Global) ===
+        (function () {
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveNotification", function (notification) {
+                if (notifDropdownOpen) {
+                    loadRecentNotifications();
+                }
+
+                loadUnreadCount();
+
+                window.dispatchEvent(new CustomEvent('app:notification-received', {
+                    detail: notification
+                }));
+            });
+
+            connection.on("UpdateUnreadCount", function (count) {
+                updateBadge(count);
+            });
+
+            connection.start()
+                .then(() => loadUnreadCount())
+                .catch(err => {
+                    console.error('SignalR connection error:', err);
+                    loadUnreadCount();
+                });
+        })();
+
+        // Fallback: load unread count on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadUnreadCount);
+        } else {
+            loadUnreadCount();
         }
     </script>
 </body>

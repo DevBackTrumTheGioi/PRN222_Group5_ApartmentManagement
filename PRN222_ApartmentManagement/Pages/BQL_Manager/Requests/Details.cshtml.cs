@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Services.Interfaces;
+using PRN222_ApartmentManagement.Utils;
 
 namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Requests;
 
@@ -13,10 +14,12 @@ namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Requests;
 public class DetailsModel : PageModel
 {
     private readonly IRequestService _requestService;
+    private readonly INotificationService _notificationService;
 
-    public DetailsModel(IRequestService requestService)
+    public DetailsModel(IRequestService requestService, INotificationService notificationService)
     {
         _requestService = requestService;
+        _notificationService = notificationService;
     }
 
     public Request Request { get; set; } = null!;
@@ -68,7 +71,22 @@ public class DetailsModel : PageModel
 
         try
         {
-            await _requestService.AddCommentAsync(id, userId.Value, Input.Content);
+            var trimmedContent = Input.Content.Trim();
+            await _requestService.AddCommentAsync(id, userId.Value, trimmedContent);
+
+            var priority = request.RequestType == RequestType.Complaint
+                ? NotificationPriority.High
+                : NotificationPriority.Normal;
+
+            await _notificationService.CreateNotificationAsync(
+                request.ResidentId,
+                "BQL đã phản hồi yêu cầu",
+                $"Yêu cầu {request.RequestNumber} vừa có phản hồi mới từ BQL Manager.",
+                NotificationType.Request,
+                ReferenceType.Request,
+                request.RequestId,
+                priority);
+
             TempData["SuccessMessage"] = "Bình luận đã được gửi.";
         }
         catch (InvalidOperationException ex)
@@ -107,6 +125,19 @@ public class DetailsModel : PageModel
         try
         {
             await _requestService.UpdateStatusAsync(id, newStatus);
+
+            if (request.RequestType == RequestType.Complaint)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    request.ResidentId,
+                    "Cập nhật trạng thái khiếu nại",
+                    $"Khiếu nại {request.RequestNumber} đã được BQL cập nhật sang trạng thái: {newStatus.GetDisplayName()}.",
+                    NotificationType.Request,
+                    ReferenceType.Request,
+                    request.RequestId,
+                    newStatus == RequestStatus.Completed ? NotificationPriority.Normal : NotificationPriority.High);
+            }
+
             TempData["SuccessMessage"] = "Cập nhật trạng thái thành công.";
         }
         catch (Exception ex)
