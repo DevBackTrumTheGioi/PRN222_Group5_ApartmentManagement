@@ -8,6 +8,7 @@
     <div class="bg-white p-6 rounded-xl border shadow-sm">
         <h2 class="text-lg font-bold mb-6">Đặt tiện ích</h2>
         <form method="post">
+            <div asp-validation-summary="All" class="text-rose-600 text-sm mb-3"></div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Left: form -->
                 <div class="md:col-span-2 space-y-4">
@@ -28,7 +29,7 @@
 
                             <div>
                                 <label class="block text-sm font-medium text-slate-700">Ngày</label>
-                                <input asp-for="Input.BookingDate" type="date" class="form-input w-full" id="bookingDate" />
+                                <input asp-for="Input.BookingDate" type="date" class="form-input w-full" id="bookingDate" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                                 <span asp-validation-for="Input.BookingDate" class="text-rose-600 text-sm"></span>
                             </div>
 
@@ -137,44 +138,47 @@
                 updateTotals();
             }
 
-            function parseTime(value) {
-                if (!value) return null;
-                const parts = value.split(':');
-                return { h: parseInt(parts[0], 10), m: parseInt(parts[1] || '0', 10) };
+            function parseTimeInput(el) {
+                if (!el || !el.value) return null;
+                const parts = el.value.split(':');
+                if (parts.length < 2) return null;
+                return { hours: parseInt(parts[0], 10), minutes: parseInt(parts[1], 10) };
             }
 
             function updateTotals() {
-                const id = parseInt(amenitySelect.value || '0');
-                const a = amenities.find(x => x.AmenityId === id);
-                if (!a) {
+                const aId = parseInt(amenitySelect.value || '0');
+                const a = amenities.find(x => x.AmenityId === aId);
+
+                const st = parseTimeInput(startTime);
+                const en = parseTimeInput(endTime);
+                if (!st || !en) {
                     detailTotalHours.textContent = '0';
                     detailTotalAmount.textContent = '0';
                     return;
                 }
 
-                const s = parseTime(startTime.value);
-                const e = parseTime(endTime.value);
-                if (!s || !e) {
-                    detailTotalHours.textContent = '0';
-                    detailTotalAmount.textContent = '0';
-                    return;
-                }
+                const start = new Date(); start.setHours(st.hours, st.minutes, 0, 0);
+                const end = new Date(); end.setHours(en.hours, en.minutes, 0, 0);
+                let hours = (end - start) / (1000 * 60 * 60);
+                if (isNaN(hours) || hours < 0) hours = 0;
 
-                const start = s.h + s.m / 60;
-                const end = e.h + e.m / 60;
-                let hours = end - start;
-                if (hours < 0) hours = 0;
-
-                detailTotalHours.textContent = hours.toFixed(2);
-                const amount = Math.round(hours * parseFloat(a.PricePerHour || 0));
-                detailTotalAmount.textContent = formatNumber(amount);
+                detailTotalHours.textContent = hours.toString();
+                detailTotalAmount.textContent = formatNumber((a?.PricePerHour || 0) * hours);
             }
 
             amenitySelect.addEventListener('change', updateDetails);
             startTime.addEventListener('change', updateTotals);
             endTime.addEventListener('change', updateTotals);
 
-            // initialize if value present
+            // set min for bookingDate to today
+            if (bookingDate) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                bookingDate.min = `${yyyy}-${mm}-${dd}`;
+            }
+
             updateDetails();
         })();
     </script>
