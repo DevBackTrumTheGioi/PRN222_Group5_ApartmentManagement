@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using PRN222_ApartmentManagement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Globalization;
 
 namespace PRN222_ApartmentManagement.Pages.Orders;
 
@@ -60,7 +61,8 @@ public class DetailsModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostCompleteAsync(int id)
+    // Accept cost fields so Complete action also persists costs
+    public async Task<IActionResult> OnPostCompleteAsync(int id, string? actualPrice, string? additionalCharges, string? chargeNotes)
     {
         var isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
 
@@ -98,10 +100,38 @@ public class DetailsModel : PageModel
             return Forbid();
         }
 
+        // parse provided cost inputs (if any) and persist before completing
+        decimal? parsedActual = null;
+        decimal parsedAdditional = 0m;
+
+        if (!string.IsNullOrWhiteSpace(actualPrice))
+        {
+            if (!decimal.TryParse(actualPrice, NumberStyles.Number, CultureInfo.InvariantCulture, out var aVal))
+            {
+                decimal.TryParse(actualPrice, NumberStyles.Number, CultureInfo.CurrentCulture, out aVal);
+            }
+            parsedActual = aVal;
+        }
+
+        if (!string.IsNullOrWhiteSpace(additionalCharges))
+        {
+            if (!decimal.TryParse(additionalCharges, NumberStyles.Number, CultureInfo.InvariantCulture, out var addVal))
+            {
+                decimal.TryParse(additionalCharges, NumberStyles.Number, CultureInfo.CurrentCulture, out addVal);
+            }
+            parsedAdditional = addVal;
+        }
+
+        if (!string.IsNullOrWhiteSpace(chargeNotes)) order.ChargeNotes = chargeNotes.Trim();
+
         // Start transaction to update order and optionally create invoice atomically
         using var tx = await _context.Database.BeginTransactionAsync();
         try
         {
+            // apply costs if provided
+            if (parsedActual.HasValue) order.ActualPrice = parsedActual;
+            order.AdditionalCharges = parsedAdditional;
+
             order.Status = ServiceOrderStatus.Completed;
             order.CompletedAt = DateTime.Now;
             order.CompletedBy = currentUserId;
@@ -110,7 +140,15 @@ public class DetailsModel : PageModel
             await _orderRepo.UpdateAsync(order);
 
             int? createdInvoiceId = null;
-            if (_autoCreateInvoice)
+
+            // If invoice already exists, skip. Otherwise attempt to create invoice when costs exist or when auto-create is enabled.
+            var shouldCreateInvoice = order.InvoiceId == null && (
+                                        _autoCreateInvoice ||
+                                        order.ActualPrice.HasValue ||
+                                        order.EstimatedPrice.HasValue ||
+                                        order.AdditionalCharges > 0m);
+
+            if (shouldCreateInvoice)
             {
                 var (ok, err, invoiceId) = await CreateInvoiceForOrderAsync(order, currentUserId);
                 if (!ok)
@@ -132,13 +170,13 @@ public class DetailsModel : PageModel
             // If AJAX request, return JSON so client can stay on same page and show notification
             if (isAjax)
             {
-                var message = _autoCreateInvoice ? "Đã đánh dấu hoàn thành và tạo hóa đơn." : "Đã đánh dấu hoàn thành.";
-                return new JsonResult(new { success = true, message = message, status = Order.Status.ToString(), invoiceId = createdInvoiceId });
+                var message = (createdInvoiceId.HasValue) ? "Đã đánh dấu hoàn thành và tạo hóa đơn." : ( _autoCreateInvoice ? "Đã đánh dấu hoàn thành và tạo hóa đơn." : "Đã đánh dấu hoàn thành.");
+                return new JsonResult(new { success = true, message = message, status = Order.Status.ToString(), invoiceId = createdInvoiceId, actualPrice = Order.ActualPrice, additionalCharges = Order.AdditionalCharges });
             }
 
             // for non-AJAX, redirect back to orders list so the table reflects the updated status
-            TempData["Success"] = _autoCreateInvoice ? "Đã hoàn thành đơn và tạo hóa đơn." : "Đã đánh dấu hoàn thành.";
-            return Redirect("/Orders");
+            TempData["Success"] = (createdInvoiceId.HasValue) ? "Đã hoàn thành đơn và tạo hóa đơn." : (_autoCreateInvoice ? "Đã hoàn thành đơn và tạo hóa đơn." : "Đã đánh dấu hoàn thành.");
+            return Redirect("/Services/Orders");
         }
         catch (Exception ex)
         {
@@ -150,7 +188,8 @@ public class DetailsModel : PageModel
     }
 
     // Update actual costs while InProgress
-    public async Task<IActionResult> OnPostUpdateCostsAsync(int id, decimal? actualPrice, decimal? additionalCharges, string? chargeNotes)
+    // Accept string inputs to parse using invariant culture to avoid localization binding issues
+    public async Task<IActionResult> OnPostUpdateCostsAsync(int id, string? actualPrice, string? additionalCharges, string? chargeNotes)
     {
         if (!User.IsInRole("BQL_Staff") && !User.IsInRole("BQL_Manager")) return Forbid();
 
@@ -160,18 +199,55 @@ public class DetailsModel : PageModel
         if (order.Status != ServiceOrderStatus.InProgress)
         {
             TempData["Error"] = "Chỉ có thể cập nhật chi phí khi đơn đang xử lý.";
-            return RedirectToPage();
+            return RedirectToPage(new { id });
         }
 
-        if (actualPrice.HasValue && actualPrice < 0) { TempData["Error"] = "Giá không hợp lệ."; return RedirectToPage(); }
-        if (additionalCharges.HasValue && additionalCharges < 0) { TempData["Error"] = "Phí phát sinh không hợp lệ."; return RedirectToPage(); }
+        decimal? parsedActual = null;
+        decimal parsedAdditional = 0m;
 
-        order.ActualPrice = actualPrice;
-        order.AdditionalCharges = additionalCharges ?? 0;
+        if (!string.IsNullOrWhiteSpace(actualPrice))
+        {
+            if (!decimal.TryParse(actualPrice, NumberStyles.Number, CultureInfo.InvariantCulture, out var aVal))
+            {
+                // fallback to current culture
+                if (!decimal.TryParse(actualPrice, NumberStyles.Number, CultureInfo.CurrentCulture, out aVal))
+                {
+                    TempData["Error"] = "Giá không hợp lệ.";
+                    return RedirectToPage(new { id });
+                }
+            }
+            parsedActual = aVal;
+        }
+
+        if (!string.IsNullOrWhiteSpace(additionalCharges))
+        {
+            if (!decimal.TryParse(additionalCharges, NumberStyles.Number, CultureInfo.InvariantCulture, out var addVal))
+            {
+                if (!decimal.TryParse(additionalCharges, NumberStyles.Number, CultureInfo.CurrentCulture, out addVal))
+                {
+                    TempData["Error"] = "Phí phát sinh không hợp lệ.";
+                    return RedirectToPage(new { id });
+                }
+            }
+            parsedAdditional = addVal;
+        }
+
+        if (parsedActual.HasValue && parsedActual < 0) { TempData["Error"] = "Giá không hợp lệ."; return RedirectToPage(new { id }); }
+        if (parsedAdditional < 0) { TempData["Error"] = "Phí phát sinh không hợp lệ."; return RedirectToPage(new { id }); }
+
+        order.ActualPrice = parsedActual;
+        order.AdditionalCharges = parsedAdditional;
         order.ChargeNotes = string.IsNullOrWhiteSpace(chargeNotes) ? null : chargeNotes.Trim();
         order.UpdatedAt = DateTime.Now;
 
         await _orderRepo.UpdateAsync(order);
+
+        // if AJAX call, return JSON
+        var isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+        if (isAjax)
+        {
+            return new JsonResult(new { success = true, message = "Đã cập nhật chi phí.", actualPrice = order.ActualPrice, additionalCharges = order.AdditionalCharges });
+        }
 
         TempData["Success"] = "Đã cập nhật chi phí.";
         return RedirectToPage(new { id = id });
@@ -237,14 +313,53 @@ public class DetailsModel : PageModel
         if (order == null) return (false, "Đơn không tồn tại.", null);
         if (order.InvoiceId.HasValue) return (false, "Đơn đã có hóa đơn.", null);
 
+        // determine amount source: ActualPrice preferred, otherwise EstimatedPrice, otherwise attempt to use price list
+        var serviceAmount = order.ActualPrice ?? order.EstimatedPrice;
+
+        // find latest service price for the service type
+        var servicePrice = await _context.ServicePrices
+            .Where(sp => sp.ServiceTypeId == order.ServiceTypeId)
+            .OrderByDescending(sp => sp.EffectiveFrom)
+            .FirstOrDefaultAsync();
+
+        // If no explicit amount provided (no ActualPrice/EstimatedPrice), try using servicePrice
+        if (!serviceAmount.HasValue)
+        {
+            if (servicePrice == null)
+            {
+                return (false, "Không tìm thấy giá dịch vụ để tạo hóa đơn. Vui lòng thêm giá dịch vụ trước hoặc nhập chi phí thực tế.", null);
+            }
+
+            serviceAmount = servicePrice.UnitPrice;
+        }
+
+        // If we still have no servicePrice (but have serviceAmount from ActualPrice), create a fallback ServicePrice record
+        var usedServicePriceId = servicePrice?.ServicePriceId;
+        if (servicePrice == null)
+        {
+            var fallback = new ServicePrice
+            {
+                ServiceTypeId = order.ServiceTypeId,
+                UnitPrice = serviceAmount.Value,
+                EffectiveFrom = DateTime.Now.Date,
+                Description = "Auto-created from service order"
+            };
+
+            await _context.ServicePrices.AddAsync(fallback);
+            await _context.SaveChangesAsync();
+            usedServicePriceId = fallback.ServicePriceId;
+        }
+
         // generate invoice number
         var invoiceNumber = await GenerateInvoiceNumberAsync();
-
         var issueDate = DateTime.Now.Date;
         var dueDate = issueDate.AddDays(7);
 
-        var serviceAmount = order.ActualPrice ?? order.EstimatedPrice ?? 0m;
-        var total = serviceAmount + (order.AdditionalCharges);
+        // compute amounts
+        var quantity = 1m;
+        var unitPrice = serviceAmount.Value;
+        var detailAmount = quantity * unitPrice;
+        var total = detailAmount + (order.AdditionalCharges);
 
         var invoice = new Invoice
         {
@@ -264,27 +379,16 @@ public class DetailsModel : PageModel
         await _context.Invoices.AddAsync(invoice);
         await _context.SaveChangesAsync();
 
-        // find latest service price for the service type
-        var servicePrice = await _context.ServicePrices
-            .Where(sp => sp.ServiceTypeId == order.ServiceTypeId)
-            .OrderByDescending(sp => sp.EffectiveFrom)
-            .FirstOrDefaultAsync();
-
-        if (servicePrice == null)
-        {
-            return (false, "Không tìm thấy giá dịch vụ để tạo hóa đơn. Vui lòng thêm giá dịch vụ trước.", null);
-        }
-
         var detail = new InvoiceDetail
         {
             InvoiceId = invoice.InvoiceId,
             ServiceTypeId = order.ServiceTypeId,
-            ServicePriceId = servicePrice.ServicePriceId,
-            Quantity = 1m,
-            UnitPrice = serviceAmount,
+            ServicePriceId = usedServicePriceId ?? 0,
+            Quantity = quantity,
+            UnitPrice = unitPrice,
             ServiceOrderId = order.ServiceOrderId,
             Description = order.Description,
-            Amount = total
+            Amount = detailAmount
         };
 
         await _context.InvoiceDetails.AddAsync(detail);
