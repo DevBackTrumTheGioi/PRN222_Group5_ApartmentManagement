@@ -19,13 +19,17 @@ public class MyBookingsModel : PageModel
 
     public List<AmenityBooking> Bookings { get; set; } = new();
 
-    public int Page { get; set; } = 1;
+    [BindProperty(SupportsGet = true)]
+    public int PageIndex { get; set; } = 1;
+
+    [BindProperty(SupportsGet = true)]
     public int PageSize { get; set; } = 10;
+
     public int TotalCount { get; set; }
 
-    public async Task OnGetAsync(int page = 1)
+    public async Task OnGetAsync(int pageIndex = 1)
     {
-        Page = page <= 0 ? 1 : page;
+        PageIndex = pageIndex <= 0 ? 1 : pageIndex;
 
         var username = User.Identity?.Name;
         if (string.IsNullOrEmpty(username)) return;
@@ -37,11 +41,12 @@ public class MyBookingsModel : PageModel
             .Include(b => b.Amenity)
             .Where(b => b.ResidentId == user.UserId)
             .OrderByDescending(b => b.BookingDate)
-            .ThenByDescending(b => b.StartTime);
+            .ThenByDescending(b => b.StartTime)
+            .AsQueryable();
 
         TotalCount = await q.CountAsync();
 
-        Bookings = await q.Skip((Page - 1) * PageSize).Take(PageSize).ToListAsync();
+        Bookings = await q.Skip((PageIndex - 1) * PageSize).Take(PageSize).ToListAsync();
     }
 
     public async Task<IActionResult> OnPostCancelAsync(int id)
@@ -59,7 +64,7 @@ public class MyBookingsModel : PageModel
         if (booking.Status != "Pending" && booking.Status != "Confirmed")
         {
             TempData["Error"] = "Chỉ có thể hủy booking đang chờ hoặc đã xác nhận.";
-            return RedirectToPage();
+            return RedirectToPage(new { PageIndex, PageSize });
         }
 
         // cancellation rule: allow cancel if now is at least 2 hours before start
@@ -67,13 +72,13 @@ public class MyBookingsModel : PageModel
         if (DateTime.Now.AddHours(2) > bookingStart)
         {
             TempData["Error"] = "Không thể hủy gần thời gian bắt đầu (ít hơn 2 giờ).";
-            return RedirectToPage();
+            return RedirectToPage(new { PageIndex, PageSize });
         }
 
         booking.Status = "Cancelled";
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "Đã hủy booking.";
-        return RedirectToPage();
+        return RedirectToPage(new { PageIndex, PageSize });
     }
 }
