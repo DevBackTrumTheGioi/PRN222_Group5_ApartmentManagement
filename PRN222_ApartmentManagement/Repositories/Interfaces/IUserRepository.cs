@@ -22,5 +22,6 @@ public interface IUserRepository : IGenericRepository<User>
         int pageIndex,
         int pageSize);
     Task<User?> GetResidentByIdWithDetailsAsync(int userId);
+    Task<User?> SearchByUsernameAsync(string username);
 }
 

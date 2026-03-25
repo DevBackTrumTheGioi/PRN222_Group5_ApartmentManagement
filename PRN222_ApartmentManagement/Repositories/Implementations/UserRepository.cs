@@ -154,4 +154,13 @@ public class UserRepository : GenericRepository<User>, IUserRepository
                 .ThenInclude(cm => cm.Contract)
             .FirstOrDefaultAsync(u => u.UserId == userId && !u.IsDeleted && u.Role == UserRole.Resident);
     }
+
+    public async Task<User?> SearchByUsernameAsync(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return null;
+        var trimmed = username.Trim();
+        return await _dbSet
+            .Where(u => !u.IsDeleted)
+            .FirstOrDefaultAsync(u => u.Username.ToLower() == trimmed.ToLower());
+    }
 }

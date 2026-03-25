@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN222_ApartmentManagement.Data;
 
@@ -11,9 +12,11 @@ using PRN222_ApartmentManagement.Data;
 namespace PRN222_ApartmentManagement.Migrations
 {
     [DbContext(typeof(ApartmentDbContext))]
-    partial class ApartmentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260323150721_AddApartmentIdToResidentCard")]
+    partial class AddApartmentIdToResidentCard
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1074,7 +1077,7 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("date");
 
-                    b.Property<bool>("IsDeleted")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("IssuedDate")
@@ -1929,13 +1932,16 @@ namespace PRN222_ApartmentManagement.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PRN222_ApartmentManagement.Models.Vehicle", null)
+                    b.HasOne("PRN222_ApartmentManagement.Models.Vehicle", "Vehicle")
                         .WithMany("ResidentCards")
-                        .HasForeignKey("VehicleId");
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Apartment");
 
                     b.Navigation("Resident");
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.ServiceOrder", b =>

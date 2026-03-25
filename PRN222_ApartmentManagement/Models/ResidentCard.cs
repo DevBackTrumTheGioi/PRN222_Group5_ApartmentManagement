@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PRN222_ApartmentManagement.Models.Enums;
 
@@ -20,8 +20,10 @@ public class ResidentCard
     [ForeignKey("User")]
     public int ResidentId { get; set; }
 
-    [ForeignKey("Vehicle")]
-    public int? VehicleId { get; set; }
+    [ForeignKey("Apartment")]
+    public int? ApartmentId { get; set; }
+
+    public bool IsDeleted { get; set; } = false;
 
     [Required]
     [Column(TypeName = "date")]
@@ -40,5 +42,5 @@ public class ResidentCard
     public DateTime? UpdatedAt { get; set; }
 
     public virtual User Resident { get; set; } = null!;
-    public virtual Vehicle? Vehicle { get; set; }
+    public virtual Apartment? Apartment { get; set; }
 }

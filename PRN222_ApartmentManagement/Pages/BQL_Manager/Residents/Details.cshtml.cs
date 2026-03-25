@@ -98,7 +98,6 @@ public class DetailsModel : PageModel
         CardStatus.Locked => "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
         CardStatus.Lost => "bg-red-50 text-red-600 ring-1 ring-red-200",
         CardStatus.Expired => "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-        CardStatus.Revoked => "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
         _ => "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
     };
 
@@ -108,13 +107,12 @@ public class DetailsModel : PageModel
         CardStatus.Locked => "Khóa",
         CardStatus.Lost => "Mất",
         CardStatus.Expired => "Hết hạn",
-        CardStatus.Revoked => "Đã thu hồi",
         _ => "-"
     };
 
     public string CardTypeLabel(CardType? type) => type switch
     {
-        CardType.Primary => "Thẻ chính",
+        CardType.Resident => "Thẻ cư dân",
         CardType.Secondary => "Thẻ phụ",
         CardType.Visitor => "Thẻ khách",
         CardType.Staff => "Thẻ nhân viên",

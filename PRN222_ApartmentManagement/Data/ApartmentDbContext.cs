@@ -272,12 +272,6 @@ public class ApartmentDbContext : DbContext
             .HasForeignKey(rc => rc.ResidentId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<ResidentCard>()
-            .HasOne(rc => rc.Vehicle)
-            .WithMany(v => v.ResidentCards)
-            .HasForeignKey(rc => rc.VehicleId)
-            .OnDelete(DeleteBehavior.NoAction);
-
         modelBuilder.Entity<Vehicle>()
             .HasOne(v => v.Resident)
             .WithMany(u => u.Vehicles)
