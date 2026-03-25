@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
@@ -458,7 +458,7 @@ public static class DataSeeder
                 cards.Add(new ResidentCard
                 {
                     CardNumber = $"CARD-{resident.ApartmentId:D4}-{cardNum:D3}",
-                    CardType = resident.ResidentType == ResidentType.Owner ? CardType.Primary : CardType.Secondary,
+                    CardType = resident.ResidentType == ResidentType.Owner ? CardType.Resident : CardType.Secondary,
                     ResidentId = resident.UserId,
                     IssuedDate = now.AddMonths(-Random.Shared.Next(1, 24)),
                     ExpiryDate = now.AddYears(5),

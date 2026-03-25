@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN222_ApartmentManagement.Data;
 
@@ -11,9 +12,11 @@ using PRN222_ApartmentManagement.Data;
 namespace PRN222_ApartmentManagement.Migrations
 {
     [DbContext(typeof(ApartmentDbContext))]
-    partial class ApartmentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260323150721_AddApartmentIdToResidentCard")]
+    partial class AddApartmentIdToResidentCard
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -259,9 +262,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsPinned")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Priority")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -288,71 +288,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.HasIndex("CreatedBy");
 
                     b.ToTable("Announcements");
-                });
-
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.AnnouncementAttachment", b =>
-                {
-                    b.Property<int>("AttachmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttachmentId"));
-
-                    b.Property<int>("AnnouncementId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ContentType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<long?>("FileSize")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("UploadedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("AttachmentId");
-
-                    b.HasIndex("AnnouncementId");
-
-                    b.ToTable("AnnouncementAttachments");
-                });
-
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.AnnouncementRead", b =>
-                {
-                    b.Property<int>("AnnouncementReadId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AnnouncementReadId"));
-
-                    b.Property<int>("AnnouncementId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ReadAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("AnnouncementReadId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("AnnouncementId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("AnnouncementReads");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Apartment", b =>
@@ -1142,7 +1077,7 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("date");
 
-                    b.Property<bool>("IsDeleted")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("IssuedDate")
@@ -1727,36 +1662,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("Creator");
                 });
 
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.AnnouncementAttachment", b =>
-                {
-                    b.HasOne("PRN222_ApartmentManagement.Models.Announcement", "Announcement")
-                        .WithMany("Attachments")
-                        .HasForeignKey("AnnouncementId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Announcement");
-                });
-
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.AnnouncementRead", b =>
-                {
-                    b.HasOne("PRN222_ApartmentManagement.Models.Announcement", "Announcement")
-                        .WithMany("AnnouncementReads")
-                        .HasForeignKey("AnnouncementId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PRN222_ApartmentManagement.Models.User", "User")
-                        .WithMany("AnnouncementReads")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Announcement");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.ApartmentService", b =>
                 {
                     b.HasOne("PRN222_ApartmentManagement.Models.Apartment", "Apartment")
@@ -2027,13 +1932,16 @@ namespace PRN222_ApartmentManagement.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PRN222_ApartmentManagement.Models.Vehicle", null)
+                    b.HasOne("PRN222_ApartmentManagement.Models.Vehicle", "Vehicle")
                         .WithMany("ResidentCards")
-                        .HasForeignKey("VehicleId");
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Apartment");
 
                     b.Navigation("Resident");
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.ServiceOrder", b =>
@@ -2156,13 +2064,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("Amenities");
                 });
 
-            modelBuilder.Entity("PRN222_ApartmentManagement.Models.Announcement", b =>
-                {
-                    b.Navigation("AnnouncementReads");
-
-                    b.Navigation("Attachments");
-                });
-
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Apartment", b =>
                 {
                     b.Navigation("AmenityBookings");
@@ -2226,8 +2127,6 @@ namespace PRN222_ApartmentManagement.Migrations
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.User", b =>
                 {
                     b.Navigation("AmenityBookings");
-
-                    b.Navigation("AnnouncementReads");
 
                     b.Navigation("Announcements");
 

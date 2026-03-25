@@ -1,0 +1,309 @@
+@page
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Cards.CreateModel
+@{
+    ViewData["Title"] = "Tạo thẻ căn hộ mới";
+    ViewData["CurrentPage"] = "residentcards";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Tạo thẻ căn hộ",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Manager", Href = "/BQL_Manager" },
+            new { Label = "Thẻ căn hộ", Href = "/BQL_Manager/Cards" },
+            new { Label = "Tạo mới", Href = "#" }
+        }
+    };
+}
+
+<!-- Modal xac nhan -->
+<div id="confirmModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <span class="material-icons">info</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">Xác nhận tạo thẻ?</h3>
+        </div>
+        <p class="text-sm text-slate-600">
+            Thẻ sẽ được tạo và kích hoạt ngay lập tức.
+        </p>
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" onclick="closeConfirmModal()"
+                    class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                Hủy
+            </button>
+            <button type="submit" form="mainForm"
+                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium">
+                Xác nhận
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center gap-2 mb-2">
+        <a asp-page="./Index" class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+            <span class="material-icons text-lg mr-1">arrow_back</span>
+            Quay lại danh sách
+        </a>
+    </div>
+
+    <form id="mainForm" method="post" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-6 space-y-6">
+
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                    <span class="material-icons text-red-500 text-lg">error</span>
+                    <p class="text-sm text-red-600">@Model.ErrorMessage</p>
+                </div>
+            }
+
+            @* ===== TRA CUU USER ===== *@
+            <div>
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Tra cứu cư dân / nhân viên</h3>
+                <div class="flex gap-3">
+                    <input type="text" id="searchUsernameInput" placeholder="Nhập username..."
+                           class="flex-1 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <button type="button" onclick="searchUser()"
+                            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-medium inline-flex items-center gap-2 shrink-0">
+                        <span class="material-icons text-base">search</span>
+                        Tra cứu
+                    </button>
+                </div>
+                <p id="searchError" class="text-xs text-red-500 mt-2 hidden"></p>
+            </div>
+
+            @* ===== USER INFO CARD (an ban dau) ===== *@
+            <div id="userInfoCard" class="hidden">
+                <input type="hidden" id="ResidentId" name="Input.ResidentId" value="" />
+                <input type="hidden" id="CardType" name="Input.CardType" value="" />
+
+                <div class="p-5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shrink-0">
+                                <span class="material-icons text-2xl">person</span>
+                            </div>
+                            <div>
+                                <p id="userFullName" class="font-bold text-slate-900 text-lg leading-tight"></p>
+                                <p class="text-sm text-slate-500 mt-0.5">
+                                    <span id="userUsername"></span>
+                                    <span id="userPhone" class="ml-2"></span>
+                                </p>
+                            </div>
+                        </div>
+                        <span id="userRoleBadge" class="shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ring-1 ring-slate-200"></span>
+                    </div>
+
+                    @* CardType auto-set (readonly) *@
+                    <div id="cardTypeField" class="space-y-2 hidden">
+                        <label class="text-sm font-medium text-slate-700">Loại thẻ</label>
+                        <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+                            <span id="cardTypeDisplay"></span>
+                        </div>
+                    </div>
+
+                    @* Apartment dropdown (chi hien khi la Resident co can ho) *@
+                    <div id="apartmentSection" class="space-y-2 hidden">
+                        <label class="text-sm font-medium text-slate-700">Căn hộ</label>
+                        <select id="ApartmentId" name="Input.ApartmentId"
+                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="">-- Chọn căn hộ --</option>
+                        </select>
+                        <p class="text-xs text-slate-400">Căn hộ gắn với cư dân qua hợp đồng đang hiệu lực.</p>
+                    </div>
+
+                    @* No apartment warning *@
+                    <div id="noApartmentWarning" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                        <span class="material-icons text-red-500 text-lg shrink-0">block</span>
+                        <p class="text-sm text-red-700">Người này chưa có căn hộ nào. Không thể tạo thẻ căn hộ.</p>
+                    </div>
+
+                    @* Inactive account warning *@
+                    <div id="inactiveWarning" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                        <span class="material-icons text-red-500 text-lg shrink-0">block</span>
+                        <p class="text-sm text-red-700">Tài khoản chưa được kích hoạt. Không thể tạo thẻ.</p>
+                    </div>
+
+                    @* Deleted account warning *@
+                    <div id="deletedWarning" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                        <span class="material-icons text-red-500 text-lg shrink-0">block</span>
+                        <p class="text-sm text-red-700">Tài khoản đã bị vô hiệu hóa. Không thể tạo thẻ.</p>
+                    </div>
+                </div>
+            </div>
+
+            @* ===== MA THE ===== *@
+            <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                <div class="flex items-center gap-3">
+                    <span class="material-icons text-emerald-500">badge</span>
+                    <div>
+                        <p class="text-xs font-medium text-emerald-600 mb-0.5">Mã thẻ (tự động)</p>
+                        <p class="text-lg font-bold text-slate-900">@Model.CardNumberPreview</p>
+                    </div>
+                </div>
+            </div>
+
+            @* ===== NGAY HET HAN + GHI CHU ===== *@
+            <div>
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Thông tin bổ sung</h3>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700">Ngày hết hạn</label>
+                        <input type="date" id="ExpiryDate" name="Input.ExpiryDate"
+                               class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                        <p class="text-xs text-slate-400">Để trống nếu thẻ không có ngày hết hạn.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700">Ghi chú</label>
+                        <input type="text" id="Notes" name="Input.Notes" placeholder="Thông tin bổ sung (nếu có)..."
+                               class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+            <a asp-page="./Index" class="px-5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                Hủy
+            </a>
+            <button type="button" id="createBtn" onclick="openConfirmModal()"
+                    class="px-5 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                Tạo thẻ
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function openConfirmModal() {
+            var btn = document.getElementById('createBtn');
+            if (btn && btn.disabled) return;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+        async function searchUser() {
+            var username = document.getElementById('searchUsernameInput').value.trim();
+            var errorEl = document.getElementById('searchError');
+            errorEl.textContent = '';
+            errorEl.classList.add('hidden');
+
+            if (!username) {
+                errorEl.textContent = 'Vui lòng nhập username.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            var response = await fetch(`/BQL_Manager/Cards/Create?handler=SearchUser&username=${encodeURIComponent(username)}`);
+            var data = await response.json();
+
+            if (!data.found) {
+                errorEl.textContent = data.message;
+                errorEl.classList.remove('hidden');
+                hideUserCard();
+                return;
+            }
+
+            document.getElementById('ResidentId').value = data.userId;
+            document.getElementById('userFullName').textContent = data.fullName;
+            document.getElementById('userUsername').textContent = '\u0040' + data.username;
+            document.getElementById('userPhone').textContent = data.phone ? ' | ' + data.phone : '';
+
+            var roleBadge = document.getElementById('userRoleBadge');
+            var cardTypeField = document.getElementById('cardTypeField');
+            var cardTypeDisplay = document.getElementById('cardTypeDisplay');
+            var cardTypeInput = document.getElementById('CardType');
+            var apartmentSection = document.getElementById('apartmentSection');
+            var noAptWarning = document.getElementById('noApartmentWarning');
+            var inactiveWarning = document.getElementById('inactiveWarning');
+            var deletedWarning = document.getElementById('deletedWarning');
+            var createBtn = document.getElementById('createBtn');
+
+            // Reset all
+            cardTypeField.classList.add('hidden');
+            apartmentSection.classList.add('hidden');
+            noAptWarning.classList.add('hidden');
+            inactiveWarning.classList.add('hidden');
+            deletedWarning.classList.add('hidden');
+            if (createBtn) createBtn.disabled = false;
+
+            if (data.isDeleted) {
+                roleBadge.textContent = data.isStaff ? 'Nhân viên' : 'Cư dân';
+                roleBadge.className = 'shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500';
+                deletedWarning.classList.remove('hidden');
+                if (createBtn) createBtn.disabled = true;
+                document.getElementById('userInfoCard').classList.remove('hidden');
+                return;
+            }
+
+            if (!data.isActive) {
+                roleBadge.textContent = data.isStaff ? 'Nhân viên' : 'Cư dân';
+                roleBadge.className = 'shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500';
+                inactiveWarning.classList.remove('hidden');
+                if (createBtn) createBtn.disabled = true;
+                document.getElementById('userInfoCard').classList.remove('hidden');
+                return;
+            }
+
+            if (data.isStaff) {
+                roleBadge.textContent = 'Nhân viên';
+                roleBadge.className = 'shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ring-1 ring-slate-200 bg-blue-50 text-blue-700';
+                cardTypeDisplay.textContent = 'Thẻ nhân viên';
+                cardTypeInput.value = 'Staff';
+                cardTypeField.classList.remove('hidden');
+            } else {
+                roleBadge.textContent = 'Cư dân';
+                roleBadge.className = 'shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ring-1 ring-slate-200 bg-emerald-50 text-emerald-700';
+                cardTypeDisplay.textContent = 'Thẻ căn hộ';
+                cardTypeInput.value = 'Resident';
+                cardTypeField.classList.remove('hidden');
+
+                if (!data.hasApartments) {
+                    noAptWarning.classList.remove('hidden');
+                    if (createBtn) createBtn.disabled = true;
+                } else {
+                    apartmentSection.classList.remove('hidden');
+                    await loadApartments(data.userId);
+                }
+            }
+
+            document.getElementById('userInfoCard').classList.remove('hidden');
+        }
+
+        async function loadApartments(userId) {
+            var aptSelect = document.getElementById('ApartmentId');
+            aptSelect.innerHTML = '<option value="">-- Chọn căn hộ --</option>';
+
+            var response = await fetch(`/BQL_Manager/Cards/Create?handler=LookupApartments&userId=${userId}`);
+            var apartments = await response.json();
+
+            apartments.forEach(function(apt) {
+                var opt = document.createElement('option');
+                opt.value = apt.apartmentId;
+                opt.textContent = apt.display;
+                aptSelect.appendChild(opt);
+            });
+        }
+
+        document.getElementById('searchUsernameInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchUser();
+            }
+        });
+
+        function hideUserCard() {
+            document.getElementById('userInfoCard').classList.add('hidden');
+            document.getElementById('ResidentId').value = '';
+            document.getElementById('CardType').value = '';
+        }
+    </script>
+}
