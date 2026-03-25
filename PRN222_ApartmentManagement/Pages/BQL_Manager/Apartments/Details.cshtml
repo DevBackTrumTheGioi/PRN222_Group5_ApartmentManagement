@@ -1,0 +1,328 @@
+@page
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Apartments.DetailsModel
+@{
+    ViewData["Title"] = "Chi tiết căn hộ";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = $"Căn hộ {Model.Apartment?.Apartment.ApartmentNumber}",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Manager", Href = "/BQL_Manager" },
+            new { Label = "Căn hộ", Href = "/BQL_Manager/Apartments" },
+            new { Label = Model.Apartment?.Apartment.ApartmentNumber ?? "", Href = "#" }
+        }
+    };
+}
+
+@if (Model.Apartment == null)
+{
+    <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        Không tìm thấy căn hộ.
+    </div>
+    return;
+}
+
+@* ===== MESSAGES ===== *@
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2 mb-4">
+        <span class="material-icons text-base">error</span>
+        @Model.ErrorMessage
+    </div>
+}
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 flex items-center gap-2 mb-4">
+        <span class="material-icons text-base">check_circle</span>
+        @Model.StatusMessage
+    </div>
+}
+
+<div class="space-y-6">
+
+    @* ===== HEADER CARD ===== *@
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex items-start justify-between flex-wrap gap-4">
+        <div class="flex items-start gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shrink-0">
+                <span class="material-icons text-3xl">apartment</span>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-slate-900">Căn @Model.Apartment.Apartment.ApartmentNumber</h1>
+                <p class="text-sm text-slate-500 mt-0.5">
+                    Block @(string.IsNullOrWhiteSpace(Model.Apartment.Apartment.BuildingBlock) ? "—" : Model.Apartment.Apartment.BuildingBlock)
+                    &nbsp;&bull;&nbsp;
+                    Tầng @Model.Apartment.Apartment.Floor
+                    &nbsp;&bull;&nbsp;
+                    @(Model.Apartment.Apartment.Area.HasValue ? $"{Model.Apartment.Apartment.Area:0.##} m²" : "—")
+                </p>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @Model.ApartmentStatusCss(Model.Apartment.Apartment.Status)">
+                        @Model.ApartmentStatusLabel(Model.Apartment.Apartment.Status)
+                    </span>
+                    @if (!string.IsNullOrWhiteSpace(Model.Apartment.Apartment.ApartmentType))
+                    {
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 ring-1 ring-slate-200">
+                            @Model.Apartment.Apartment.ApartmentType
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="flex gap-2 flex-wrap shrink-0">
+            <a asp-page="Edit" asp-route-id="@Model.Apartment.Apartment.ApartmentId"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                <span class="material-icons text-base">edit</span>
+                Sửa
+            </a>
+            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Apartment.Apartment.ApartmentId"
+                  onsubmit="return confirm('Xác nhận xóa căn hộ này?');">
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100 transition-colors">
+                    <span class="material-icons text-base">delete</span>
+                    Xóa
+                </button>
+            </form>
+        </div>
+    </div>
+
+    @* ===== TWO COLUMN: LEFT (INFO + HISTORY) / RIGHT (STATS) ===== *@
+    <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+
+        @* ===== LEFT: INFO + HISTORY (3/5) ===== *@
+        <div class="xl:col-span-3 space-y-6">
+
+            @* Info *@
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Thông tin căn hộ</h3>
+                <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium uppercase">Số căn hộ</p>
+                        <p class="text-sm font-semibold text-slate-900 mt-0.5">@Model.Apartment.Apartment.ApartmentNumber</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium uppercase">Block</p>
+                        <p class="text-sm font-semibold text-slate-900 mt-0.5">@(string.IsNullOrWhiteSpace(Model.Apartment.Apartment.BuildingBlock) ? "—" : Model.Apartment.Apartment.BuildingBlock)</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium uppercase">Tầng</p>
+                        <p class="text-sm font-semibold text-slate-900 mt-0.5">@Model.Apartment.Apartment.Floor</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium uppercase">Diện tích</p>
+                        <p class="text-sm font-semibold text-slate-900 mt-0.5">@(Model.Apartment.Apartment.Area.HasValue ? $"{Model.Apartment.Apartment.Area:0.##} m²" : "—")</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium uppercase">Loại</p>
+                        <p class="text-sm font-semibold text-slate-900 mt-0.5">@(string.IsNullOrWhiteSpace(Model.Apartment.Apartment.ApartmentType) ? "—" : Model.Apartment.Apartment.ApartmentType)</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium uppercase">Trạng thái</p>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-0.5 @Model.ApartmentStatusCss(Model.Apartment.Apartment.Status)">
+                            @Model.ApartmentStatusLabel(Model.Apartment.Apartment.Status)
+                        </span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.Apartment.Apartment.Description))
+                    {
+                        <div class="col-span-2">
+                            <p class="text-xs text-slate-400 font-medium uppercase">Mô tả</p>
+                            <p class="text-sm text-slate-700 mt-0.5">@Model.Apartment.Apartment.Description</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Resident History *@
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-900">Cư dân</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">@Model.Apartment.TotalResidents người từng ở</p>
+                    </div>
+                    <span class="material-icons text-slate-300">people</span>
+                </div>
+                @if (Model.Apartment.ResidentHistory.Any())
+                {
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-slate-500">
+                                <tr>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">Cư dân</th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">Loại</th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">Ngày vào</th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">Ngày ra</th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">HĐ</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach (var item in Model.Apartment.ResidentHistory)
+                                {
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="px-5 py-3.5">
+                                            <div class="flex items-center gap-2">
+                                                <p class="font-medium text-slate-900">@item.FullName</p>
+                                                @if (item.IsActive)
+                                                {
+                                                    <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200">
+                                                        Hiện tại
+                                                    </span>
+                                                }
+                                            </div>
+                                            <p class="text-xs text-slate-400">@(string.IsNullOrWhiteSpace(item.PhoneNumber) ? "—" : item.PhoneNumber)</p>
+                                        </td>
+                                        <td class="px-5 py-3.5">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium @item.GetTypeBgCss">
+                                                @item.ResidencyTypeName
+                                            </span>
+                                        </td>
+                                        <td class="px-5 py-3.5 text-slate-600">@(item.MoveInDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                        <td class="px-5 py-3.5 text-slate-600">@(item.MoveOutDate?.ToString("dd/MM/yyyy") ?? (item.IsActive ? "—" : "—"))</td>
+                                        <td class="px-5 py-3.5 text-slate-600">@(string.IsNullOrWhiteSpace(item.ContractNumber) ? "—" : item.ContractNumber)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="py-12 text-center">
+                        <span class="material-icons text-slate-200 text-4xl">people</span>
+                        <p class="mt-3 text-sm text-slate-500">Chưa có lịch sử cư trú</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* ===== RIGHT: STATS (2/5) ===== *@
+        <div class="xl:col-span-2 space-y-4">
+
+            @* Card stats *@
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Thống kê thẻ</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="rounded-xl bg-slate-50 p-4 text-center">
+                        <p class="text-2xl font-bold text-slate-900">@Model.Apartment.CardStats.Total</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Tổng thẻ</p>
+                    </div>
+                    <div class="rounded-xl bg-emerald-50 p-4 text-center">
+                        <p class="text-2xl font-bold text-emerald-700">@Model.Apartment.CardStats.Active</p>
+                        <p class="text-xs text-emerald-500 mt-0.5">Hoạt động</p>
+                    </div>
+                    <div class="rounded-xl bg-amber-50 p-4 text-center">
+                        <p class="text-2xl font-bold text-amber-700">@Model.Apartment.CardStats.Locked</p>
+                        <p class="text-xs text-amber-500 mt-0.5">Đã khóa</p>
+                    </div>
+                    <div class="rounded-xl bg-red-50 p-4 text-center">
+                        <p class="text-2xl font-bold text-red-700">@Model.Apartment.CardStats.Lost</p>
+                        <p class="text-xs text-red-500 mt-0.5">Mất</p>
+                    </div>
+                </div>
+                <div class="mt-3 rounded-xl bg-slate-50 p-4 text-center">
+                    <p class="text-2xl font-bold text-slate-700">@Model.Apartment.TotalResidents</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Cư dân từng ở</p>
+                </div>
+            </div>
+
+            @* Quick info *@
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Thông tin khác</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                        <span class="text-sm text-slate-500">Ngày tạo</span>
+                        <span class="text-sm font-medium text-slate-900">@Model.Apartment.Apartment.CreatedAt.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    @if (Model.Apartment.Apartment.UpdatedAt.HasValue)
+                    {
+                        <div class="flex items-center justify-between py-2">
+                            <span class="text-sm text-slate-500">Cập nhật lần cuối</span>
+                            <span class="text-sm font-medium text-slate-900">@Model.Apartment.Apartment.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    @* ===== CARDS FULL WIDTH ===== *@
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+            <div>
+                <h3 class="text-sm font-semibold text-slate-900">Thẻ căn hộ</h3>
+                <p class="text-xs text-slate-400 mt-0.5">@Model.Apartment.CardStats.Total thẻ gắn với căn hộ này</p>
+            </div>
+            <a asp-page="/BQL_Manager/Cards/Create"
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 transition-colors">
+                <span class="material-icons text-base">add</span>
+                Tạo thẻ mới
+            </a>
+        </div>
+
+        @if (Model.Apartment.ResidentCards.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-500">
+                        <tr>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">Mã thẻ</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">Loại</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">Người sở hữu</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">Trạng thái</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">Ngày cấp</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide">Hết hạn</th>
+                            <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var card in Model.Apartment.ResidentCards)
+                        {
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-5 py-3.5">
+                                    <p class="font-semibold text-slate-900">@card.CardNumber</p>
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium @Model.CardTypeCss(card.CardType)">
+                                        @Model.CardTypeLabel(card.CardType)
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <p class="font-medium text-slate-900">@card.Resident?.FullName</p>
+                                    <p class="text-xs text-slate-400">@(string.IsNullOrWhiteSpace(card.Resident?.PhoneNumber) ? "—" : card.Resident.PhoneNumber)</p>
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium @Model.CardStatusCss(card.Status)">
+                                        @Model.CardStatusLabel(card.Status)
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3.5 text-slate-600">@card.IssuedDate.ToString("dd/MM/yyyy")</td>
+                                <td class="px-5 py-3.5 text-slate-600">@(card.ExpiryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                <td class="px-5 py-3.5 text-right">
+                                    <a asp-page="/BQL_Manager/Cards/Details" asp-route-id="@card.ResidentCardId"
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-medium transition-colors">
+                                        <span class="material-icons text-base">visibility</span>
+                                        Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="py-14 text-center">
+                <span class="material-icons text-slate-200 text-5xl">badge</span>
+                <p class="mt-4 text-sm text-slate-500 font-medium">Chưa có thẻ nào</p>
+                <p class="mt-1 text-xs text-slate-400">Tạo thẻ mới để quản lý ra vào cho căn hộ này.</p>
+                <a asp-page="/BQL_Manager/Cards/Create" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors">
+                    <span class="material-icons text-base">add</span>
+                    Tạo thẻ mới
+                </a>
+            </div>
+        }
+    </div>
+
+</div>

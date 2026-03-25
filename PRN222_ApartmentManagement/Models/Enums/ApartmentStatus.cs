@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PRN222_ApartmentManagement.Models.Enums;
 
@@ -13,10 +13,6 @@ public enum ApartmentStatus
     [Display(Name = "Đã đặt")]
     Reserved,
 
-    [Display(Name = "Đang sửa chữa")]
-    Maintenance,
-
-    [Display(Name = "Đang bàn giao")]
-    Handover
+    [Display(Name = "Bảo trì")]
+    Maintenance
 }
-

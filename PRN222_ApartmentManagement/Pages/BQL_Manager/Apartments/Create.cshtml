@@ -1,0 +1,130 @@
+@page
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Apartments.CreateModel
+@{
+    ViewData["Title"] = "Thêm căn hộ mới";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Thêm căn hộ mới",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Manager", Href = "/BQL_Manager" },
+            new { Label = "Căn hộ", Href = "/BQL_Manager/Apartments" },
+            new { Label = "Thêm mới", Href = "#" }
+        }
+    };
+}
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+    <div class="flex items-center gap-2 mb-2">
+        <a asp-page="./Index" class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+            <span class="material-icons text-lg mr-1">arrow_back</span>
+            Quay lại danh sách
+        </a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+            <span class="material-icons text-base">error</span>
+            @Model.ErrorMessage
+        </div>
+    }
+
+    <form method="post" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+
+        <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <span class="material-icons">apartment</span>
+            </div>
+            <div>
+                <h2 class="text-base font-semibold text-slate-900">Thông tin căn hộ</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Nhập thông tin căn hộ mới</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label for="ApartmentNumber" class="block text-sm font-medium text-slate-700 mb-1.5">
+                    Số căn hộ <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="ApartmentNumber" name="Input.ApartmentNumber" value="@Model.Input.ApartmentNumber"
+                       placeholder="VD: A101"
+                       class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 @(ViewData.ModelState["Input.ApartmentNumber"]?.Errors.Count > 0 ? "border-red-400" : "")"
+                       required maxlength="20" />
+                @if (ViewData.ModelState["Input.ApartmentNumber"]?.Errors.Count > 0)
+                {
+                    <p class="mt-1 text-xs text-red-500">@ViewData.ModelState["Input.ApartmentNumber"]?.Errors[0].ErrorMessage</p>
+                }
+            </div>
+
+            <div>
+                <label for="Floor" class="block text-sm font-medium text-slate-700 mb-1.5">
+                    Tầng <span class="text-red-500">*</span>
+                </label>
+                <input type="number" id="Floor" name="Input.Floor" value="@Model.Input.Floor"
+                       placeholder="VD: 1"
+                       class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 @(ViewData.ModelState["Input.Floor"]?.Errors.Count > 0 ? "border-red-400" : "")"
+                       required min="1" />
+            </div>
+
+            <div>
+                <label for="BuildingBlock" class="block text-sm font-medium text-slate-700 mb-1.5">
+                    Block
+                </label>
+                <input type="text" id="BuildingBlock" name="Input.BuildingBlock" value="@Model.Input.BuildingBlock"
+                       placeholder="VD: A, B, C"
+                       class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                       maxlength="10" />
+            </div>
+
+            <div>
+                <label for="Area" class="block text-sm font-medium text-slate-700 mb-1.5">
+                    Diện tích (m²)
+                </label>
+                <input type="number" id="Area" name="Input.Area" value="@(Model.Input.Area.HasValue ? Model.Input.Area.Value.ToString() : "")"
+                       placeholder="VD: 75.5"
+                       class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                       step="0.01" min="0" />
+            </div>
+
+            <div>
+                <label for="ApartmentType" class="block text-sm font-medium text-slate-700 mb-1.5">
+                    Loại căn hộ
+                </label>
+                <select id="ApartmentType" name="Input.ApartmentType"
+                        class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">-- Chọn loại --</option>
+                    <option value="Studio" selected="@(Model.Input.ApartmentType == "Studio")">Studio</option>
+                    <option value="1 Phòng ngủ" selected="@(Model.Input.ApartmentType == "1 Phòng ngủ")">1 Phòng ngủ</option>
+                    <option value="2 Phòng ngủ" selected="@(Model.Input.ApartmentType == "2 Phòng ngủ")">2 Phòng ngủ</option>
+                    <option value="3 Phòng ngủ" selected="@(Model.Input.ApartmentType == "3 Phòng ngủ")">3 Phòng ngủ</option>
+                    <option value="Penthouse" selected="@(Model.Input.ApartmentType == "Penthouse")">Penthouse</option>
+                    <option value="Căn hộ thương mại" selected="@(Model.Input.ApartmentType == "Căn hộ thương mại")">Căn hộ thương mại</option>
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <label for="Description" class="block text-sm font-medium text-slate-700 mb-1.5">
+                Mô tả
+            </label>
+            <textarea id="Description" name="Input.Description" rows="3"
+                      placeholder="Mô tả thêm về căn hộ..."
+                      class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none">@Model.Input.Description</textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <a asp-page="./Index" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                <span class="material-icons text-base">close</span>
+                Hủy
+            </a>
+            <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors">
+                <span class="material-icons text-base">add</span>
+                Tạo căn hộ
+            </button>
+        </div>
+    </form>
+</div>

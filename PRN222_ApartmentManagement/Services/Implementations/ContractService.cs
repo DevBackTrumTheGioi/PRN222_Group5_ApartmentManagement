@@ -112,6 +112,15 @@ public class ContractService : IContractService
         await _contractRepository.AddAsync(contract);
         await _dbContext.SaveChangesAsync();
 
+        // Khi tao hop dong (Draft), chuyen trang thai chung cu sang Da dat
+        var apartment = await _dbContext.Apartments.FindAsync(dto.ApartmentId);
+        if (apartment != null)
+        {
+            apartment.Status = ApartmentStatus.Reserved;
+            apartment.UpdatedAt = DateTime.Now;
+            await _dbContext.SaveChangesAsync();
+        }
+
         await _activityLogService.LogCustomAsync(
             "CreateContract",
             nameof(Contract),
@@ -223,11 +232,20 @@ public class ContractService : IContractService
 
             await _dbContext.SaveChangesAsync();
 
-            // Chuyen trang thai sang Active
+            // Chuyen trang thai hop dong sang Active
             contract.Status = ContractStatus.Active;
             contract.SignedDate = DateTime.Now;
             contract.UpdatedAt = DateTime.Now;
             await _contractRepository.UpdateAsync(contract);
+
+            // Chuyen trang thai chung cu sang Occupied khi hop dong co hieu luc
+            var apt = await _dbContext.Apartments.FindAsync(contract.ApartmentId);
+            if (apt != null)
+            {
+                apt.Status = ApartmentStatus.Occupied;
+                apt.UpdatedAt = DateTime.Now;
+                await _dbContext.SaveChangesAsync();
+            }
 
             await _dbContext.Database.CommitTransactionAsync();
 
@@ -351,6 +369,20 @@ public class ContractService : IContractService
             contract.ContractId.ToString(),
             $"Ket thuc hop dong {contract.ContractNumber}. Ly do: {reason}. Nguoi thuc hien: {terminatedBy}");
 
+        // Sau khi ket thuc, kiem tra con ResidentApartment active nao cho apartment nay khong
+        var stillHasActive = await _dbContext.ResidentApartments
+            .AnyAsync(ra => ra.ApartmentId == contract.ApartmentId && ra.IsActive);
+        if (!stillHasActive)
+        {
+            var apt = await _dbContext.Apartments.FindAsync(contract.ApartmentId);
+            if (apt != null)
+            {
+                apt.Status = ApartmentStatus.Available;
+                apt.UpdatedAt = DateTime.Now;
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+
         return (true, $"Da ket thuc hop dong {contract.ContractNumber} thanh cong.");
     }
 
@@ -362,6 +394,15 @@ public class ContractService : IContractService
 
         if (contract.Status != ContractStatus.Draft)
             return (false, "Chỉ có thể xóa hợp đồng ở trạng thái bản nháp");
+
+        // Tra trang thai chung cu ve Available khi xoa hop dong Draft
+        var apt = await _dbContext.Apartments.FindAsync(contract.ApartmentId);
+        if (apt != null)
+        {
+            apt.Status = ApartmentStatus.Available;
+            apt.UpdatedAt = DateTime.Now;
+            await _dbContext.SaveChangesAsync();
+        }
 
         contract.IsDeleted = true;
         contract.UpdatedAt = DateTime.Now;

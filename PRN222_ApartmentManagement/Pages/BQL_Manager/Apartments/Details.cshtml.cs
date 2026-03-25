@@ -1,24 +1,24 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Models.DTOs;
 using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Services.Interfaces;
 
-namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Cards;
+namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Apartments;
 
 [Authorize(Policy = "AdminAndBQLManager")]
 public class DetailsModel : PageModel
 {
-    private readonly IResidentCardService _residentCardService;
+    private readonly IApartmentService _apartmentService;
 
-    public DetailsModel(IResidentCardService residentCardService)
+    public DetailsModel(IApartmentService apartmentService)
     {
-        _residentCardService = residentCardService;
+        _apartmentService = apartmentService;
     }
 
-    public ResidentCard? Card { get; set; }
+    public ApartmentDetailDto? Apartment { get; set; }
 
     [TempData]
     public string? StatusMessage { get; set; }
@@ -29,53 +29,46 @@ public class DetailsModel : PageModel
     public async Task<IActionResult> OnGetAsync(int id)
     {
         TempData.Remove("StatusMessage");
-        Card = await _residentCardService.GetByIdWithDetailsAsync(id);
+        Apartment = await _apartmentService.GetDetailAsync(id);
 
-        if (Card == null)
+        if (Apartment == null)
         {
-            StatusMessage = "Không tìm thấy thẻ.";
+            StatusMessage = "Không tìm thấy căn hộ.";
             return RedirectToPage("Index");
         }
 
         return Page();
     }
 
-    public async Task<IActionResult> OnPostUpdateStatusAsync(int id, CardStatus status)
-    {
-        Card = await _residentCardService.GetByIdWithDetailsAsync(id);
-
-        if (Card == null)
-        {
-            StatusMessage = "Không tìm thấy thẻ.";
-            return RedirectToPage("Index");
-        }
-
-        var (success, message) = await _residentCardService.UpdateStatusAsync(id, status);
-        if (!success)
-        {
-            ErrorMessage = message;
-        }
-        else
-        {
-            StatusMessage = message;
-        }
-
-        return await OnGetAsync(id);
-    }
-
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
-        var (success, message) = await _residentCardService.DeleteAsync(id);
+        var (success, message) = await _apartmentService.DeleteAsync(id);
         if (success)
         {
             StatusMessage = message;
             return RedirectToPage("Index");
         }
 
-        Card = await _residentCardService.GetByIdWithDetailsAsync(id);
+        Apartment = await _apartmentService.GetDetailAsync(id);
         ErrorMessage = message;
         return Page();
     }
+
+    public string ApartmentStatusCss(ApartmentStatus status) => status switch
+    {
+        ApartmentStatus.Available => "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+        ApartmentStatus.Occupied => "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+        ApartmentStatus.Reserved => "bg-violet-50 text-violet-700 ring-1 ring-violet-200",
+        _ => "bg-slate-100 text-slate-700 ring-1 ring-slate-200"
+    };
+
+    public string ApartmentStatusLabel(ApartmentStatus status) => status switch
+    {
+        ApartmentStatus.Available => "Trống",
+        ApartmentStatus.Occupied => "Đang ở",
+        ApartmentStatus.Reserved => "Đã đặt",
+        _ => "—"
+    };
 
     public string CardStatusCss(CardStatus status) => status switch
     {
