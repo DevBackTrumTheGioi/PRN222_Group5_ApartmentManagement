@@ -342,4 +342,28 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const requestId = @Model.Request.RequestId;
+
+            function getRefType(notification) {
+                return notification?.referenceType ?? notification?.ReferenceType;
+            }
+
+            function getRefId(notification) {
+                return Number(notification?.referenceId ?? notification?.ReferenceId ?? 0);
+            }
+
+            window.addEventListener('app:notification-received', function (event) {
+                const notification = event.detail;
+                const refType = getRefType(notification);
+                const refId = getRefId(notification);
+
+                if (String(refType).toLowerCase() !== 'request') return;
+                if (refId !== requestId) return;
+
+                window.location.reload();
+            });
+        })();
+    </script>
 }

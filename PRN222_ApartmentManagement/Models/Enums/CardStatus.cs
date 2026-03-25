@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PRN222_ApartmentManagement.Models.Enums;
 
@@ -14,9 +14,6 @@ public enum CardStatus
     Lost,
 
     [Display(Name = "Hết hạn")]
-    Expired,
-
-    [Display(Name = "Đã thu hồi")]
-    Revoked
+    Expired
 }
 

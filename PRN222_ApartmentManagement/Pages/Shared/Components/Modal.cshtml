@@ -1,11 +1,17 @@
-﻿@{
-    var variant = ViewBag.Variant ?? "info"; // info, success, warning, error
+@{
+    var variant = ViewBag.Variant ?? "info";
     var title = ViewBag.Title ?? "";
     var message = ViewBag.Message ?? "";
     var icon = ViewBag.Icon ?? "";
+    var confirmText = ViewBag.ConfirmText ?? "Xác nhận";
+    var confirmCss = ViewBag.ConfirmCss ?? "";
+    var formAction = ViewBag.FormAction ?? "";
+    var formMethod = ViewBag.FormMethod ?? "post";
+    var cardId = ViewBag.CardId ?? 0;
+    var targetStatus = ViewBag.TargetStatus ?? "";
 }
 
-<div class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" id="modalOverlay">
+<div class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" id="modalOverlay" onclick="if(event.target===this){document.getElementById('modalOverlay').remove();}">
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full mx-4">
         <div class="p-6">
             @if (!string.IsNullOrEmpty(icon) || !string.IsNullOrEmpty(title))
@@ -27,7 +33,7 @@
                             })">@icon</span>
                         </div>
                     }
-                    
+
                     <div class="flex-1">
                         @if (!string.IsNullOrEmpty(title))
                         {
@@ -36,22 +42,30 @@
                     </div>
                 </div>
             }
-            
+
             <div class="mb-6 text-slate-700 dark:text-slate-300 text-sm" id="modalBody">
                 @if (!string.IsNullOrEmpty(message))
                 {
-                    @message
+                    @Html.Raw(message)
                 }
             </div>
         </div>
-        
+
         <div class="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-700 px-6 py-4 flex gap-3 justify-end rounded-b-xl">
             <button onclick="document.getElementById('modalOverlay').remove()" class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-sm font-medium">
-                Close
+                Hủy
             </button>
-            <button class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors text-sm font-medium">
-                Confirm
-            </button>
+            @if (!string.IsNullOrEmpty(formAction))
+            {
+                <form method="@formMethod" action="@formAction" class="inline">
+                    <input type="hidden" name="id" value="@cardId" />
+                    <input type="hidden" name="status" value="@targetStatus" />
+                    <button type="submit"
+                            class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium @confirmCss">
+                        @confirmText
+                    </button>
+                </form>
+            }
         </div>
     </div>
 </div>

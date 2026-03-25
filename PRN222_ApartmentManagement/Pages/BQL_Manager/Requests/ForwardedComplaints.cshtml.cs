@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Services.Interfaces;
+using PRN222_ApartmentManagement.Utils;
 
 namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Requests;
 
@@ -12,10 +13,12 @@ namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Requests;
 public class ForwardedComplaintsModel : PageModel
 {
     private readonly IRequestService _requestService;
+    private readonly INotificationService _notificationService;
 
-    public ForwardedComplaintsModel(IRequestService requestService)
+    public ForwardedComplaintsModel(IRequestService requestService, INotificationService notificationService)
     {
         _requestService = requestService;
+        _notificationService = notificationService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -96,6 +99,16 @@ public class ForwardedComplaintsModel : PageModel
         try
         {
             await _requestService.UpdateStatusAsync(requestId, newStatus);
+
+            await _notificationService.CreateNotificationAsync(
+                request.ResidentId,
+                "Cập nhật trạng thái khiếu nại",
+                $"Khiếu nại {request.RequestNumber} đã được BQL cập nhật sang trạng thái: {newStatus.GetDisplayName()}.",
+                NotificationType.Request,
+                ReferenceType.Request,
+                request.RequestId,
+                newStatus == RequestStatus.Completed ? NotificationPriority.Normal : NotificationPriority.High);
+
             TempData["SuccessMessage"] = "Đã cập nhật trạng thái khiếu nại.";
         }
         catch (Exception ex)

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Services.Interfaces;
 using PRN222_ApartmentManagement.Utils;
 
@@ -53,21 +54,24 @@ public class LoginModel : PageModel
             {
                 AuthCookieHelper.SetAuthCookies(HttpContext, tokens);
 
-                if (string.IsNullOrEmpty(returnUrl) || returnUrl == "/" || returnUrl == Url.Content("~/"))
-                {
-                    return user.Role switch
-                    {
-                        Models.UserRole.Admin => RedirectToPage("/Admin/Index"),
-                        Models.UserRole.BQL_Manager => RedirectToPage("/BQL_Manager/Index"),
-                        Models.UserRole.BQL_Staff => RedirectToPage("/BQL_Staff/Index"),
-                        Models.UserRole.Resident => RedirectToPage("/Resident/Index"),
-                        Models.UserRole.BQT_Head => RedirectToPage("/BQT_Head/Index"),
-                        Models.UserRole.BQT_Member => RedirectToPage("/BQT_Member/Index"),
-                        _ => LocalRedirect(returnUrl ?? "~/")
-                    };
-                }
+                // if (string.IsNullOrEmpty(returnUrl) || returnUrl == "/" || returnUrl == Url.Content("~/"))
+                // {
+                //     return user.Role switch
+                //     {
+                //         UserRole.Admin => RedirectToPage("/Admin/Index"),
+                //         UserRole.BQL_Manager => RedirectToPage("/BQL_Manager/Index"),
+                //         UserRole.BQL_Staff => RedirectToPage("/BQL_Staff/Index"),
+                //         UserRole.Resident => RedirectToPage("/Resident/Index"),
+                //         UserRole.BQT_Head => RedirectToPage("/BQT_Head/Index"),
+                //         UserRole.BQT_Member => RedirectToPage("/BQT_Member/Index"),
+                //         _ => LocalRedirect(returnUrl ?? "~/")
+                //     };
+                // }
+                //
+                // return LocalRedirect(returnUrl);
 
-                return LocalRedirect(returnUrl);
+                var targetUrl = ResolvePostLoginUrl(returnUrl, user.Role);
+                return LocalRedirect(targetUrl);
             }
 
             if (isInactiveAccount)
@@ -81,5 +85,67 @@ public class LoginModel : PageModel
         }
 
         return Page();
+    }
+
+    private string ResolvePostLoginUrl(string? returnUrl, UserRole? role)
+    {
+        var defaultUrl = GetDefaultUrlByRole(role);
+
+        if (string.IsNullOrWhiteSpace(returnUrl) || returnUrl == "/" || returnUrl == Url.Content("~/"))
+        {
+            return defaultUrl;
+        }
+
+        if (!Url.IsLocalUrl(returnUrl) || !IsReturnUrlAllowedByRole(returnUrl, role))
+        {
+            return defaultUrl;
+        }
+
+        return returnUrl;
+    }
+
+    private static string GetDefaultUrlByRole(UserRole? role)
+    {
+        return role switch
+        {
+            UserRole.Admin => "/Admin/Index",
+            UserRole.BQL_Manager => "/BQL_Manager/Index",
+            UserRole.BQL_Staff => "/BQL_Staff/Index",
+            UserRole.Resident => "/Resident/Index",
+            UserRole.BQT_Head => "/BQT_Head/Index",
+            UserRole.BQT_Member => "/BQT_Member/Index",
+            _ => "/"
+        };
+    }
+
+    private static bool IsReturnUrlAllowedByRole(string returnUrl, UserRole? role)
+    {
+        var path = returnUrl.Split('?', '#')[0];
+
+        if (path.StartsWith("/Admin", StringComparison.OrdinalIgnoreCase))
+            return role == UserRole.Admin;
+
+        if (path.StartsWith("/BQL_Manager", StringComparison.OrdinalIgnoreCase))
+            return role == UserRole.BQL_Manager;
+
+        if (path.StartsWith("/BQL_Staff", StringComparison.OrdinalIgnoreCase))
+            return role == UserRole.BQL_Staff;
+
+        if (path.StartsWith("/Resident", StringComparison.OrdinalIgnoreCase))
+            return role == UserRole.Resident;
+
+        if (path.StartsWith("/BQT_Head", StringComparison.OrdinalIgnoreCase))
+            return role == UserRole.BQT_Head;
+
+        if (path.StartsWith("/BQT_Member", StringComparison.OrdinalIgnoreCase))
+            return role == UserRole.BQT_Member;
+
+        if (path.StartsWith("/Announcements/Create", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/Announcements/Edit", StringComparison.OrdinalIgnoreCase))
+        {
+            return role is UserRole.BQL_Manager or UserRole.BQT_Head;
+        }
+
+        return true;
     }
 }

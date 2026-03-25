@@ -1,0 +1,165 @@
+@page "{id:int}"
+@using PRN222_ApartmentManagement.Models
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Cards.EditModel
+@{
+    ViewData["Title"] = "Sửa thẻ căn hộ";
+    ViewData["CurrentPage"] = "residentcards";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Sửa thẻ căn hộ",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Manager", Href = "/BQL_Manager" },
+            new { Label = "Thẻ căn hộ", Href = "/BQL_Manager/Cards" },
+            new { Label = Model.Card?.CardNumber ?? "Sửa", Href = "#" }
+        }
+    };
+}
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center gap-2 mb-2">
+        <a asp-page="./Details" asp-route-id="@Model.Card?.ResidentCardId"
+           class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+            <span class="material-icons text-lg mr-1">arrow_back</span>
+            Quay lại chi tiết
+        </a>
+    </div>
+
+    @* ===== THONG BAO NEU THE MAT ===== *@
+    @if (Model.Card?.Status == CardStatus.Lost)
+    {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+            <span class="material-icons text-base">report</span>
+            Thẻ đang ở trạng thái <strong>Mất</strong>. Không thể chỉnh sửa thông tin.
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+            <span class="material-icons text-base">error</span>
+            @Model.ErrorMessage
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+    {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 flex items-center gap-2">
+            <span class="material-icons text-base">check_circle</span>
+            @Model.SuccessMessage
+        </div>
+    }
+
+    @if (Model.Card != null)
+    {
+        <form method="post" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 space-y-6">
+
+                @* ===== THONG TIN THE (readonly) ===== *@
+                <div>
+                    <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Thông tin thẻ</h3>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Mã thẻ</label>
+                            <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-500">
+                                @Model.Card.CardNumber
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Trạng thái</label>
+                            <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @Model.CardStatusCss(Model.Card.Status)">
+                                    @Model.CardStatusLabel(Model.Card.Status)
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Cư dân</label>
+                            <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 truncate">
+                                @Model.Card.Resident?.FullName
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Căn hộ</label>
+                            <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+                                @if (Model.Card.Apartment != null)
+                                {
+                                    <span>Căn @Model.Card.Apartment.ApartmentNumber</span>
+                                    @if (!string.IsNullOrWhiteSpace(Model.Card.Apartment.BuildingBlock))
+                                    {
+                                        <span class="text-slate-400">, Block @Model.Card.Apartment.BuildingBlock</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-slate-400">Không gắn căn hộ</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Ngày cấp</label>
+                            <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+                                @Model.Card.IssuedDate.ToString("dd/MM/yyyy")
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Loại thẻ</label>
+                            <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @Model.CardTypeCss(Model.Card.CardType)">
+                                    @Model.CardTypeLabel(Model.Card.CardType)
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                @* ===== THONG TIN CO THE SUA ===== *@
+                @if (Model.Card.Status != CardStatus.Lost)
+                {
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Thông tin có thể sửa</h3>
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-slate-700">Ngày hết hạn</label>
+                                <input type="date" asp-for="Input.ExpiryDate"
+                                       class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                            </div>
+
+                        </div>
+                    </div>
+
+                    @* ===== GHI CHU ===== *@
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Ghi chú</h3>
+                        <textarea asp-for="Input.Notes" rows="3" placeholder="Thông tin bổ sung (nếu có)..."
+                                  class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                    </div>
+                }
+            </div>
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                <a asp-page="./Details" asp-route-id="@Model.Card.ResidentCardId"
+                   class="px-5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                    Hủy
+                </a>
+                @if (Model.Card.Status != CardStatus.Lost)
+                {
+                    <button type="submit"
+                            class="px-5 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+                        Lưu thay đổi
+                    </button>
+                }
+            </div>
+        </form>
+    }
+</div>

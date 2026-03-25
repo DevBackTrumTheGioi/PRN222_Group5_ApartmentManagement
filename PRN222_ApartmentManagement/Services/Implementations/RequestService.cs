@@ -4,6 +4,7 @@ using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Repositories.Interfaces;
 using PRN222_ApartmentManagement.Services.Interfaces;
+using PRN222_ApartmentManagement.Utils;
 
 namespace PRN222_ApartmentManagement.Services.Implementations;
 
@@ -13,17 +14,20 @@ public class RequestService : IRequestService
     private readonly IRequestAttachmentRepository _attachmentRepository;
     private readonly IWebHostEnvironment _environment;
     private readonly ApartmentDbContext _context;
+    private readonly INotificationService _notificationService;
 
     public RequestService(
         IRequestRepository requestRepository,
         IRequestAttachmentRepository attachmentRepository,
         IWebHostEnvironment environment,
-        ApartmentDbContext context)
+        ApartmentDbContext context,
+        INotificationService notificationService)
     {
         _requestRepository = requestRepository;
         _attachmentRepository = attachmentRepository;
         _environment = environment;
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<IEnumerable<Request>> GetMyRequestsAsync(int residentId)
@@ -91,6 +95,14 @@ public class RequestService : IRequestService
         {
             await transaction.RollbackAsync();
             throw;
+        }
+
+        try
+        {
+            await NotifyOnRequestCreatedAsync(request);
+        }
+        catch
+        {
         }
 
         return request;
@@ -252,6 +264,53 @@ public class RequestService : IRequestService
     {
         var all = await _requestRepository.GetAllWithDetailsAsync();
         return all.Where(r => r.EscalatedAt.HasValue && r.RequestType != RequestType.Complaint);
+    }
+
+    private async Task NotifyOnRequestCreatedAsync(Request request)
+    {
+        var recipientRole = request.RequestType == RequestType.Complaint
+            ? UserRole.BQT_Head
+            : UserRole.BQL_Manager;
+
+        var recipientIds = await _context.Users
+            .Where(u => u.Role == recipientRole && u.IsActive && !u.IsDeleted)
+            .Select(u => u.UserId)
+            .ToListAsync();
+
+        if (recipientIds.Count == 0)
+        {
+            return;
+        }
+
+        var requestTypeDisplay = request.RequestType.HasValue
+            ? request.RequestType.Value.GetDisplayName()
+            : "Khác";
+
+        var (title, content) = NotificationUtils.CreateRequestNotification(
+            request.RequestNumber,
+            requestTypeDisplay,
+            request.Title);
+
+        await _notificationService.CreateBulkNotificationsAsync(
+            recipientIds,
+            title,
+            content,
+            NotificationType.Request,
+            ReferenceType.Request,
+            request.RequestId,
+            MapNotificationPriority(request.Priority));
+    }
+
+    private static NotificationPriority MapNotificationPriority(RequestPriority priority)
+    {
+        return priority switch
+        {
+            RequestPriority.Emergency => NotificationPriority.Critical,
+            RequestPriority.High => NotificationPriority.High,
+            RequestPriority.Normal => NotificationPriority.Normal,
+            RequestPriority.Low => NotificationPriority.Low,
+            _ => NotificationPriority.Normal
+        };
     }
 
     /// <summary>

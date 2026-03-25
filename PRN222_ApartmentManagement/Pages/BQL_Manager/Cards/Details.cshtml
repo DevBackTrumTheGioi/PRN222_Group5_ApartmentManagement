@@ -1,0 +1,390 @@
+@page "{id:int}"
+@using PRN222_ApartmentManagement.Models
+@using PRN222_ApartmentManagement.Models.Enums
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Cards.DetailsModel
+@{
+    ViewData["Title"] = "Chi tiết thẻ căn hộ";
+    ViewData["CurrentPage"] = "residentcards";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Chi tiết thẻ căn hộ",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Manager", Href = "/BQL_Manager" },
+            new { Label = "Thẻ căn hộ", Href = "/BQL_Manager/Cards" },
+            new { Label = Model.Card?.CardNumber ?? "Chi tiết", Href = "#" }
+        }
+    };
+}
+
+<div class="space-y-6">
+
+    @* ===== STATUS MESSAGE ===== *@
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 flex items-center gap-2">
+            <span class="material-icons text-base">check_circle</span>
+            @Model.StatusMessage
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+            <span class="material-icons text-base">error</span>
+            @Model.ErrorMessage
+        </div>
+    }
+
+    @if (Model.Card == null)
+    {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+            <span class="material-icons text-base">error</span>
+            Không tìm thấy thẻ.
+        </div>
+        return;
+    }
+
+    @* ===== HERO HEADER ===== *@
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-4">
+                <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-400 to-violet-600 text-white shadow-md border border-violet-100 shrink-0">
+                    <span class="material-icons text-3xl">badge</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-2xl font-bold text-slate-900">@Model.Card.CardNumber</h1>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ring-1 ring-slate-200 @Model.CardTypeCss(Model.Card.CardType)">
+                            @Model.CardTypeLabel(Model.Card.CardType)
+                        </span>
+                        <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-slate-200 @Model.CardStatusCss(Model.Card.Status)">
+                            <span class="h-1.5 w-1.5 rounded-full @(Model.Card.Status == CardStatus.Active ? "bg-emerald-500" : "bg-slate-400")"></span>
+                            @Model.CardStatusLabel(Model.Card.Status)
+                        </span>
+                    </div>
+                    <p class="mt-1 text-sm text-slate-500">
+                        Ngày cấp: @Model.Card.IssuedDate.ToString("dd/MM/yyyy")
+                        @(Model.Card.ExpiryDate.HasValue ? $" · Hết hạn: {Model.Card.ExpiryDate.Value.ToString("dd/MM/yyyy")}" : "")
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex gap-2 flex-wrap shrink-0">
+                @if (Model.Card.Status != CardStatus.Lost)
+                {
+                    <a asp-page="Edit" asp-route-id="@Model.Card.ResidentCardId"
+                       class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+                        <span class="material-icons text-base">edit</span>
+                        Sửa
+                    </a>
+                }
+                <a asp-page="Index"
+                   class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+                    <span class="material-icons text-base">arrow_back</span>
+                    Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @* ===== MAIN TWO COLUMNS ===== *@
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
+
+        @* ===== LEFT COLUMN (2/5): Thong tin the + Cu dan ===== *@
+        <div class="lg:col-span-2 space-y-5">
+
+            @* Thong tin the *@
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-3">Thông tin thẻ</h3>
+                <dl class="space-y-2">
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
+                        <span class="material-icons text-emerald-400 text-lg shrink-0">badge</span>
+                        <div class="min-w-0">
+                            <p class="text-xs text-slate-400">Mã thẻ</p>
+                            <p class="font-bold text-slate-900">@Model.Card.CardNumber</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="material-icons text-slate-400 text-lg shrink-0">category</span>
+                        <div class="min-w-0">
+                            <p class="text-xs text-slate-400">Loại thẻ</p>
+                            <p class="font-semibold text-slate-900">@Model.CardTypeLabel(Model.Card.CardType)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="material-icons text-slate-400 text-lg shrink-0">calendar_today</span>
+                        <div class="min-w-0">
+                            <p class="text-xs text-slate-400">Ngày cấp</p>
+                            <p class="font-semibold text-slate-900">@Model.Card.IssuedDate.ToString("dd/MM/yyyy")</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="material-icons text-slate-400 text-lg shrink-0">event</span>
+                        <div class="min-w-0">
+                            <p class="text-xs text-slate-400">Hết hạn</p>
+                            <p class="font-semibold @(Model.Card.ExpiryDate.HasValue && Model.Card.ExpiryDate < DateTime.Today ? "text-red-600" : "text-slate-900")">
+                                @(Model.Card.ExpiryDate?.ToString("dd/MM/yyyy") ?? "Không giới hạn")
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="material-icons text-slate-400 text-lg shrink-0">schedule</span>
+                        <div class="min-w-0">
+                            <p class="text-xs text-slate-400">Trạng thái</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium @Model.CardStatusCss(Model.Card.Status)">
+                                @Model.CardStatusLabel(Model.Card.Status)
+                            </span>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.Card.Notes))
+                    {
+                        <div class="flex items-start gap-3 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                            <span class="material-icons text-slate-400 text-lg shrink-0">notes</span>
+                            <div class="min-w-0">
+                                <p class="text-xs text-slate-400">Ghi chú</p>
+                                <p class="font-semibold text-slate-900">@Model.Card.Notes</p>
+                            </div>
+                        </div>
+                    }
+                </dl>
+            </div>
+
+            @* Cu dan *@
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-3">Cư dân</h3>
+                <dl class="space-y-2">
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="material-icons text-blue-400 text-lg shrink-0">person</span>
+                        <div class="min-w-0">
+                            <p class="text-xs text-slate-400">Họ tên</p>
+                            <p class="font-semibold text-slate-900">@(Model.Card.Resident?.FullName ?? "—")</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="material-icons text-slate-400 text-lg shrink-0">phone</span>
+                        <div class="min-w-0">
+                            <p class="text-xs text-slate-400">Điện thoại</p>
+                            <p class="font-semibold text-slate-900">@(Model.Card.Resident?.PhoneNumber ?? "—")</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="material-icons text-slate-400 text-lg shrink-0">badge</span>
+                        <div class="min-w-0">
+                            <p class="text-xs text-slate-400">CCCD</p>
+                            <p class="font-semibold text-slate-900">@(Model.Card.Resident?.IdentityCardNumber ?? "—")</p>
+                        </div>
+                    </div>
+                    @if (Model.Card.Resident != null)
+                    {
+                        <div class="mt-2">
+                            <a asp-page="/BQL_Manager/Residents/Details" asp-route-id="@Model.Card.Resident.UserId"
+                               class="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 font-medium">
+                                <span class="material-icons text-sm">open_in_new</span>
+                                Xem hồ sơ cư dân
+                            </a>
+                        </div>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        @* ===== RIGHT COLUMN (3/5): Can ho + Thao tac ===== *@
+        <div class="lg:col-span-3 space-y-5">
+
+            @* Can ho *@
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-3">Căn hộ</h3>
+                @if (Model.Card.Apartment != null)
+                {
+                    <dl class="space-y-2">
+                        <div class="flex items-center gap-3 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
+                            <span class="material-icons text-emerald-400 text-lg shrink-0">home</span>
+                            <div class="min-w-0">
+                                <p class="text-xs text-slate-400">Căn hộ</p>
+                                <p class="font-bold text-slate-900">
+                                    Căn @Model.Card.Apartment.ApartmentNumber
+                                    @if (!string.IsNullOrWhiteSpace(Model.Card.Apartment.BuildingBlock))
+                                    {
+                                        <span class="text-slate-500 font-normal">, Block @Model.Card.Apartment.BuildingBlock</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                                <p class="text-xs text-slate-400 mb-0.5">Tầng</p>
+                                <p class="font-semibold text-slate-900">@((Model.Card.Apartment.Floor.ToString()))</p>
+                            </div>
+                            @if (Model.Card.Apartment.Area.HasValue)
+                            {
+                                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                                    <p class="text-xs text-slate-400 mb-0.5">Diện tích</p>
+                                    <p class="font-semibold text-slate-900">@Model.Card.Apartment.Area.Value.ToString("N1") m²</p>
+                                </div>
+                            }
+                        </div>
+                    </dl>
+                }
+                else
+                {
+                    <div class="flex flex-col items-center justify-center py-6 text-center">
+                        <span class="material-icons text-slate-300 text-3xl mb-2">home_work</span>
+                        <p class="text-sm text-slate-500">Thẻ không gắn căn hộ</p>
+                        <p class="text-xs text-slate-400 mt-1">Dành cho khách hoặc nhân viên</p>
+                    </div>
+                }
+            </div>
+
+            @* THAO TAC: Khóa/Mở khóa + Xóa ===== *@
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-3">Thao tác thẻ</h3>
+
+                @if (!Model.Card.IsDeleted)
+                {
+                    <div class="flex flex-wrap gap-3">
+                        @* ----- LOCK / UNLOCK ----- *@
+                        @if (Model.Card.Status == CardStatus.Locked)
+                        {
+                            <button type="button" onclick="showModal('modalUnlock')"
+                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm font-medium hover:bg-emerald-100 transition-colors">
+                                <span class="material-icons text-base">lock_open</span>
+                                Mở khóa thẻ
+                            </button>
+                        }
+                        else if (Model.Card.Status != CardStatus.Lost)
+                        {
+                            <button type="button" onclick="showModal('modalLock')"
+                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-sm font-medium hover:bg-amber-100 transition-colors">
+                                <span class="material-icons text-base">lock</span>
+                                Khóa thẻ
+                            </button>
+                        }
+
+                        @* ----- XÓA (SOFT-DELETE) ----- *@
+                        @if (Model.Card.Status != CardStatus.Lost)
+                        {
+                            <button type="button" onclick="showModal('modalDelete')"
+                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100 transition-colors">
+                                <span class="material-icons text-base">delete</span>
+                                Xóa thẻ
+                            </button>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="flex flex-col items-center justify-center py-4 text-center">
+                        <span class="material-icons text-slate-300 text-3xl mb-2">block</span>
+                        <p class="text-sm text-slate-500 font-medium">Thẻ đã bị xóa</p>
+                        <p class="text-xs text-slate-400 mt-1">Không thể thay đổi trạng thái hoặc chỉnh sửa</p>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* ===== INLINE CONFIRMATION MODALS ===== *@
+@* Mở khóa *@
+<div class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" id="modalUnlock" onclick="if(event.target===this)this.remove()">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-emerald-100">
+                    <span class="material-icons text-xl text-emerald-600">lock_open</span>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-lg font-semibold text-slate-900">Mở khóa thẻ</h2>
+                </div>
+            </div>
+            <div class="mb-6 text-slate-700 text-sm">
+                Bạn có chắc chắn muốn <strong>mở khóa</strong> thẻ <strong>@Model.Card?.CardNumber</strong>?<br />
+                Thẻ sẽ quay lại trạng thái hoạt động và có thể sử dụng bình thường.
+            </div>
+        </div>
+        <div class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex gap-3 justify-end rounded-b-xl">
+            <button onclick="document.getElementById('modalUnlock').remove()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                Hủy
+            </button>
+            <form method="post" asp-page-handler="UpdateStatus" asp-route-id="@Model.Card?.ResidentCardId" asp-route-status="@CardStatus.Active" class="inline">
+                <button type="submit" class="px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors text-sm font-medium">
+                    Mở khóa
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Khóa *@
+<div class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" id="modalLock" onclick="if(event.target===this)this.remove()">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-amber-100">
+                    <span class="material-icons text-xl text-amber-600">lock</span>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-lg font-semibold text-slate-900">Khóa thẻ</h2>
+                </div>
+            </div>
+            <div class="mb-6 text-slate-700 text-sm">
+                Bạn có chắc chắn muốn <strong>khóa</strong> thẻ <strong>@Model.Card?.CardNumber</strong>?<br />
+                Thẻ sẽ bị vô hiệu hóa tạm thời và không thể sử dụng cho đến khi được mở khóa.
+            </div>
+        </div>
+        <div class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex gap-3 justify-end rounded-b-xl">
+            <button onclick="document.getElementById('modalLock').remove()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                Hủy
+            </button>
+            <form method="post" asp-page-handler="UpdateStatus" asp-route-id="@Model.Card?.ResidentCardId" asp-route-status="@CardStatus.Locked" class="inline">
+                <button type="submit" class="px-4 py-2 bg-amber-600 text-white hover:bg-amber-700 rounded-lg transition-colors text-sm font-medium">
+                    Khóa thẻ
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Xóa (Soft-delete) *@
+<div class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" id="modalDelete" onclick="if(event.target===this)this.remove()">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-red-100">
+                    <span class="material-icons text-xl text-red-600">delete</span>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-lg font-semibold text-slate-900">Xóa thẻ</h2>
+                </div>
+            </div>
+            <div class="mb-2 text-slate-700 text-sm">
+                Bạn có chắc chắn muốn <strong>xóa</strong> thẻ <strong>@Model.Card?.CardNumber</strong>?
+            </div>
+            <div class="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+                <strong>Lưu ý:</strong> Thẻ sẽ bị <strong>xóa</strong> và không thể chỉnh sửa. Vui lòng liên hệ Admin nếu cần khôi phục.
+            </div>
+        </div>
+        <div class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex gap-3 justify-end rounded-b-xl">
+            <button onclick="document.getElementById('modalDelete').remove()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                Hủy
+            </button>
+            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Card?.ResidentCardId" class="inline">
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors text-sm font-medium">
+                    Xóa thẻ
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showModal(id) {
+        var modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+</script>
