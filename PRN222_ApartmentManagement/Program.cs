@@ -212,6 +212,7 @@ builder.Services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRequestService, RequestService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IResidentCardService, ResidentCardService>();
 
 var app = builder.Build();
 
