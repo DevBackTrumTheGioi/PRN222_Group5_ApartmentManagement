@@ -1,6 +1,12 @@
-﻿@{
-    Layout = null;
-    var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
+@{
+Layout = null;
+var currentPage = ViewData["CurrentPage"]?.ToString() ?? "";
+var pageHeader = ViewData["PageHeader"] ?? new
+{
+    Title = ViewData["Title"]?.ToString() ?? string.Empty,
+    Subtitle = ViewData["Subtitle"]?.ToString() ?? string.Empty
+};
+ViewData["PageHeader"] = pageHeader;
 }
 
 <!DOCTYPE html>
@@ -9,44 +15,184 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Apartment Management</title>
-    <!-- Tailwind CSS Only -->
     <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
+        body {
+            font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900 antialiased">
-    <!-- Fixed Sidebar -->
+<body class="bg-slate-50 text-slate-900 antialiased overflow-x-hidden">
     <partial name="Components/Sidebar" />
-    
-    <!-- Main Content Area - offset by sidebar width (256px = 16rem = w-64) -->
-    <div style="margin-left: 256px; min-height: 100vh;" class="flex flex-col">
-        <!-- Dashboard Header / Tool Bar -->
-        <div class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4">
-            @if (ViewData["PageHeader"] != null)
-            {
-                @await Html.PartialAsync("Components/PageHeader", ViewData["PageHeader"])
-            }
-            else
-            {
-                <div class="flex justify-between items-center">
-                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">@ViewData["Title"]</h1>
-                </div>
-            }
-        </div>
 
-        <main class="p-6">
+    <div class="flex flex-col min-h-screen transition-all duration-300 lg:ml-64">
+        <header class="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/80 px-6 py-4 backdrop-blur-md">
+            @await Html.PartialAsync("Components/PageHeader", pageHeader)
+        </header>
+
+        <main class="flex-1 p-4 md:p-6 lg:p-8">
             @RenderBody()
         </main>
+
+        <footer class="border-t border-slate-200 bg-white px-8 py-6">
+            <p class="text-center text-sm text-slate-500">
+                &copy; @DateTime.Now.Year - Apartment Management System Group 5 - PRN222
+            </p>
+        </footer>
     </div>
-    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        function toggleMenu(id) {
+            const menu = document.getElementById(id);
+            const icon = document.getElementById(id + '-icon');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                menu.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        let notifDropdownOpen = false;
+
+        function toggleNotifDropdown() {
+            const dropdown = document.getElementById('notifDropdown');
+            notifDropdownOpen = !notifDropdownOpen;
+            if (notifDropdownOpen) {
+                dropdown.classList.remove('hidden');
+                loadRecentNotifications();
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            const wrapper = document.getElementById('notifBellWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                const dropdown = document.getElementById('notifDropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+                notifDropdownOpen = false;
+            }
+        });
+
+        function updateBadge(count) {
+            const badge = document.getElementById('notifBadge');
+            if (!badge) return;
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function loadUnreadCount() {
+            fetch('/Notifications?handler=UnreadCount', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => updateBadge(data.count))
+            .catch(() => {});
+        }
+
+        function loadRecentNotifications() {
+            const list = document.getElementById('notifDropdownList');
+            if (!list) return;
+
+            fetch('/Notifications?handler=Recent', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.items || data.items.length === 0) {
+                    list.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-8 text-slate-400">
+                            <span class="material-icons text-3xl mb-2">notifications_none</span>
+                            <p class="text-sm">Không có thông báo</p>
+                        </div>`;
+                    return;
+                }
+
+                list.innerHTML = data.items.map(n => `
+                    <div class="px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-100 last:border-0 ${n.isRead ? '' : 'bg-blue-50/30'}"
+                         onclick="window.location.href='/Notifications'">
+                        <div class="flex items-start gap-3">
+                            <span class="text-lg flex-shrink-0 mt-0.5">${n.icon}</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <p class="text-sm ${n.isRead ? 'text-slate-700' : 'font-semibold text-slate-900'} truncate">${n.title}</p>
+                                    ${n.isRead ? '' : '<span class="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></span>'}
+                                </div>
+                                <p class="text-xs text-slate-500 truncate mt-0.5">${n.content}</p>
+                                <p class="text-xs text-slate-400 mt-1">${n.timeAgo}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            })
+            .catch(() => {
+                list.innerHTML = '<div class="py-4 text-center text-slate-400 text-sm">Lỗi tải thông báo</div>';
+            });
+        }
+
+        function markAllReadFromDropdown() {
+            fetch('/Notifications?handler=MarkAllRead', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(r => r.json())
+            .then(() => {
+                updateBadge(0);
+                loadRecentNotifications();
+            })
+            .catch(() => {});
+        }
+
+        (function () {
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveNotification", function (notification) {
+                if (notifDropdownOpen) {
+                    loadRecentNotifications();
+                }
+
+                loadUnreadCount();
+
+                window.dispatchEvent(new CustomEvent('app:notification-received', {
+                    detail: notification
+                }));
+            });
+
+            connection.on("UpdateUnreadCount", function (count) {
+                updateBadge(count);
+            });
+
+            connection.start()
+                .then(() => loadUnreadCount())
+                .catch(err => {
+                    console.error('SignalR connection error:', err);
+                    loadUnreadCount();
+                });
+        })();
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadUnreadCount);
+        } else {
+            loadUnreadCount();
+        }
+    </script>
 </body>
 </html>

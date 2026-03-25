@@ -5,6 +5,7 @@
 @{
     ViewData["Title"] = $"Chi tiết yêu cầu #{Model.Request.RequestNumber}";
     ViewData["Subtitle"] = "Theo dõi tiến độ và trao đổi với Ban Quản Lý";
+    ViewData["CurrentPage"] = "requests";
 
     var (statusBg, statusText, statusIcon) = Model.Request.Status switch {
         RequestStatus.Pending    => ("bg-amber-50 text-amber-700 border-amber-200",       "Chờ xử lý",  "schedule"),
