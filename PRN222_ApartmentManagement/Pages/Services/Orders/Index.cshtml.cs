@@ -23,19 +23,37 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)]
     public ServiceOrderStatus? StatusFilter { get; set; }
 
+    [BindProperty(SupportsGet = true)]
+    public int PageIndex { get; set; } = 1;
+
+    [BindProperty(SupportsGet = true)]
+    public int PageSize { get; set; } = 10;
+
+    public int TotalItems { get; set; }
+    public int TotalPages { get; set; }
+
     public List<ServiceOrder> Orders { get; set; } = new();
 
     public async Task OnGetAsync()
     {
+        IEnumerable<ServiceOrder> source;
+
         if (StatusFilter.HasValue)
         {
-            Orders = (await _orderRepo.GetByStatusAsync(StatusFilter.Value)).ToList();
+            source = (await _orderRepo.GetByStatusAsync(StatusFilter.Value)).OrderByDescending(o => o.CreatedAt);
         }
         else
         {
             // load recent orders with related details so navigation properties are populated
-            Orders = (await _orderRepo.GetAllWithDetailsAsync()).OrderByDescending(o => o.CreatedAt).Take(200).ToList();
+            source = (await _orderRepo.GetAllWithDetailsAsync()).OrderByDescending(o => o.CreatedAt);
         }
+
+        TotalItems = source.Count();
+        if (PageIndex < 1) PageIndex = 1;
+        TotalPages = (int)Math.Ceiling(TotalItems / (double)PageSize);
+        if (PageIndex > TotalPages && TotalPages > 0) PageIndex = TotalPages;
+
+        Orders = source.Skip((PageIndex - 1) * PageSize).Take(PageSize).ToList();
     }
 
     public async Task<IActionResult> OnPostUpdateStatusAsync(int id, ServiceOrderStatus newStatus)
@@ -73,6 +91,6 @@ public class IndexModel : PageModel
         await _orderRepo.UpdateAsync(order);
 
         TempData["SuccessMessage"] = "Đã cập nhật trạng thái.";
-        return RedirectToPage(new { StatusFilter });
+        return RedirectToPage(new { StatusFilter, PageIndex, PageSize });
     }
 }

@@ -20,6 +20,15 @@ public class MyOrdersModel : PageModel
 
     public List<ServiceOrder> Orders { get; set; } = new();
 
+    [BindProperty(SupportsGet = true)]
+    public int PageIndex { get; set; } = 1;
+
+    [BindProperty(SupportsGet = true)]
+    public int PageSize { get; set; } = 10;
+
+    public int TotalItems { get; set; }
+    public int TotalPages { get; set; }
+
     public async Task OnGetAsync()
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -29,11 +38,18 @@ public class MyOrdersModel : PageModel
             return;
         }
 
-        Orders = await _context.ServiceOrders
+        var q = _context.ServiceOrders
             .Include(o => o.ServiceType)
             .Where(o => o.ResidentId == userId)
             .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync();
+            .AsQueryable();
+
+        TotalItems = await q.CountAsync();
+        if (PageIndex < 1) PageIndex = 1;
+        TotalPages = (int)Math.Ceiling(TotalItems / (double)PageSize);
+        if (PageIndex > TotalPages && TotalPages > 0) PageIndex = TotalPages;
+
+        Orders = await q.Skip((PageIndex - 1) * PageSize).Take(PageSize).ToListAsync();
     }
 
     public async Task<IActionResult> OnPostCancelAsync(int id)
@@ -50,7 +66,7 @@ public class MyOrdersModel : PageModel
         if (order.Status != ServiceOrderStatus.Pending)
         {
             TempData["Error"] = "Đơn không thể hủy ở trạng thái hiện tại.";
-            return RedirectToPage();
+            return RedirectToPage(new { PageIndex, PageSize });
         }
 
         order.Status = ServiceOrderStatus.Cancelled;
@@ -61,7 +77,7 @@ public class MyOrdersModel : PageModel
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "Đã hủy đơn.";
-        return RedirectToPage();
+        return RedirectToPage(new { PageIndex, PageSize });
     }
 
     // Resident rating handler: only allowed when order is Completed
@@ -76,7 +92,7 @@ public class MyOrdersModel : PageModel
         if (rating < 1 || rating > 5)
         {
             TempData["Error"] = "Đánh giá không hợp lệ.";
-            return RedirectToPage();
+            return RedirectToPage(new { PageIndex, PageSize });
         }
 
         var order = await _context.ServiceOrders.FindAsync(id);
@@ -85,14 +101,14 @@ public class MyOrdersModel : PageModel
         if (order.Status != ServiceOrderStatus.Completed)
         {
             TempData["Error"] = "Chỉ có thể đánh giá khi đơn đã hoàn thành.";
-            return RedirectToPage();
+            return RedirectToPage(new { PageIndex, PageSize });
         }
 
         // prevent re-rating if already rated - update allowed? We'll block repeated rating
         if (order.Rating.HasValue)
         {
             TempData["Error"] = "Bạn đã đánh giá đơn này.";
-            return RedirectToPage();
+            return RedirectToPage(new { PageIndex, PageSize });
         }
 
         order.Rating = rating;
@@ -103,7 +119,7 @@ public class MyOrdersModel : PageModel
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "Cảm ơn bạn đã đánh giá.";
-        return RedirectToPage();
+        return RedirectToPage(new { PageIndex, PageSize });
     }
 
     // AJAX handler: return completed orders for current resident (history)
@@ -123,7 +139,7 @@ public class MyOrdersModel : PageModel
             .Select(o => new
             {
                 o.ServiceOrderId,
-                o.OrderNumber,
+                OrderNumber = o.OrderNumber,
                 ServiceType = o.ServiceType != null ? o.ServiceType.ServiceTypeName : string.Empty,
                 RequestedDate = o.RequestedDate.ToString("yyyy-MM-dd"),
                 RequestedTimeSlot = o.RequestedTimeSlot,
