@@ -1,0 +1,165 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Services.MyOrdersModel
+@{
+    ViewData["Title"] = "Đơn của tôi";
+}
+
+<div class="bg-white rounded-lg shadow p-4">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">Đơn dịch vụ của tôi</h2>
+        <button id="view-history-btn" class="px-3 py-1 bg-slate-50 border rounded text-sm">Xem lịch sử sử dụng</button>
+    </div>
+
+    @if (!Model.Orders.Any())
+    {
+        <div class="p-6 text-center text-slate-500">Bạn chưa đặt dịch vụ nào.</div>
+    }
+    else
+    {
+        <div class="overflow-auto">
+            <table class="min-w-full divide-y divide-slate-100">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-bold">Mã</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold">Dịch vụ</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold">Ngày</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold">Khung giờ</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold">Trạng thái</th>
+                        <th class="px-4 py-2 text-right text-xs font-bold">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach (var o in Model.Orders)
+                    {
+                        <tr>
+                            <td class="px-4 py-3 text-sm">@o.OrderNumber</td>
+                            <td class="px-4 py-3 text-sm">@o.ServiceType?.ServiceTypeName</td>
+                            <td class="px-4 py-3 text-sm">@o.RequestedDate.ToString("dd/MM/yyyy")</td>
+                            <td class="px-4 py-3 text-sm">@o.RequestedTimeSlot</td>
+                            <td class="px-4 py-3 text-sm">@o.Status</td>
+                            <td class="px-4 py-3 text-sm text-right">
+                                @if (o.Status == PRN222_ApartmentManagement.Models.Enums.ServiceOrderStatus.Pending)
+                                {
+                                    <form method="post" asp-page-handler="Cancel" asp-route-id="@o.ServiceOrderId" class="inline">
+                                        <button class="text-sm text-rose-600 font-bold">Hủy</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <a class="text-sm text-slate-500">-</a>
+                                }
+                            </td>
+                        </tr>
+
+                        @* Rating row for completed orders *@
+                        @if (o.Status == PRN222_ApartmentManagement.Models.Enums.ServiceOrderStatus.Completed)
+                        {
+                            <tr class="bg-slate-50">
+                                <td colspan="6" class="px-4 py-3">
+                                    @if (!o.Rating.HasValue)
+                                    {
+                                        <form method="post" asp-page-handler="Rate" asp-route-id="@o.ServiceOrderId" class="flex items-start gap-3">
+                                            <div class="flex items-center gap-1">
+                                                <label class="text-sm text-slate-600">Đánh giá:</label>
+                                                <select name="rating" class="p-1 border rounded text-sm">
+                                                    <option value="5">5</option>
+                                                    <option value="4">4</option>
+                                                    <option value="3">3</option>
+                                                    <option value="2">2</option>
+                                                    <option value="1">1</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex-1">
+                                                <textarea name="comment" rows="2" placeholder="Viết nhận xét (tùy chọn)..." class="w-full p-2 border rounded text-sm"></textarea>
+                                            </div>
+                                            <div>
+                                                <button type="submit" class="px-3 py-1 bg-emerald-600 text-white rounded text-sm">Gửi</button>
+                                            </div>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-sm text-slate-700">Bạn đã đánh giá: <span class="font-medium">@o.Rating</span> — <span class="text-slate-500">@o.ReviewComment</span></div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Modal: history -->
+<div id="history-modal" class="fixed inset-0 hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-lg w-3/4 max-h-[80vh] overflow-auto p-4">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold">Lịch sử sử dụng (Đã hoàn thành)</h3>
+            <button id="history-close" class="text-slate-500">Đóng</button>
+        </div>
+        <div id="history-content">
+            <p class="text-sm text-slate-400">Đang tải...</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function(){
+            const btn = document.getElementById('view-history-btn');
+            const modal = document.getElementById('history-modal');
+            const close = document.getElementById('history-close');
+            const content = document.getElementById('history-content');
+
+            async function loadHistory() {
+                content.innerHTML = '<p class="text-sm text-slate-400">Đang tải...</p>';
+                try {
+                    const resp = await fetch(window.location.pathname + '?handler=History', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    if (!resp.ok) {
+                        content.innerHTML = '<p class="text-sm text-red-600">Không thể tải lịch sử.</p>';
+                        return;
+                    }
+                    const data = await resp.json();
+                    if (!data.success) {
+                        content.innerHTML = `<p class="text-sm text-red-600">${data.message || 'Lỗi'}</p>`;
+                        return;
+                    }
+
+                    if (!data.items || data.items.length === 0) {
+                        content.innerHTML = '<p class="text-sm text-slate-500">Chưa có lịch sử sử dụng.</p>';
+                        return;
+                    }
+
+                    let html = '<table class="min-w-full divide-y divide-slate-100 text-sm"><thead class="bg-slate-50"><tr><th class="px-3 py-2 text-left">Mã</th><th class="px-3 py-2 text-left">Dịch vụ</th><th class="px-3 py-2 text-left">Ngày</th><th class="px-3 py-2 text-left">Khung giờ</th><th class="px-3 py-2 text-left">Hoàn thành</th><th class="px-3 py-2 text-left">Đánh giá</th></tr></thead><tbody>';
+                    data.items.forEach(i => {
+                        html += `<tr class="border-t"><td class="px-3 py-2">${i.orderNumber}</td><td class="px-3 py-2">${i.serviceType}</td><td class="px-3 py-2">${i.requestedDate}</td><td class="px-3 py-2">${i.requestedTimeSlot || ''}</td><td class="px-3 py-2">${i.completedAt || ''}</td><td class="px-3 py-2">${i.rating ? i.rating : '-' } ${i.reviewComment ? '— ' + i.reviewComment : ''}</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    content.innerHTML = html;
+                } catch (ex) {
+                    console.error(ex);
+                    content.innerHTML = '<p class="text-sm text-red-600">Lỗi khi tải lịch sử.</p>';
+                }
+            }
+
+            if (btn) btn.addEventListener('click', function(){
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                loadHistory();
+            });
+            if (close) close.addEventListener('click', function(){
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            });
+
+            // close on backdrop click
+            modal.addEventListener('click', function(e){
+                if (e.target === modal) {
+                    modal.classList.remove('flex');
+                    modal.classList.add('hidden');
+                }
+            });
+        })();
+    </script>
+}

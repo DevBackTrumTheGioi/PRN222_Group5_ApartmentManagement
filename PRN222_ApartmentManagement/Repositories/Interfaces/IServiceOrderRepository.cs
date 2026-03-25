@@ -52,5 +52,10 @@ public interface IServiceOrderRepository : IGenericRepository<ServiceOrder>
     /// Get service order with all related entities
     /// </summary>
     Task<ServiceOrder?> GetWithDetailsAsync(int serviceOrderId);
+
+    /// <summary>
+    /// Get all service orders with related entities loaded (for lists)
+    /// </summary>
+    Task<IEnumerable<ServiceOrder>> GetAllWithDetailsAsync();
 }
 

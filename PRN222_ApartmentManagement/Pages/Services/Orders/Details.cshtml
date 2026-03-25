@@ -1,0 +1,220 @@
+@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.Orders.DetailsModel
+@using PRN222_ApartmentManagement.Models.Enums
+@{
+    ViewData["Title"] = "Chi tiết đơn";
+}
+
+<div class="space-y-4">
+    <div class="bg-white rounded-xl border p-4">
+        <h3 class="font-bold">Chi tiết đơn @Model.Order?.OrderNumber</h3>
+        @if (TempData["Success"] != null)
+        {
+            <div id="server-success" class="mb-2 px-3 py-2 bg-emerald-100 text-emerald-800 rounded">@TempData["Success"]</div>
+        }
+
+        <div id="client-message-placeholder"></div>
+
+        @* Render anti-forgery token so AJAX can send it *@
+        <form id="anti-forgery-form" style="display:none">@Html.AntiForgeryToken()</form>
+
+        @if (Model.Order != null)
+        {
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 text-sm">
+                <div>
+                    <dt class="text-xs text-slate-500">Cư dân</dt>
+                    <dd class="font-medium">@Model.Order.Resident?.FullName</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-slate-500">Căn hộ</dt>
+                    <dd class="font-medium">@Model.Order.Apartment?.ApartmentNumber</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-slate-500">Dịch vụ</dt>
+                    <dd class="font-medium">@Model.Order.ServiceType?.ServiceTypeName</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-slate-500">Ngày</dt>
+                    <dd class="font-medium">@Model.Order.RequestedDate.ToString("dd/MM/yyyy")</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-slate-500">Trạng thái</dt>
+                    <dd id="order-status" class="font-medium">@Model.Order.Status</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-slate-500">Giá ước tính</dt>
+                    <dd class="font-medium">@Model.Order.EstimatedPrice?.ToString("N0") đ</dd>
+                </div>
+
+                <div>
+                    <dt class="text-xs text-slate-500">Nhân viên được phân công</dt>
+                    <dd class="font-medium">@(Model.Order.AssignedStaff != null ? Model.Order.AssignedStaff.FullName : "")</dd>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <dt class="text-xs text-slate-500">Ghi chú</dt>
+                    <dd class="font-medium">@(!string.IsNullOrWhiteSpace(Model.Order.Description) ? Model.Order.Description : "")</dd>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <dt class="text-xs text-slate-500">Ghi chú hoàn thành</dt>
+                    <dd class="font-medium">@(!string.IsNullOrWhiteSpace(Model.Order.CompletionNotes) ? Model.Order.CompletionNotes : "")</dd>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <dt class="text-xs text-slate-500">Chi phí thực tế</dt>
+                    <dd class="font-medium">@Model.Order.ActualPrice?.ToString("N0") đ @if(Model.Order.AdditionalCharges>0) { <span class="text-xs text-slate-500">(+ @Model.Order.AdditionalCharges.ToString("N0") đ)</span> }</dd>
+                </div>
+            </dl>
+        }
+    </div>
+
+    <div class="bg-white rounded-xl border p-4">
+        <h4 class="font-semibold mb-3">Hành động</h4>
+        @if (Model.Order != null)
+        {
+            <div class="flex items-center gap-2">
+                @* Staff can accept when Pending *@
+                @if (Model.Order.Status == ServiceOrderStatus.Pending && User.IsInRole("BQL_Staff"))
+                {
+                    <form method="post" asp-page-handler="Accept" asp-route-id="@Model.Order.ServiceOrderId">
+                        <button class="px-3 py-2 bg-blue-600 text-white rounded">Tiếp nhận</button>
+                    </form>
+                }
+
+                @* Manager can assign when order is Confirmed and not assigned *@
+                @if (User.IsInRole("BQL_Manager") && Model.Order.Status == ServiceOrderStatus.Confirmed && Model.Order.AssignedTo == null)
+                {
+                    <a href="/Orders/Assign/@Model.Order.ServiceOrderId" class="px-3 py-2 bg-emerald-600 text-white rounded">Phân công</a>
+                }
+
+                @* Assigned staff or manager can mark Complete when InProgress *@
+                @if (Model.Order.Status == ServiceOrderStatus.InProgress && (User.IsInRole("BQL_Staff") || User.IsInRole("BQL_Manager")))
+                {
+                    <button id="complete-btn" data-id="@Model.Order.ServiceOrderId" class="px-3 py-2 bg-emerald-600 text-white rounded">Hoàn thành</button>
+                }
+
+                @* Back to list *@
+                <a href="/Orders" class="px-3 py-2 border rounded text-slate-700">Quay lại</a>
+            </div>
+
+            @* Cost update form shown when InProgress *@
+            @if (Model.Order.Status == ServiceOrderStatus.InProgress && (User.IsInRole("BQL_Staff") || User.IsInRole("BQL_Manager")))
+            {
+                <form method="post" asp-page-handler="UpdateCosts" asp-route-id="@Model.Order.ServiceOrderId" class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-xs text-slate-500">Giá thực tế</label>
+                        <input name="actualPrice" type="number" step="0.01" value="@(Model.Order.ActualPrice?.ToString() ?? string.Empty)" class="w-full p-2 border rounded" />
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">Phí phát sinh</label>
+                        <input name="additionalCharges" type="number" step="0.01" value="@(Model.Order.AdditionalCharges)" class="w-full p-2 border rounded" />
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">Ghi chú phí</label>
+                        <input name="chargeNotes" type="text" value="@(Model.Order.ChargeNotes ?? string.Empty)" class="w-full p-2 border rounded" />
+                    </div>
+                    <div class="sm:col-span-3 text-right mt-2">
+                        <button type="submit" class="px-3 py-2 bg-sky-600 text-white rounded">Lưu chi phí</button>
+                    </div>
+                </form>
+            }
+
+            @* Invoice creation when Completed *@
+            <div id="invoice-action" class="mt-4">
+                @if (Model.Order.Status == ServiceOrderStatus.Completed)
+                {
+                    if (Model.Order.InvoiceId != null)
+                    {
+                        <a href="/Invoices/Details/@Model.Order.InvoiceId" class="px-3 py-2 bg-emerald-600 text-white rounded">Xem hóa đơn</a>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="CreateInvoice" asp-route-id="@Model.Order.ServiceOrderId" class="inline">
+                            <button type="submit" class="px-3 py-2 bg-amber-600 text-white rounded">Tạo hóa đơn</button>
+                        </form>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function() {
+            const completeBtn = document.getElementById('complete-btn');
+            const messageEl = document.getElementById('client-message-placeholder');
+            const serverSuccess = document.getElementById('server-success');
+            const invoiceAction = document.getElementById('invoice-action');
+
+            if (completeBtn) {
+                completeBtn.addEventListener('click', async function (e) {
+                    e.preventDefault();
+                    // clear previous messages
+                    if (serverSuccess) serverSuccess.style.display = 'none';
+                    messageEl.innerHTML = '';
+
+                    const id = completeBtn.getAttribute('data-id');
+                    try {
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+                        const resp = await fetch(window.location.pathname + '?handler=Complete&id=' + encodeURIComponent(id), {
+                            method: 'POST',
+                            credentials: 'same-origin', // ensure auth cookie is sent
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'RequestVerificationToken': token
+                            }
+                        });
+
+                        const contentType = resp.headers.get('content-type') || '';
+
+                        let data = null;
+                        if (contentType.includes('application/json')) {
+                            data = await resp.json().catch(() => null);
+                        } else {
+                            // try to read text (could be HTML for AccessDenied or redirect)
+                            const txt = await resp.text().catch(() => null);
+                            data = { message: txt };
+                        }
+
+                        if (!resp.ok) {
+                            const text = (data && data.message) ? data.message : `Server returned ${resp.status}`;
+                            // simplify HTML responses if possible
+                            const short = (typeof text === 'string' && text.length > 300) ? text.substring(0, 300) + '...' : text;
+                            messageEl.innerHTML = `<div class="mb-2 px-3 py-2 bg-red-100 text-red-800 rounded">${short}</div>`;
+                            return;
+                        }
+
+                        const msg = data?.message || 'Thành công';
+                        const status = data?.status || '';
+                        const invoiceId = data?.invoiceId || null;
+
+                        // update status on page
+                        const statusEl = document.getElementById('order-status');
+                        if (statusEl && status) statusEl.textContent = status;
+
+                        messageEl.innerHTML = `<div class="mb-2 px-3 py-2 bg-emerald-100 text-emerald-800 rounded">${msg}</div>`;
+
+                        // if invoice created automatically, update invoice action area
+                        if (invoiceId && invoiceAction) {
+                            invoiceAction.innerHTML = `<a href="/Invoices/Details/${invoiceId}" class="px-3 py-2 bg-emerald-600 text-white rounded">Xem hóa đơn</a>`;
+                        }
+
+                        // optionally disable the button after success
+                        completeBtn.disabled = true;
+
+                        // Redirect to orders list so the table reflects updated status (short delay)
+                        setTimeout(function() {
+                            window.location.href = '/Orders';
+                        }, 800);
+                    } catch (ex) {
+                        messageEl.innerHTML = `<div class="mb-2 px-3 py-2 bg-red-100 text-red-800 rounded">Lỗi kết nối</div>`;
+                        console.error(ex);
+                    }
+                });
+            }
+        })();
+    </script>
+}

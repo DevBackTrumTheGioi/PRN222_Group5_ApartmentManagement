@@ -1,0 +1,124 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Services.OrderModel
+@{
+    ViewData["Title"] = "Đặt dịch vụ";
+}
+
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="mb-4">
+        <h2 class="text-lg font-bold">Đặt dịch vụ</h2>
+    </div>
+
+    <form method="post" class="space-y-4" id="orderForm">
+
+        <div>
+            <label class="block text-sm font-bold">Dịch vụ</label>
+
+            @if (Model.ServiceType != null)
+            {
+                <input type="hidden" asp-for="Input.ServiceTypeId" />
+                <p class="mt-1 font-semibold">@Model.ServiceType.ServiceTypeName</p>
+            }
+            else
+            {
+                <select asp-for="Input.ServiceTypeId" id="serviceSelect" class="mt-1 p-2 border rounded w-full" asp-items="@(new Microsoft.AspNetCore.Mvc.Rendering.SelectList(Model.ServiceTypes, "ServiceTypeId", "ServiceTypeName"))">
+                    <option value="">-- Chọn dịch vụ --</option>
+                </select>
+                <span asp-validation-for="Input.ServiceTypeId" class="text-rose-600 text-sm"></span>
+            }
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold">Mức giá</label>
+            <div id="priceDisplay" class="mt-1 p-2 border rounded w-full bg-slate-50 text-slate-700">
+                @if (Model.AvailablePrices != null && Model.AvailablePrices.Any())
+                {
+                    var sel = Model.AvailablePrices.FirstOrDefault(p => p.ServicePriceId == Model.Input.ServicePriceId) ?? Model.AvailablePrices.First();
+                    @String.Format("{0:N0} đ", sel.UnitPrice)
+                }
+                else
+                {
+                    <span class="text-sm text-slate-500">Không có mức giá cho dịch vụ này.</span>
+                }
+            </div>
+            <input type="hidden" asp-for="Input.ServicePriceId" id="servicePriceId" />
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold">Ngày</label>
+            <input asp-for="Input.RequestedDate" type="date" class="mt-1 p-2 border rounded w-full" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+            <span asp-validation-for="Input.RequestedDate" class="text-rose-600 text-sm"></span>
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold">Khung giờ</label>
+            <select asp-for="Input.RequestedTimeSlot" class="mt-1 p-2 border rounded w-full">
+                <option value="Morning">Sáng (8:00 - 12:00)</option>
+                <option value="Afternoon">Chiều (13:00 - 17:00)</option>
+                <option value="Evening">Tối (18:00 - 21:00)</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold">Ghi chú</label>
+            <textarea asp-for="Input.Description" class="mt-1 p-2 border rounded w-full" rows="4"></textarea>
+        </div>
+
+        <div class="flex justify-between items-center">
+            <a href="/Services/MyOrders" class="text-sm bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-md">Xem đơn của tôi</a>
+            <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded">Gửi đặt</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function(){
+            const serviceSelect = document.getElementById('serviceSelect');
+            const priceDisplay = document.getElementById('priceDisplay');
+            const priceIdInput = document.getElementById('servicePriceId');
+            const dateInput = document.querySelector('input[name="Input.RequestedDate"]');
+
+            // set min attribute to today (in case server rendered value differs due to timezones)
+            if(dateInput){
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth()+1).padStart(2,'0');
+                const dd = String(today.getDate()).padStart(2,'0');
+                dateInput.min = `${yyyy}-${mm}-${dd}`;
+            }
+
+            if(serviceSelect){
+                serviceSelect.addEventListener('change', async function(){
+                    const val = this.value;
+                    if(!val){
+                        priceDisplay.innerText = 'Không có mức giá cho dịch vụ này.';
+                        priceIdInput.value = '';
+                        return;
+                    }
+
+                    try{
+                        const res = await fetch(`/Services/Order?handler=Prices&serviceTypeId=${val}`);
+                        const prices = await res.json();
+                        if(prices && prices.length>0){
+                            const p = prices[0];
+                            priceDisplay.innerText = new Intl.NumberFormat('vi-VN').format(p.unitPrice) + ' đ';
+                            priceIdInput.value = p.servicePriceId;
+                        } else {
+                            priceDisplay.innerText = 'Không có mức giá cho dịch vụ này.';
+                            priceIdInput.value = '';
+                        }
+                    }catch(e){
+                        priceDisplay.innerText = 'Không thể tải mức giá.';
+                        priceIdInput.value = '';
+                    }
+                });
+
+                if(serviceSelect.value){
+                    serviceSelect.dispatchEvent(new Event('change'));
+                }
+            }
+        })();
+    </script>
+}

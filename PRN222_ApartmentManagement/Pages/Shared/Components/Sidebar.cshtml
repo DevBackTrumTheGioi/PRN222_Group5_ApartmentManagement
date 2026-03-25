@@ -8,7 +8,11 @@
     // role helpers
     bool isAuthenticated = User.Identity?.IsAuthenticated == true;
     bool isAdmin = isAuthenticated && (User.IsInRole("Admin") || User.IsInRole("BQL_Manager") || User.IsInRole("BQT_Head"));
-    bool isManager = isAuthenticated && (User.IsInRole("BQL_Manager") || User.IsInRole("BQL_Staff"));
+    bool isManager = isAuthenticated && User.IsInRole("BQL_Manager");
+    bool isStaff = isAuthenticated && User.IsInRole("BQL_Staff");
+
+    // update: managers/staff should go to /Services/Orders (not /Orders)
+    var servicesMainHref = (isManager || isStaff) ? "/Services/Orders" : "/Services";
 
     var menuGroups = new[]
     {
@@ -44,8 +48,10 @@
             Icon = "room_service",
             IsCollapsible = true,
             Items = new[] {
-                new { Icon = "support_agent", Label = "Yêu cầu", Href = isManager ? "/BQL_Manager/Requests" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "requests" },
-                new { Icon = "escalator_warning", Label = "Yêu cầu chuyển cấp", Href = isManager ? "/BQL_Manager/Requests/Escalated" : (User.IsInRole("BQL_Staff") ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "escalated" },
+                // Main service entry is role-aware: residents -> Services, staff/manager -> Services/Orders
+                new { Icon = "room_service", Label = "Dịch vụ", Href = servicesMainHref, Key = "services" },
+                new { Icon = "support_agent", Label = "Yêu cầu", Href = isManager ? "/BQL_Manager/Requests" : (isStaff ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "requests" },
+                new { Icon = "escalator_warning", Label = "Yêu cầu chuyển cấp", Href = isManager ? "/BQL_Manager/Requests/Escalated" : (isStaff ? "/BQL_Staff/Requests/Assigned" : "/Resident/Requests/MyRequests"), Key = "escalated" },
                 new { 
                       Icon = "fitness_center", 
                       Label = "Tiện ích", 

@@ -94,7 +94,7 @@ public class ServiceOrderRepository : GenericRepository<ServiceOrder>, IServiceO
             .Include(so => so.ServiceType)
             .Include(so => so.Apartment)
             .Include(so => so.Resident)
-            .Where(so => so.Status == (int)ServiceOrderStatus.Pending)
+            .Where(so => so.Status == ServiceOrderStatus.Pending)
             .OrderBy(so => so.RequestedDate)
             .ThenBy(so => so.CreatedAt)
             .ToListAsync();
@@ -135,5 +135,18 @@ public class ServiceOrderRepository : GenericRepository<ServiceOrder>, IServiceO
             .Include(so => so.CompletedByUser)
             .Include(so => so.Invoice)
             .FirstOrDefaultAsync(so => so.ServiceOrderId == serviceOrderId);
+    }
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<ServiceOrder>> GetAllWithDetailsAsync()
+    {
+        return await _dbSet
+            .Include(so => so.Apartment)
+            .Include(so => so.Resident)
+            .Include(so => so.ServiceType)
+            .Include(so => so.AssignedStaff)
+            .Include(so => so.Invoice)
+            .OrderByDescending(so => so.CreatedAt)
+            .ToListAsync();
     }
 }

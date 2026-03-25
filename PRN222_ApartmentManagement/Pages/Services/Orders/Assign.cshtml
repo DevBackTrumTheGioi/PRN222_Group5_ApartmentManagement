@@ -1,0 +1,112 @@
+@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.Orders.AssignModel
+@{
+    ViewData["Title"] = "Phân công đơn";
+}
+
+<div class="max-w-2xl mx-auto bg-white rounded-xl border p-6">
+    <h3 class="font-bold mb-4">Phân công đơn @Model.Order?.OrderNumber</h3>
+
+    <form method="post" class="space-y-4">
+        <div>
+            <label class="text-sm font-medium">Chọn nhân viên</label>
+            <select asp-for="SelectedStaffId" id="staff-select" class="mt-1 p-2 border rounded w-full">
+                <option value="">-- Chọn nhân viên --</option>
+                @foreach (var s in Model.StaffOptions)
+                {
+                    <option value="@s.UserId">@s.FullName</option>
+                }
+            </select>
+        </div>
+
+        <div id="staff-info" class="hidden bg-slate-50 border border-slate-100 rounded p-3 text-sm">
+            <!-- Filled by JS -->
+        </div>
+
+        <div class="flex justify-end">
+            <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded">Phân công</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        (function() {
+            const select = document.getElementById('staff-select');
+            const info = document.getElementById('staff-info');
+
+            function renderInfo(data) {
+                if (!data) {
+                    info.innerHTML = '';
+                    info.classList.add('hidden');
+                    return;
+                }
+
+                let html = `<div class="flex items-center gap-3 mb-2">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700">${data.staff.fullName.charAt(0).toUpperCase()}</div>
+                                <div>
+                                    <div class="font-medium text-slate-800">${data.staff.fullName}</div>
+                                    <div class="text-xs text-slate-500">${data.staff.email || ''} ${data.staff.phoneNumber ? '• ' + data.staff.phoneNumber : ''}</div>
+                                </div>
+                            </div>`;
+
+                html += `<div class="text-xs text-slate-600 mb-2">Yêu cầu: ${data.requestedDate} ${data.requestedTimeSlot || ''}</div>`;
+
+                if (data.conflicts && data.conflicts.length > 0) {
+                    html += `<div class="text-sm text-red-700">Những lịch sau đang xung đột:</div><ul class="text-xs text-slate-700 list-disc pl-5">`;
+                    data.conflicts.forEach(c => {
+                        html += `<li>${c.orderNumber} — ${c.requestedDate} ${c.timeSlot} (${c.status})</li>`;
+                    });
+                    html += `</ul>`;
+                    html += `<div class="text-xs text-red-600 mt-2">Không thể phân công do trùng lịch.</div>`;
+                } else {
+                    html += `<div class="text-sm text-emerald-700">Nhân viên khả dụng cho khung giờ này.</div>`;
+                }
+
+                info.innerHTML = html;
+                info.classList.remove('hidden');
+            }
+
+            if (select) {
+                select.addEventListener('change', async function() {
+                    const staffId = select.value;
+                    if (!staffId) { renderInfo(null); return; }
+
+                    try {
+                        const url = new URL(window.location.href);
+                        // call handler: OnGetStaffInfoAsync -> ?handler=StaffInfo&staffId=xxx
+                        url.searchParams.set('handler', 'StaffInfo');
+                        url.searchParams.set('staffId', staffId);
+
+                        const resp = await fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                        if (!resp.ok) {
+                            renderInfo({});
+                            return;
+                        }
+
+                        const data = await resp.json();
+                        // normalize property names to lower-case keys used above
+                        const mapped = {
+                            staff: {
+                                userId: data.staff.userId,
+                                fullName: data.staff.fullName,
+                                email: data.staff.email,
+                                phoneNumber: data.staff.phoneNumber,
+                                isActive: data.staff.isActive
+                            },
+                            requestedDate: data.requestedDate,
+                            requestedTimeSlot: data.requestedTimeSlot,
+                            conflicts: data.conflicts.map(c => ({ orderNumber: c.orderNumber, requestedDate: c.requestedDate, timeSlot: c.timeSlot, status: c.status })),
+                            canAssign: data.canAssign
+                        };
+
+                        renderInfo(mapped);
+                    } catch (ex) {
+                        console.error(ex);
+                        renderInfo(null);
+                    }
+                });
+            }
+        })();
+    </script>
+}

@@ -1,0 +1,69 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Orders.IndexModel
+@using PRN222_ApartmentManagement.Models.Enums
+@{
+    ViewData["Title"] = "Danh sách đơn dịch vụ";
+    ViewData["CurrentPage"] = "orders";
+}
+
+<div class="space-y-4">
+    <div class="bg-white p-4 rounded-xl border border-slate-200">
+        <div class="flex justify-between items-center">
+            <h3 class="font-bold">Danh sách đơn dịch vụ</h3>
+            <form method="get" class="flex items-center gap-2">
+                <select name="StatusFilter" class="p-2 border rounded">
+                    <option value="">Tất cả trạng thái</option>
+                    @foreach (var s in Enum.GetValues<ServiceOrderStatus>())
+                    {
+                        <option value="@s" selected="@(Model.StatusFilter == s)">@s</option>
+                    }
+                </select>
+                <button type="submit" class="px-3 py-2 bg-emerald-600 text-white rounded">Lọc</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div class="overflow-x-auto"> 
+            <table class="min-w-full w-full table-auto">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Mã</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Căn hộ</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Dịch vụ</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Ngày yêu cầu</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Người yêu cầu</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Trạng thái</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Giá dự kiến</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach (var o in Model.Orders)
+                    {
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.OrderNumber</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.Apartment?.ApartmentNumber</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.ServiceType?.ServiceTypeName</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.RequestedDate.ToString("dd/MM/yyyy")</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.Resident?.FullName</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.Status</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.EstimatedPrice?.ToString("N0") đ</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <a href="/Services/Orders/Details/@o.ServiceOrderId" class="text-emerald-600 hover:underline">Chi tiết</a>
+
+                                    @* Manager only: show assign link only when order is Confirmed and not yet assigned *@
+                                    @if (User.IsInRole("BQL_Manager") && o.Status == ServiceOrderStatus.Confirmed && o.AssignedTo == null)
+                                    {
+                                        <a href="/Services/Orders/Assign/@o.ServiceOrderId" class="text-white bg-emerald-600 px-2 py-1 rounded">Phân công</a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
