@@ -57,7 +57,7 @@
                 </div>
             </div>
         </div>
-                        <div class="rounded-xl border border-red-200 bg-white p-5 shadow-sm">
+        <div class="rounded-xl border border-red-200 bg-white p-5 shadow-sm">
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <p class="text-sm font-medium text-red-600">Mất</p>
@@ -138,41 +138,47 @@
 
         @if (Model.Rows.Any())
         {
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+            <div class="overflow-x-auto -mx-px">
+                <table class="w-full min-w-[56rem] text-sm">
                     <thead class="bg-slate-50 text-slate-500">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Mã thẻ</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Cư dân</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Căn hộ</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Trạng thái</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Ngày cấp</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Hết hạn</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide">Thao tác</th>
+                            <th class="px-3 py-3 sm:px-6 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Mã thẻ</th>
+                            <th class="px-3 py-3 sm:px-6 text-left text-xs font-semibold uppercase tracking-wide">Người dùng thẻ</th>
+                            <th class="px-3 py-3 sm:px-6 text-left text-xs font-semibold uppercase tracking-wide">Căn hộ</th>
+                            <th class="px-3 py-3 sm:px-6 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Loại thẻ</th>
+                            <th class="px-3 py-3 sm:px-6 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Trạng thái</th>
+                            <th class="px-3 py-3 sm:px-6 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Ngày cấp</th>
+                            <th class="px-3 py-3 sm:px-6 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Hết hạn</th>
+                            <th class="px-3 py-3 sm:px-6 text-right text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @foreach (var row in Model.Rows)
                         {
                             <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4">
+                                <td class="px-3 py-4 sm:px-6 whitespace-nowrap">
                                     <p class="font-semibold text-slate-900">@row.CardNumber</p>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-3 py-4 sm:px-6 min-w-[10rem]">
                                     <div>
                                         <p class="font-medium text-slate-900">@row.ResidentName</p>
                                         <p class="text-xs text-slate-400">@row.ResidentPhone</p>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-slate-600">@row.ApartmentDisplay</td>
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @row.StatusCss">
+                                <td class="px-3 py-4 sm:px-6 text-slate-600 whitespace-nowrap">@row.ApartmentDisplay</td>
+                                <td class="px-3 py-4 sm:px-6 whitespace-nowrap">
+                                    <span class="inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium @row.CardTypeCss">
+                                        @row.CardTypeLabel
+                                    </span>
+                                </td>
+                                <td class="px-3 py-4 sm:px-6 whitespace-nowrap">
+                                    <span class="inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium @row.StatusCss">
                                         @row.StatusLabel
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-slate-600">@row.IssuedDate</td>
-                                <td class="px-6 py-4 text-slate-600">@row.ExpiryDate</td>
-                                <td class="px-6 py-4 text-right">
+                                <td class="px-3 py-4 sm:px-6 text-slate-600 whitespace-nowrap">@row.IssuedDate</td>
+                                <td class="px-3 py-4 sm:px-6 text-slate-600 whitespace-nowrap">@row.ExpiryDate</td>
+                                <td class="px-3 py-4 sm:px-6 text-right whitespace-nowrap">
                                     <a asp-page="Details" asp-route-id="@row.CardId"
                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium transition-colors">
                                         <span class="material-icons text-base">visibility</span>

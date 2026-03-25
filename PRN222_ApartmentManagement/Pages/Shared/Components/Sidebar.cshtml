@@ -34,7 +34,7 @@
         }
     };
 
-    if (isBqlManager)
+    if (isBqlManager || isAdmin)
     {
         menuGroups.Add(new SidebarMenuGroup
         {
@@ -43,6 +43,7 @@
             IsCollapsible = true,
             Items = new List<SidebarMenuItem>
             {
+                new() { Icon = "apartment", Label = "Căn hộ", Href = "/BQL_Manager/Apartments", Key = "apartments" },
                 new() { Icon = "description", Label = "Hợp đồng", Href = "/BQL_Manager/Contracts", Key = "contracts" },
                 new() { Icon = "people", Label = "Cư dân", Href = "/BQL_Manager/Residents", Key = "residents" },
                 new() { Icon = "credit_card", Label = "Thẻ căn hộ", Href = "/BQL_Manager/Cards", Key = "residentcards" }

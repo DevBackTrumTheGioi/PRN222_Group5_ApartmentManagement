@@ -7,7 +7,7 @@ using PRN222_ApartmentManagement.Services.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Cards;
 
-[Authorize(Roles = "BQL_Manager")]
+[Authorize(Policy = "AdminAndBQLManager")]
 public class IndexModel : PageModel
 {
     private readonly IResidentCardService _residentCardService;
@@ -70,6 +70,23 @@ public class IndexModel : PageModel
             ApartmentDisplay = c.Apartment != null
                 ? $"Căn {c.Apartment.ApartmentNumber}" + (string.IsNullOrWhiteSpace(c.Apartment.BuildingBlock) ? "" : $", Block {c.Apartment.BuildingBlock}")
                 : "—",
+            CardType = c.CardType ?? CardType.Resident,
+            CardTypeLabel = c.CardType switch
+            {
+                CardType.Resident => "Cư dân",
+                CardType.Staff => "Nhân viên",
+                CardType.Secondary => "Thẻ phụ",
+                CardType.Visitor => "Khách",
+                _ => "—"
+            },
+            CardTypeCss = c.CardType switch
+            {
+                CardType.Resident => "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+                CardType.Staff => "bg-violet-50 text-violet-700 ring-1 ring-violet-200",
+                CardType.Secondary => "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+                CardType.Visitor => "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
+                _ => "bg-slate-100 text-slate-700 ring-1 ring-slate-200"
+            },
             StatusLabel = c.Status switch
             {
                 CardStatus.Active => "Hoạt động",
@@ -115,6 +132,9 @@ public class CardRowVm
     public string ResidentName { get; set; } = "";
     public string ResidentPhone { get; set; } = "";
     public string ApartmentDisplay { get; set; } = "";
+    public CardType CardType { get; set; }
+    public string CardTypeLabel { get; set; } = "";
+    public string CardTypeCss { get; set; } = "";
     public string StatusLabel { get; set; } = "";
     public string StatusCss { get; set; } = "";
     public CardStatus Status { get; set; }

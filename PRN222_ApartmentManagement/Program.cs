@@ -28,7 +28,7 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AllowAnonymousToPage("/Admin/SeedData");
     options.Conventions.AllowAnonymousToPage("/Error");
     options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
-    options.Conventions.AuthorizeFolder("/BQL_Manager", "BQLManagerOnly");
+    options.Conventions.AuthorizeFolder("/BQL_Manager", "AdminAndBQLManager");
     options.Conventions.AuthorizeFolder("/BQL_Staff", "BQLStaffOnly");
     options.Conventions.AuthorizeFolder("/Resident", "ResidentOnly");
     options.Conventions.AuthorizeFolder("/BQT_Head", "BQTHeadOnly");
@@ -48,6 +48,7 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("BQLManagerOnly", policy => policy.RequireRole("BQL_Manager"));
+    options.AddPolicy("AdminAndBQLManager", policy => policy.RequireRole("Admin", "BQL_Manager"));
     options.AddPolicy("BQLStaffOnly", policy => policy.RequireRole("BQL_Staff"));
     options.AddPolicy("ResidentOnly", policy => policy.RequireRole("Resident"));
     options.AddPolicy("BQTHeadOnly", policy => policy.RequireRole("BQT_Head"));
@@ -213,6 +214,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRequestService, RequestService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IResidentCardService, ResidentCardService>();
+builder.Services.AddScoped<IApartmentService, ApartmentService>();
 
 var app = builder.Build();
 
