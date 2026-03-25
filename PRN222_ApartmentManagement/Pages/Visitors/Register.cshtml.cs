@@ -23,15 +23,16 @@ public class RegisterModel : PageModel
 
     public class InputModel
     {
-        [Required]
+        [Required(ErrorMessage = "Vui lòng nhập tên khách.")]
         [Display(Name = "Tên khách")]
         public string VisitorName { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Vui lòng nhập số điện thoại.")]
         [Display(Name = "Số điện thoại")]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        [Display(Name = "CMND/CCCD (tuỳ chọn)")]
+        [Required(ErrorMessage = "Vui lòng nhập CMND/CCCD của khách.")]
+        [Display(Name = "CMND/CCCD")]
         public string? IdentityCard { get; set; }
 
         [Required]
@@ -56,6 +57,13 @@ public class RegisterModel : PageModel
     {
         if (!ModelState.IsValid)
             return Page();
+
+        // Prevent booking visit in the past
+        if (Input.VisitDate.Date < DateTime.Today)
+        {
+            ModelState.AddModelError("Input.VisitDate", "Ngày đến phải là hôm nay hoặc ngày trong tương lai.");
+            return Page();
+        }
 
         var username = User.Identity?.Name;
         if (string.IsNullOrEmpty(username)) return Forbid();
