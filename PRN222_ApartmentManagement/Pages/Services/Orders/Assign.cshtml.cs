@@ -35,7 +35,7 @@ public class AssignModel : PageModel
         if (Order.Status != ServiceOrderStatus.Confirmed || Order.AssignedTo != null)
         {
             TempData["Error"] = "Đơn chưa ở trạng thái 'Confirmed' hoặc đã được phân công.";
-            return RedirectToPage("/Orders/Details", new { id });
+            return RedirectToPage("/Services/Orders/Details", new { id });
         }
 
         var all = await _userRepo.GetAllAsync();
@@ -55,7 +55,7 @@ public class AssignModel : PageModel
         if (order.Status != ServiceOrderStatus.Confirmed || order.AssignedTo != null)
         {
             TempData["Error"] = "Không thể phân công. Đơn phải ở trạng thái 'Confirmed' và chưa được phân công.";
-            return RedirectToPage("/Orders/Details", new { id });
+            return RedirectToPage("/Services/Orders/Details", new { id });
         }
 
         order.AssignedTo = SelectedStaffId;
@@ -66,7 +66,7 @@ public class AssignModel : PageModel
         await _orderRepo.UpdateAsync(order);
 
         TempData["Success"] = "Phân công thành công.";
-        return RedirectToPage("/Orders/Details", new { id });
+        return RedirectToPage("/Services/Orders/Details", new { id });
     }
 
     // AJAX handler: return staff info and potential schedule conflicts for this order's requested date/time slot

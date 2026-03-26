@@ -1,6 +1,7 @@
 @page "{id:int}"
 @model PRN222_ApartmentManagement.Pages.Orders.DetailsModel
 @using PRN222_ApartmentManagement.Models.Enums
+@using System.Globalization
 @{
     ViewData["Title"] = "Chi tiết đơn";
 }
@@ -20,50 +21,54 @@
 
         @if (Model.Order != null)
         {
+            var slot = Model.Order.RequestedTimeSlot ?? string.Empty;
+            var slotDisplay = slot switch {
+                "Morning" => "Sáng",
+                "Afternoon" => "Chiều",
+                "Evening" => "Tối",
+                _ => slot
+            };
+            var requestedDisplay = $"{Model.Order.RequestedDate:dd/MM/yyyy}" + (string.IsNullOrEmpty(slotDisplay) ? string.Empty : " - " + slotDisplay);
+
             <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 text-sm">
                 <div>
-                    <dt class="text-xs text-slate-500">Cư dân</dt>
-                    <dd class="font-medium">@Model.Order.Resident?.FullName</dd>
+                    <dt class="text-xs text-slate-500 uppercase font-semibold">Cư dân</dt>
+                    <dd class="font-semibold text-sm">@Model.Order.Resident?.FullName</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-slate-500">Căn hộ</dt>
-                    <dd class="font-medium">@Model.Order.Apartment?.ApartmentNumber</dd>
+                    <dt class="text-xs text-slate-500 uppercase font-semibold">Căn hộ</dt>
+                    <dd class="font-semibold text-sm">@Model.Order.Apartment?.ApartmentNumber</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-slate-500">Dịch vụ</dt>
-                    <dd class="font-medium">@Model.Order.ServiceType?.ServiceTypeName</dd>
+                    <dt class="text-xs text-slate-500 uppercase font-semibold">Dịch vụ</dt>
+                    <dd class="font-semibold text-sm">@Model.Order.ServiceType?.ServiceTypeName</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-slate-500">Ngày</dt>
-                    <dd class="font-medium">@Model.Order.RequestedDate.ToString("dd/MM/yyyy")</dd>
+                    <dt class="text-xs text-slate-500 uppercase font-semibold">Thời gian yêu cầu</dt>
+                    <dd class="font-semibold text-sm">@requestedDisplay</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-slate-500">Trạng thái</dt>
-                    <dd id="order-status" class="font-medium">@Model.Order.Status</dd>
+                    <dt class="text-xs text-slate-500 uppercase font-semibold">Trạng thái</dt>
+                    <dd id="order-status" class="font-semibold text-sm">@Model.Order.Status</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-slate-500">Giá ước tính</dt>
-                    <dd class="font-medium">@Model.Order.EstimatedPrice?.ToString("N0") đ</dd>
+                    <dt class="text-xs text-slate-500 uppercase font-semibold">Giá ước tính</dt>
+                    <dd class="font-semibold text-sm">@Model.Order.EstimatedPrice?.ToString("N0") đ</dd>
                 </div>
 
                 <div>
-                    <dt class="text-xs text-slate-500">Nhân viên được phân công</dt>
-                    <dd class="font-medium">@(Model.Order.AssignedStaff != null ? Model.Order.AssignedStaff.FullName : "")</dd>
-                </div>
-
-                <div class="sm:col-span-2">
-                    <dt class="text-xs text-slate-500">Ghi chú</dt>
-                    <dd class="font-medium">@(!string.IsNullOrWhiteSpace(Model.Order.Description) ? Model.Order.Description : "")</dd>
+                    <dt class="text-xs text-slate-500 uppercase font-semibold">Nhân viên phụ trách</dt>
+                    <dd class="font-semibold text-sm">@(Model.Order.AssignedStaff != null ? Model.Order.AssignedStaff.FullName : "")</dd>
                 </div>
 
                 <div class="sm:col-span-2">
-                    <dt class="text-xs text-slate-500">Ghi chú hoàn thành</dt>
-                    <dd class="font-medium">@(!string.IsNullOrWhiteSpace(Model.Order.CompletionNotes) ? Model.Order.CompletionNotes : "")</dd>
+                    <dt class="text-xs text-slate-500 uppercase font-semibold">Ghi chú yêu cầu</dt>
+                    <dd class="font-semibold text-sm">@(!string.IsNullOrWhiteSpace(Model.Order.Description) ? Model.Order.Description : "")</dd>
                 </div>
 
                 <div class="sm:col-span-2">
-                    <dt class="text-xs text-slate-500">Chi phí thực tế</dt>
-                    <dd class="font-medium">@Model.Order.ActualPrice?.ToString("N0") đ @if(Model.Order.AdditionalCharges>0) { <span class="text-xs text-slate-500">(+ @Model.Order.AdditionalCharges.ToString("N0") đ)</span> }</dd>
+                    <dt class="text-xs text-slate-500 uppercase font-semibold">Chi phí thực tế</dt>
+                    <dd class="font-semibold text-sm"><span id="actual-cost">@((Model.Order.ActualPrice.HasValue ? Model.Order.ActualPrice.Value.ToString("N0") : "-") )</span> đ @if(Model.Order.AdditionalCharges>0) { <span id="additional-charges" class="text-xs text-slate-500">(+ @Model.Order.AdditionalCharges.ToString("N0") đ)</span> }</dd>
                 </div>
             </dl>
         }
@@ -85,7 +90,7 @@
                 @* Manager can assign when order is Confirmed and not assigned *@
                 @if (User.IsInRole("BQL_Manager") && Model.Order.Status == ServiceOrderStatus.Confirmed && Model.Order.AssignedTo == null)
                 {
-                    <a href="/Orders/Assign/@Model.Order.ServiceOrderId" class="px-3 py-2 bg-emerald-600 text-white rounded">Phân công</a>
+                    <a href="/Services/Orders/Assign/@Model.Order.ServiceOrderId" class="px-3 py-2 bg-emerald-600 text-white rounded">Phân công</a>
                 }
 
                 @* Assigned staff or manager can mark Complete when InProgress *@
@@ -95,24 +100,24 @@
                 }
 
                 @* Back to list *@
-                <a href="/Orders" class="px-3 py-2 border rounded text-slate-700">Quay lại</a>
+                <a href="/Services/Orders" class="px-3 py-2 border rounded text-slate-700">Quay lại</a>
             </div>
 
             @* Cost update form shown when InProgress *@
             @if (Model.Order.Status == ServiceOrderStatus.InProgress && (User.IsInRole("BQL_Staff") || User.IsInRole("BQL_Manager")))
             {
-                <form method="post" asp-page-handler="UpdateCosts" asp-route-id="@Model.Order.ServiceOrderId" class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <form id="cost-form" method="post" asp-page-handler="UpdateCosts" asp-route-id="@Model.Order.ServiceOrderId" class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="text-xs text-slate-500">Giá thực tế</label>
-                        <input name="actualPrice" type="number" step="0.01" value="@(Model.Order.ActualPrice?.ToString() ?? string.Empty)" class="w-full p-2 border rounded" />
+                        <label class="text-xs text-slate-500">Giá thực tế (VNĐ)</label>
+                        <input id="input-actual" name="actualPrice" type="number" step="0.01" value="@(Model.Order.ActualPrice.HasValue ? Model.Order.ActualPrice.Value.ToString(CultureInfo.InvariantCulture) : string.Empty)" class="w-full p-2 border rounded" />
                     </div>
                     <div>
-                        <label class="text-xs text-slate-500">Phí phát sinh</label>
-                        <input name="additionalCharges" type="number" step="0.01" value="@(Model.Order.AdditionalCharges)" class="w-full p-2 border rounded" />
+                        <label class="text-xs text-slate-500">Phí phát sinh (VNĐ)</label>
+                        <input id="input-additional" name="additionalCharges" type="number" step="0.01" value="@(Model.Order.AdditionalCharges.ToString(CultureInfo.InvariantCulture))" class="w-full p-2 border rounded" />
                     </div>
                     <div>
                         <label class="text-xs text-slate-500">Ghi chú phí</label>
-                        <input name="chargeNotes" type="text" value="@(Model.Order.ChargeNotes ?? string.Empty)" class="w-full p-2 border rounded" />
+                        <input id="input-notes" name="chargeNotes" type="text" value="@(Model.Order.ChargeNotes ?? string.Empty)" class="w-full p-2 border rounded" />
                     </div>
                     <div class="sm:col-span-3 text-right mt-2">
                         <button type="submit" class="px-3 py-2 bg-sky-600 text-white rounded">Lưu chi phí</button>
@@ -159,13 +164,25 @@
                     try {
                         const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
 
+                        // collect current cost inputs so they are saved when completing
+                        const actualVal = document.getElementById('input-actual')?.value || '';
+                        const additionalVal = document.getElementById('input-additional')?.value || '';
+                        const notesVal = document.getElementById('input-notes')?.value || '';
+
+                        const formData = new URLSearchParams();
+                        formData.append('actualPrice', actualVal);
+                        formData.append('additionalCharges', additionalVal);
+                        formData.append('chargeNotes', notesVal);
+
                         const resp = await fetch(window.location.pathname + '?handler=Complete&id=' + encodeURIComponent(id), {
                             method: 'POST',
                             credentials: 'same-origin', // ensure auth cookie is sent
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest',
-                                'RequestVerificationToken': token
-                            }
+                                'RequestVerificationToken': token,
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: formData.toString()
                         });
 
                         const contentType = resp.headers.get('content-type') || '';
@@ -195,6 +212,16 @@
                         const statusEl = document.getElementById('order-status');
                         if (statusEl && status) statusEl.textContent = status;
 
+                        // update actual cost display if returned
+                        if (data && data.actualPrice != null) {
+                            const actualEl = document.getElementById('actual-cost');
+                            if (actualEl) actualEl.textContent = (Number(data.actualPrice).toLocaleString());
+                        }
+                        if (data && data.additionalCharges != null) {
+                            const addEl = document.getElementById('additional-charges');
+                            if (addEl) addEl.textContent = `(+ ${Number(data.additionalCharges).toLocaleString()} đ)`;
+                        }
+
                         messageEl.innerHTML = `<div class="mb-2 px-3 py-2 bg-emerald-100 text-emerald-800 rounded">${msg}</div>`;
 
                         // if invoice created automatically, update invoice action area
@@ -207,7 +234,7 @@
 
                         // Redirect to orders list so the table reflects updated status (short delay)
                         setTimeout(function() {
-                            window.location.href = '/Orders';
+                            window.location.href = '/Services/Orders';
                         }, 800);
                     } catch (ex) {
                         messageEl.innerHTML = `<div class="mb-2 px-3 py-2 bg-red-100 text-red-800 rounded">Lỗi kết nối</div>`;

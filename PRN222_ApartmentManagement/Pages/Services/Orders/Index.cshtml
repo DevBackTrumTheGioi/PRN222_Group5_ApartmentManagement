@@ -4,6 +4,13 @@
 @{
     ViewData["Title"] = "Danh sách đơn dịch vụ";
     ViewData["CurrentPage"] = "orders";
+
+    string SlotDisplay(string? slot) => slot switch {
+        "Morning" => "Sáng",
+        "Afternoon" => "Chiều",
+        "Evening" => "Tối",
+        _ => slot ?? string.Empty
+    };
 }
 
 <div class="space-y-4">
@@ -31,7 +38,7 @@
                         <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Mã</th>
                         <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Căn hộ</th>
                         <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Dịch vụ</th>
-                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Ngày yêu cầu</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Thời gian yêu cầu</th>
                         <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Người yêu cầu</th>
                         <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Trạng thái</th>
                         <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Giá dự kiến</th>
@@ -41,11 +48,14 @@
                 <tbody class="divide-y divide-slate-100">
                     @foreach (var o in Model.Orders)
                     {
+                        var slot = o.RequestedTimeSlot ?? string.Empty;
+                        var slotDisplay = SlotDisplay(slot);
+                        var requestedDisplay = $"{o.RequestedDate:dd/MM/yyyy}" + (string.IsNullOrEmpty(slotDisplay) ? string.Empty : " - " + slotDisplay);
                         <tr>
                             <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.OrderNumber</td>
                             <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.Apartment?.ApartmentNumber</td>
                             <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.ServiceType?.ServiceTypeName</td>
-                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.RequestedDate.ToString("dd/MM/yyyy")</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@requestedDisplay</td>
                             <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.Resident?.FullName</td>
                             <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.Status</td>
                             <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@o.EstimatedPrice?.ToString("N0") đ</td>
@@ -64,6 +74,34 @@
                     }
                 </tbody>
             </table>
+        </div>
+
+        <div class="px-6 py-4 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
+            <div>
+                <p class="text-sm text-slate-500">Hiển thị <span class="font-medium text-slate-900">@((Model.PageIndex - 1) * Model.PageSize + 1)</span> - <span class="font-medium text-slate-900">@Math.Min(Model.PageIndex * Model.PageSize, Model.TotalItems)</span> trong tổng số <span class="font-medium text-slate-900">@Model.TotalItems</span> bản ghi</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <form method="get" class="inline-flex items-center gap-2">
+                    <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+                    <input type="hidden" name="PageIndex" value="@(Model.PageIndex - 1)" />
+                    <input type="hidden" name="PageSize" value="@Model.PageSize" />
+                    <button class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm" @(Model.PageIndex == 1 ? "disabled" : "")>Trước</button>
+                </form>
+
+                <div class="flex items-center gap-1">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <a href="?StatusFilter=@Model.StatusFilter&pageIndex=@i&pageSize=@Model.PageSize" class="w-8 h-8 rounded-lg text-sm font-medium flex items-center justify-center transition-colors @(i == Model.PageIndex ? "bg-primary-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100")">@i</a>
+                    }
+                </div>
+
+                <form method="get" class="inline-flex items-center gap-2">
+                    <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+                    <input type="hidden" name="PageIndex" value="@(Model.PageIndex + 1)" />
+                    <input type="hidden" name="PageSize" value="@Model.PageSize" />
+                    <button class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm" @(Model.PageIndex == Model.TotalPages ? "disabled" : "")>Sau</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
