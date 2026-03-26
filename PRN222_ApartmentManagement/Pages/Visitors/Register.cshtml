@@ -12,10 +12,16 @@
 
     @if (TempData["Success"] != null)
     {
-        <div class="text-emerald-600 mb-4">@TempData["Success"]</div>
+        <div class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm mb-4">
+            <span class="material-icons text-emerald-500">check_circle</span>
+            @TempData["Success"]
+        </div>
     }
 
     <form method="post" class="space-y-6">
+        <div>
+            <div asp-validation-summary="All" class="text-rose-600 text-sm"></div>
+        </div>
         <div class="grid grid-cols-1 gap-4">
             <div class="p-4 border rounded-lg bg-slate-50">
                 <label class="block text-sm text-slate-700 font-medium mb-1">Tên khách</label>
@@ -30,14 +36,14 @@
             </div>
 
             <div class="p-4 border rounded-lg bg-slate-50">
-                <label class="block text-sm text-slate-700 font-medium mb-1">CMND/CCCD (tuỳ chọn)</label>
+                <label class="block text-sm text-slate-700 font-medium mb-1">CMND/CCCD</label>
                 <input asp-for="Input.IdentityCard" class="form-input w-full" placeholder="Số CMND hoặc CCCD" />
                 <span asp-validation-for="Input.IdentityCard" class="text-rose-600 text-sm"></span>
             </div>
 
             <div class="p-4 border rounded-lg bg-slate-50">
                 <label class="block text-sm text-slate-700 font-medium mb-1">Ngày đến</label>
-                <input asp-for="Input.VisitDate" type="date" class="form-input w-full" />
+                <input asp-for="Input.VisitDate" type="date" class="form-input w-full" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                 <span asp-validation-for="Input.VisitDate" class="text-rose-600 text-sm"></span>
             </div>
 
@@ -53,15 +59,24 @@
             </div>
         </div>
 
-        <div class="text-xs text-slate-500">Lưu ý: CMND/CCCD và giờ đến là tuỳ chọn; chỉ cần tên và số điện thoại để đăng ký.</div>
-
         <div class="flex gap-3">
             <button type="submit" class="btn btn-primary">Đăng ký</button>
-            <a asp-page="MyVisitors" class="btn btn-secondary">Xem khách của tôi</a>
         </div>
     </form>
 </div>
 
 @section Scripts{
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function(){
+            const dateInput = document.querySelector('input[name="Input.VisitDate"]');
+            if(dateInput){
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth()+1).padStart(2,'0');
+                const dd = String(today.getDate()).padStart(2,'0');
+                dateInput.min = `${yyyy}-${mm}-${dd}`;
+            }
+        })();
+    </script>
 }

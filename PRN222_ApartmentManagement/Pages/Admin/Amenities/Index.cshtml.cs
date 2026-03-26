@@ -25,13 +25,29 @@ public class IndexModel : PageModel
     public int AmenityTypesCount { get; set; }
     public int TodayBookings { get; set; }
 
+    [BindProperty(SupportsGet = true)]
+    public int PageIndex { get; set; } = 1;
+
+    [BindProperty(SupportsGet = true)]
+    public int PageSize { get; set; } = 10;
+
+    public int TotalItems { get; set; }
+    public int TotalPages { get; set; }
+
     public async Task OnGetAsync()
     {
-        Amenities = await _context.Amenities
+        var q = _context.Amenities
             .Include(a => a.AmenityType)
             .Where(a => !a.IsDeleted)
             .OrderBy(a => a.AmenityName)
-            .ToListAsync();
+            .AsQueryable();
+
+        TotalItems = await q.CountAsync();
+        if (PageIndex < 1) PageIndex = 1;
+        TotalPages = (int)Math.Ceiling(TotalItems / (double)PageSize);
+        if (PageIndex > TotalPages && TotalPages > 0) PageIndex = TotalPages;
+
+        Amenities = await q.Skip((PageIndex - 1) * PageSize).Take(PageSize).ToListAsync();
 
         TotalAmenities = await _context.Amenities.CountAsync(a => !a.IsDeleted);
         ActiveAmenities = await _context.Amenities.CountAsync(a => a.IsActive && !a.IsDeleted);
@@ -47,7 +63,7 @@ public class IndexModel : PageModel
         if (amenity == null) return NotFound();
         amenity.IsActive = !amenity.IsActive;
         await _context.SaveChangesAsync();
-        return RedirectToPage();
+        return RedirectToPage(new { PageIndex, PageSize });
     }
 
     public async Task<IActionResult> OnPostDeleteAsync(int id)
@@ -57,6 +73,6 @@ public class IndexModel : PageModel
         amenity.IsDeleted = true;
         amenity.IsActive = false;
         await _context.SaveChangesAsync();
-        return RedirectToPage();
+        return RedirectToPage(new { PageIndex, PageSize });
     }
 }
