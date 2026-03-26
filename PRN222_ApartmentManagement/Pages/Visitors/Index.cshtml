@@ -87,4 +87,46 @@
             }
         </tbody>
     </table>
+
+    <div class="mt-4 px-4 py-3 bg-slate-50 border-t border-slate-100 rounded-b-lg flex items-center justify-between">
+        <div>
+            <p class="text-sm text-slate-500">Hiển thị <span class="font-medium text-slate-900">@((Model.PageIndex - 1) * Model.PageSize + 1)</span> - <span class="font-medium text-slate-900">@Math.Min(Model.PageIndex * Model.PageSize, Model.TotalItems)</span> trong tổng số <span class="font-medium text-slate-900">@Model.TotalItems</span> bản ghi</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <form method="get" class="inline-flex items-center gap-2">
+                <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+                <input type="hidden" name="PageIndex" value="@(Model.PageIndex - 1)" />
+                <input type="hidden" name="PageSize" value="@Model.PageSize" />
+                <button class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm" @(Model.PageIndex == 1 ? "disabled" : "")>Trước</button>
+            </form>
+
+            <div class="flex items-center gap-1">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a href="?SearchTerm=@Model.SearchTerm&pageIndex=@i&pageSize=@Model.PageSize" class="w-8 h-8 rounded-lg text-sm font-medium flex items-center justify-center transition-colors @(i == Model.PageIndex ? "bg-primary-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100")">@i</a>
+                }
+            </div>
+
+            <form method="get" class="inline-flex items-center gap-2">
+                <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+                <input type="hidden" name="PageIndex" value="@(Model.PageIndex + 1)" />
+                <input type="hidden" name="PageSize" value="@Model.PageSize" />
+                <button class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm" @(Model.PageIndex == Model.TotalPages ? "disabled" : "")>Sau</button>
+            </form>
+
+            <div class="ml-4">
+                <form method="get">
+                    <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+                    <label class="text-xs text-slate-500 mr-2">Số lượng</label>
+                    <select name="PageSize" onchange="this.form.submit()" class="px-2 py-1 border rounded">
+                        <option value="10" selected="@(Model.PageSize==10)">10</option>
+                        <option value="20" selected="@(Model.PageSize==20)">20</option>
+                        <option value="50" selected="@(Model.PageSize==50)">50</option>
+                        <option value="100" selected="@(Model.PageSize==100)">100</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>

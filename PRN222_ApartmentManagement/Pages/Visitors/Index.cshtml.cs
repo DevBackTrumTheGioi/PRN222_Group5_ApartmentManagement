@@ -21,6 +21,16 @@ public class IndexModel : PageModel
 
     [BindProperty(SupportsGet = true)]
     public string? SearchTerm { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public int PageIndex { get; set; } = 1;
+
+    [BindProperty(SupportsGet = true)]
+    public int PageSize { get; set; } = 10;
+
+    public int TotalItems { get; set; }
+    public int TotalPages { get; set; }
+
     public async Task OnGetAsync()
     {
         var query = _context.Visitors
@@ -41,9 +51,17 @@ public class IndexModel : PageModel
             );
         }
 
+        // count before paging
+        TotalItems = await query.CountAsync();
+        if (PageIndex < 1) PageIndex = 1;
+        TotalPages = (int)Math.Ceiling(TotalItems / (double)PageSize);
+        if (PageIndex > TotalPages && TotalPages > 0) PageIndex = TotalPages;
+
         Visitors = await query
             .OrderByDescending(v => v.VisitDate)
             .ThenByDescending(v => v.CreatedAt)
+            .Skip((PageIndex - 1) * PageSize)
+            .Take(PageSize)
             .ToListAsync();
     }
 
