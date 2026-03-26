@@ -180,6 +180,7 @@ public static class NotificationUtils
             "Invoice" => "💰",
             "Request" => "📝",
             "Announcement" => "📢",
+            "Meeting" => "🗓️",
             "Message" => "💬",
             "Visitor" => "👤",
             "Parcel" => "📦",
@@ -217,6 +218,24 @@ public static class NotificationUtils
             "overdue" => "badge-danger",
             _ => "badge-secondary"
         };
+    }
+
+    /// <summary>
+    /// Tạo nội dung thông báo cuộc họp
+    /// </summary>
+    public static (string Title, string Content) CreateMeetingNotification(
+        string meetingTitle,
+        DateTime scheduledDate,
+        string? location = null)
+    {
+        var title = "Lịch họp mới";
+        var content = $"Có cuộc họp mới: {meetingTitle} vào {scheduledDate:dd/MM/yyyy HH:mm}";
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            content += $" tại {location}";
+        }
+
+        return (title, content);
     }
 }
 

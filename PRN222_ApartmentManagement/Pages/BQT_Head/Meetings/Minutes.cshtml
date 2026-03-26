@@ -1,0 +1,67 @@
+﻿@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.BQT_Head.Meetings.MinutesModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Biên bản họp";
+    ViewData["Subtitle"] = "Ghi chú nội dung và danh sách tham dự";
+    ViewData["CurrentPage"] = "meetings";
+}
+
+<div class="max-w-4xl space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Biên bản họp</h1>
+        <p class="text-sm text-slate-500">@Model.Meeting.Title</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label asp-for="Input.Status" class="block text-sm font-medium text-slate-700 mb-1">Trạng thái</label>
+                    <select asp-for="Input.Status" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        @foreach (var item in Enum.GetValues<MeetingStatus>())
+                        {
+                            <option value="@item">@item.GetDisplayName()</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.Status" class="text-xs text-red-600"></span>
+                </div>
+                <div></div>
+            </div>
+
+            <div>
+                <label asp-for="MinutesFile" class="block text-sm font-medium text-slate-700 mb-1">File biên bản</label>
+                <input asp-for="MinutesFile" type="file" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white" />
+                <span asp-validation-for="MinutesFile" class="text-xs text-red-600"></span>
+                <p class="mt-1 text-xs text-slate-500">Cho phép PDF, Word, TXT hoặc ảnh.</p>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Meeting.MinutesFilePath))
+                {
+                    <a href="@Model.Meeting.MinutesFilePath" target="_blank"
+                       class="mt-2 inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800">
+                        <span class="material-icons text-base">attach_file</span>
+                        @(string.IsNullOrWhiteSpace(Model.Meeting.MinutesFileName) ? "Tệp biên bản hiện tại" : Model.Meeting.MinutesFileName)
+                    </a>
+                }
+            </div>
+
+            <div>
+                <label asp-for="Input.Attendees" class="block text-sm font-medium text-slate-700 mb-1">Danh sách tham dự</label>
+                <textarea asp-for="Input.Attendees" rows="4" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Tên cư dân / đại diện tham dự"></textarea>
+                <span asp-validation-for="Input.Attendees" class="text-xs text-red-600"></span>
+            </div>
+
+            <div>
+                <label asp-for="Input.MinutesContent" class="block text-sm font-medium text-slate-700 mb-1">Nội dung biên bản</label>
+                <textarea asp-for="Input.MinutesContent" rows="12" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ghi chú nội dung, quyết định, đầu việc..."></textarea>
+                <span asp-validation-for="Input.MinutesContent" class="text-xs text-red-600"></span>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+            <a asp-page="Details" asp-route-id="@Model.Meeting.MeetingId" class="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-white">Hủy</a>
+            <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Lưu biên bản</button>
+        </div>
+    </form>
+</div>
