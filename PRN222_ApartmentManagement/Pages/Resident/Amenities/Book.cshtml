@@ -1,0 +1,145 @@
+@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.Resident.Amenities.BookModel
+@{
+    ViewData["Title"] = "Đặt tiện ích";
+    ViewData["Subtitle"] = "Chọn ngày giờ sử dụng và kiểm tra slot trống";
+    ViewData["CurrentPage"] = "amenities";
+}
+
+<div class="mx-auto max-w-5xl space-y-6">
+    <div>
+        <a asp-page="Index"
+           asp-route-selectedAmenityId="@Model.Amenity?.AmenityId"
+           asp-route-bookingDate="@Model.Input.BookingDate.ToString("yyyy-MM-dd")"
+           class="inline-flex items-center gap-1 text-sm text-slate-500 transition-colors hover:text-emerald-600">
+            <span class="material-icons text-base">arrow_back</span>
+            Quay lại tiện ích
+        </a>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
+        <form method="post" class="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-lg font-semibold text-slate-900">@Model.Amenity?.AmenityName</h2>
+                <p class="mt-1 text-sm text-slate-500">@Model.Amenity?.Location</p>
+            </div>
+
+            <div asp-validation-summary="ModelOnly" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+
+            @if (!Model.HasApartment)
+            {
+                <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                    Bạn chưa được gán căn hộ nên hiện chưa thể tạo booking.
+                </div>
+            }
+
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                    <label asp-for="Input.BookingDate" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                    <input asp-for="Input.BookingDate" type="date" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <span asp-validation-for="Input.BookingDate" class="mt-1 block text-xs text-red-500"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Input.ParticipantCount" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                    <input asp-for="Input.ParticipantCount" type="number" min="1" max="@(Model.Amenity?.Capacity ?? 500)" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <span asp-validation-for="Input.ParticipantCount" class="mt-1 block text-xs text-red-500"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Input.StartTime" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                    <select asp-for="Input.StartTime" asp-items="Model.TimeOptions" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Chọn giờ bắt đầu</option>
+                    </select>
+                    <span asp-validation-for="Input.StartTime" class="mt-1 block text-xs text-red-500"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Input.EndTime" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                    <select asp-for="Input.EndTime" asp-items="Model.TimeOptions" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Chọn giờ kết thúc</option>
+                    </select>
+                    <span asp-validation-for="Input.EndTime" class="mt-1 block text-xs text-red-500"></span>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label asp-for="Input.Notes" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                    <textarea asp-for="Input.Notes" rows="4" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                    <span asp-validation-for="Input.Notes" class="mt-1 block text-xs text-red-500"></span>
+                </div>
+            </div>
+
+            <div class="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+                <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <div>
+                        <p class="text-xs text-slate-400">Giá theo giờ</p>
+                        <p class="mt-1 font-semibold text-slate-800">@string.Format("{0:N0} đ", Model.Amenity?.PricePerHour ?? 0)</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Sức chứa</p>
+                        <p class="mt-1 font-semibold text-slate-800">@(Model.Amenity?.Capacity?.ToString() ?? "—") người</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Mở cửa</p>
+                        <p class="mt-1 font-semibold text-slate-800">@Model.Amenity?.OpenTime.ToString(@"hh\:mm") - @Model.Amenity?.CloseTime.ToString(@"hh\:mm")</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Hủy trước</p>
+                        <p class="mt-1 font-semibold text-slate-800">@Model.Amenity?.CancellationDeadlineHours giờ</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 border-t border-slate-100 pt-4">
+                <a asp-page="Index"
+                   asp-route-selectedAmenityId="@Model.Amenity?.AmenityId"
+                   asp-route-bookingDate="@Model.Input.BookingDate.ToString("yyyy-MM-dd")"
+                   class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
+                    <span class="material-icons text-base">close</span>
+                    Hủy
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 @(Model.HasApartment ? string.Empty : "pointer-events-none opacity-50")">
+                    <span class="material-icons text-base">event_available</span>
+                    Xác nhận đặt
+                </button>
+            </div>
+        </form>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-semibold text-slate-900">Slot ngày @Model.Input.BookingDate.ToString("dd/MM/yyyy")</h3>
+                    <p class="mt-1 text-sm text-slate-500">Khung màu xanh còn trống, màu đỏ đã có người đặt.</p>
+                </div>
+            </div>
+
+            @if (!Model.Slots.Any())
+            {
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
+                    Chưa có slot hiển thị cho ngày này.
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    @foreach (var slot in Model.Slots)
+                    {
+                        var slotCss = slot.IsAvailable
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-red-200 bg-red-50 text-red-700";
+
+                        <div class="rounded-xl border p-3 text-sm @slotCss">
+                            <p class="font-semibold">@slot.StartTime.ToString(@"hh\:mm") - @slot.EndTime.ToString(@"hh\:mm")</p>
+                            <p class="mt-1 text-xs">@slot.StatusLabel</p>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

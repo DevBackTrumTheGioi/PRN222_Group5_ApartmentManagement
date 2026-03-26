@@ -1,0 +1,186 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Services.IndexModel
+@using PRN222_ApartmentManagement.Models.Enums
+@{
+    ViewData["Title"] = "Danh mục dịch vụ";
+    ViewData["Subtitle"] = "Quản lý loại dịch vụ theo yêu cầu, giá hiện hành và hiệu quả khai thác";
+    ViewData["CurrentPage"] = "services";
+}
+
+<div class="space-y-6">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <span class="material-icons text-emerald-500">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-bold tracking-tight text-slate-900">Quản lý dịch vụ theo yêu cầu</h2>
+            <p class="text-sm text-slate-500">Quản trị viên và Ban Quản lý có thể theo dõi danh mục, giá và hiệu suất sử dụng.</p>
+        </div>
+        @if (User.IsInRole("BQL_Manager"))
+        {
+            <a asp-page="Create"
+               class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700">
+                <span class="material-icons text-base">add</span>
+                Thêm loại dịch vụ
+            </a>
+        }
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-slate-800">@Model.TotalCount</p>
+            <p class="mt-1 text-xs text-slate-500">Tổng loại dịch vụ</p>
+        </div>
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-emerald-600">@Model.ActiveCount</p>
+            <p class="mt-1 text-xs text-emerald-600">Đang kích hoạt</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-slate-600">@Model.InactiveCount</p>
+            <p class="mt-1 text-xs text-slate-500">Tạm ngưng</p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <form method="get" class="flex flex-wrap items-end gap-3">
+                <div class="min-w-[220px] flex-1 space-y-1">
+                    <label class="text-xs font-medium text-slate-600">Tìm kiếm</label>
+                    <input type="text" name="SearchTerm" value="@Model.SearchTerm" placeholder="Tên dịch vụ, mô tả, đơn vị tính..."
+                           class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                </div>
+                <div class="min-w-[180px] space-y-1">
+                    <label class="text-xs font-medium text-slate-600">Trạng thái</label>
+                    <select name="ActiveFilter" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                        <option value="">Tất cả</option>
+                        <option value="true" selected="@(Model.ActiveFilter == true)">Đang hoạt động</option>
+                        <option value="false" selected="@(Model.ActiveFilter == false)">Tạm ngưng</option>
+                    </select>
+                </div>
+                <div class="ml-auto flex gap-2">
+                    @if (Model.HasFilter)
+                    {
+                        <a asp-page="Index" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50">
+                            <span class="material-icons text-base">close</span>
+                            Xóa lọc
+                        </a>
+                    }
+                    <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800">
+                        <span class="material-icons text-base">filter_list</span>
+                        Lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-100 bg-slate-50 px-4 py-3">
+                <h3 class="text-sm font-semibold text-slate-700">Danh sách loại dịch vụ</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50">
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Dịch vụ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Giá hiện hành</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Đơn hàng</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Doanh thu</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @if (!Model.ServiceTypes.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="px-4 py-10 text-center text-sm text-slate-500">Chưa có loại dịch vụ nào.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model.ServiceTypes)
+                            {
+                                var currentPrice = Model.GetCurrentPrice(item);
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-4 py-3 align-top">
+                                        <p class="font-semibold text-slate-800">@item.ServiceTypeName</p>
+                                        <p class="mt-1 text-xs text-slate-500">@(!string.IsNullOrWhiteSpace(item.Description) ? item.Description : "Chưa có mô tả")</p>
+                                        <p class="mt-1 text-xs text-slate-400">Đơn vị tính: @(item.MeasurementUnit ?? "Chưa cấu hình")</p>
+                                    </td>
+                                    <td class="px-4 py-3 align-top">
+                                        @if (currentPrice != null)
+                                        {
+                                            <p class="font-semibold text-slate-700">@currentPrice.UnitPrice.ToString("N0") đ</p>
+                                            <p class="text-xs text-slate-400">Từ @currentPrice.EffectiveFrom.ToString("dd/MM/yyyy")</p>
+                                        }
+                                        else
+                                        {
+                                            <span class="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">Chưa có bảng giá</span>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-3 align-top">
+                                        @if (item.IsActive)
+                                        {
+                                            <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
+                                                <span class="material-icons text-[11px]">check_circle</span>
+                                                Đang hoạt động
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-500">
+                                                <span class="material-icons text-[11px]">pause_circle</span>
+                                                Tạm ngưng
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-slate-600">
+                                        <p>@item.ServiceOrders.Count đơn</p>
+                                        <p class="text-xs text-slate-400">@item.ServiceOrders.Count(order => order.Status == ServiceOrderStatus.Completed) hoàn thành</p>
+                                    </td>
+                                    <td class="px-4 py-3 align-top font-medium text-slate-700">@item.ServiceOrders.Where(order => order.Status == ServiceOrderStatus.Completed).Sum(order => order.ActualPrice ?? order.EstimatedPrice ?? 0).ToString("N0") đ</td>
+                                    <td class="px-4 py-3 text-right align-top">
+                                        @if (User.IsInRole("BQL_Manager"))
+                                        {
+                                            <div class="flex justify-end gap-2">
+                                                <a asp-page="Edit" asp-route-id="@item.ServiceTypeId"
+                                                   class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700">
+                                                    <span class="material-icons text-sm">edit</span>
+                                                    Sửa
+                                                </a>
+                                                <form method="post" asp-page-handler="ToggleStatus">
+                                                    <input type="hidden" name="serviceTypeId" value="@item.ServiceTypeId" />
+                                                    <button type="submit"
+                                                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50">
+                                                        <span class="material-icons text-sm">power_settings_new</span>
+                                                        @(item.IsActive ? "Tạm ngưng" : "Kích hoạt")
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-xs text-slate-400">Chỉ xem</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
