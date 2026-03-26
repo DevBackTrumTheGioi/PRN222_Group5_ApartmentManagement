@@ -1,4 +1,4 @@
-@using PRN222_ApartmentManagement.Services.Interfaces
+﻿@using PRN222_ApartmentManagement.Services.Interfaces
 @inject ISettingService SettingService
 @{
     var apartmentName = await SettingService.GetSettingAsync("ApartmentName", "ApartmentMS");
@@ -55,11 +55,15 @@
     {
         workItems.Add(new SidebarMenuItem { Icon = "assignment", Label = "Yêu cầu cư dân", Href = "/BQL_Manager/Requests", Key = "requests" });
         workItems.Add(new SidebarMenuItem { Icon = "escalator_warning", Label = "Yêu cầu chuyển cấp", Href = "/BQL_Manager/Requests/Escalated", Key = "escalated" });
+        workItems.Add(new SidebarMenuItem { Icon = "analytics", Label = "Dashboard Face ID", Href = "/BQL_Manager/FaceAuth/Dashboard", Key = "faceauthdashboard" });
+        workItems.Add(new SidebarMenuItem { Icon = "history", Label = "Lịch sử Face ID", Href = "/FaceAuth/Logs", Key = "faceauthlogs" });
     }
 
     if (isBqlStaff)
     {
         workItems.Add(new SidebarMenuItem { Icon = "assignment_ind", Label = "Việc được giao", Href = "/BQL_Staff/Requests/Assigned", Key = "assigned" });
+        workItems.Add(new SidebarMenuItem { Icon = "face", Label = "Quản lý Face ID", Href = "/BQL_Staff/FaceAuth", Key = "faceauthstaff" });
+        workItems.Add(new SidebarMenuItem { Icon = "history", Label = "Lịch sử Face ID", Href = "/FaceAuth/Logs", Key = "faceauthlogs" });
     }
 
     if (isResident)
