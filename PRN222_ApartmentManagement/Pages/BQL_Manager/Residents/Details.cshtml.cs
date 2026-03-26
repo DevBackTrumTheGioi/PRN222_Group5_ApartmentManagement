@@ -22,7 +22,7 @@ public class DetailsModel : PageModel
     public User? Resident { get; set; }
 
     /// <summary>
-    /// Danh sach lich su cu tru theo tung hop dong cua cư dan.
+    /// Danh sách lịch sử cư trú theo từng hợp đồng của cư dân.
     /// </summary>
     public List<ResidentApartment> ResidencyRecords { get; set; } = new();
 

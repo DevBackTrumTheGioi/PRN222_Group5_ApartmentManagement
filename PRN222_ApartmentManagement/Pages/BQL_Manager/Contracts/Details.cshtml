@@ -78,7 +78,7 @@
     var isActive = contract?.Status == ContractStatus.Active;
 }
 
-@* Modal kich hoat *@
+@* Modal kích hoạt *@
 <div id="activateModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
     <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
         <div class="flex items-center gap-3 mb-4">
@@ -106,7 +106,7 @@
     </div>
 </div>
 
-@* Modal xoa hop dong *@
+@* Modal xóa hợp đồng *@
 <div id="deleteModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
     <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
         <div class="flex items-center gap-3 mb-4">
@@ -287,7 +287,7 @@
 
             @if (owner != null)
             {
-                @* Da kich hoat - hien thi tu bang User *@
+                @* Đã kích hoạt - hiển thị từ bảng User *@
                 <div class="flex flex-col items-center text-center gap-3">
                     <div class="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-2xl font-bold shadow-md">
                         @Initials(owner.FullName)

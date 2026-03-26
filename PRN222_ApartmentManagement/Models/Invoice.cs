@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PRN222_ApartmentManagement.Models.Enums;
 
@@ -41,13 +41,6 @@ public class Invoice
 
     public InvoiceStatus Status { get; set; } = InvoiceStatus.Unpaid;
 
-    public InvoiceApprovalStatus ApprovalStatus { get; set; } = InvoiceApprovalStatus.PendingApproval;
-
-    [ForeignKey("Approver")]
-    public int? ApprovedBy { get; set; }
-
-    public DateTime? ApprovedAt { get; set; }
-
     public bool IsSent { get; set; } = false;
 
     public DateTime? SentAt { get; set; }
@@ -70,7 +63,6 @@ public class Invoice
 
     public virtual Apartment Apartment { get; set; } = null!;
     public virtual User Creator { get; set; } = null!;
-    public virtual User? Approver { get; set; }
     public virtual ICollection<InvoiceDetail> InvoiceDetails { get; set; } = new List<InvoiceDetail>();
     public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
     public virtual ICollection<ServiceOrder> ServiceOrders { get; set; } = new List<ServiceOrder>();

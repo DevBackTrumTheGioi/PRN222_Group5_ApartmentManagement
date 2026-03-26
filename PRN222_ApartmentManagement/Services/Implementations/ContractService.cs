@@ -112,7 +112,7 @@ public class ContractService : IContractService
         await _contractRepository.AddAsync(contract);
         await _dbContext.SaveChangesAsync();
 
-        // Khi tao hop dong (Draft), chuyen trang thai chung cu sang Da dat
+        // Khi tạo hợp đồng (Draft), chuyển trạng thái chung cư sang Đã đặt
         var apartment = await _dbContext.Apartments.FindAsync(dto.ApartmentId);
         if (apartment != null)
         {
@@ -125,7 +125,7 @@ public class ContractService : IContractService
             "CreateContract",
             nameof(Contract),
             contract.ContractId.ToString(),
-            $"Tao hop dong {contract.ContractNumber} (Ban nap). Vui long kich hoat de tao tai khoan chu ho.");
+            $"Tạo hợp đồng {contract.ContractNumber} (Bản nháp). Vui lòng kích hoạt để tạo tài khoản chủ hộ.");
 
         return contract;
     }
@@ -140,10 +140,10 @@ public class ContractService : IContractService
             return null;
 
         if (contract.Status != ContractStatus.Draft)
-            throw new InvalidOperationException("Chi hop dong o trang thai Ban nap moi duoc kich hoat.");
+            throw new InvalidOperationException("Chỉ hợp đồng ở trạng thái Bản nháp mới được kích hoạt.");
 
         if (string.IsNullOrWhiteSpace(contract.OwnerFullName))
-            throw new InvalidOperationException("Thong tin chu ho chua duoc luu. Vui long chinh sua hop dong truoc.");
+            throw new InvalidOperationException("Thông tin chủ hộ chưa được lưu. Vui lòng chỉnh sửa hợp đồng trước.");
 
         await _dbContext.Database.BeginTransactionAsync();
         try
@@ -188,7 +188,7 @@ public class ContractService : IContractService
                 ownerUsername = username;
             }
 
-            // Tao ContractMember
+            // Tạo ContractMember
             var contractMember = new ContractMember
             {
                 ContractId = contract.ContractId,
@@ -201,7 +201,7 @@ public class ContractService : IContractService
             };
             await _contractMemberRepository.AddAsync(contractMember);
 
-            // Tao ResidentApartment record — ghi nhan lich su cu tru cua user tai apartment nay
+            // Tạo ResidentApartment record — ghi nhận lịch sử cư trú của user tại apartment này
             var residencyType = contract.ContractType switch
             {
                 ContractType.Rental => ResidencyType.Tenant,
@@ -221,7 +221,7 @@ public class ContractService : IContractService
             };
             await _residentApartmentRepository.AddAsync(residentApartment);
 
-            // Cap nhat User.ApartmentId = apartment moi nhat (tien ich, con khop voi code cu)
+            // Cập nhật User.ApartmentId = apartment mới nhất (tiện ích, còn khớp với code cũ)
             var ownerUserForUpdate = await _dbContext.Users.FindAsync(ownerUserId);
             if (ownerUserForUpdate != null)
             {
@@ -232,13 +232,13 @@ public class ContractService : IContractService
 
             await _dbContext.SaveChangesAsync();
 
-            // Chuyen trang thai hop dong sang Active
+            // Chuyển trạng thái hợp đồng sang Active
             contract.Status = ContractStatus.Active;
             contract.SignedDate = DateTime.Now;
             contract.UpdatedAt = DateTime.Now;
             await _contractRepository.UpdateAsync(contract);
 
-            // Chuyen trang thai chung cu sang Occupied khi hop dong co hieu luc
+            // Chuyển trạng thái chung cư sang Occupied khi hợp đồng có hiệu lực
             var apt = await _dbContext.Apartments.FindAsync(contract.ApartmentId);
             if (apt != null)
             {
@@ -253,7 +253,7 @@ public class ContractService : IContractService
                 "ApproveContract",
                 nameof(Contract),
                 contract.ContractId.ToString(),
-                $"Kich hoat hop dong {contract.ContractNumber}. Chu ho (tai khoan): {ownerUsername}. Nguoi duyet: {approvedBy}.");
+                $"Kích hoạt hợp đồng {contract.ContractNumber}. Chủ hộ (tài khoản): {ownerUsername}. Người duyệt: {approvedBy}.");
 
             return contract;
         }
@@ -279,7 +279,7 @@ public class ContractService : IContractService
         if (dto.Status.HasValue) contract.Status = dto.Status.Value;
         if (dto.PurchasePrice.HasValue) contract.PurchasePrice = dto.PurchasePrice;
 
-        // Cập nhật chủ hộ (luu vao Contract de khi kich hoat con lay ra tao tai khoan)
+        // Cập nhật chủ hộ (lưu vào Contract để khi kích hoạt còn lấy ra tạo tài khoản)
         if (dto.Owner != null)
         {
             if (!string.IsNullOrWhiteSpace(dto.Owner.FullName)) contract.OwnerFullName = dto.Owner.FullName;
@@ -299,7 +299,7 @@ public class ContractService : IContractService
             "UpdateContract",
             nameof(Contract),
             contract.ContractId.ToString(),
-            $"Cap nhat hop dong {contract.ContractNumber}");
+            $"Cập nhật hợp đồng {contract.ContractNumber}");
 
         return contract;
     }
@@ -308,7 +308,7 @@ public class ContractService : IContractService
     {
         var contract = await _contractRepository.GetByIdAsync(id);
         if (contract == null || contract.IsDeleted)
-            return (false, "Khong tim thay hop dong.");
+            return (false, "Không tìm thấy hợp đồng.");
 
         contract.Status = ContractStatus.Terminated;
         contract.TerminationReason = reason;
@@ -329,7 +329,7 @@ public class ContractService : IContractService
 
             if (member.Resident == null) continue;
 
-            // Dong ResidentApartment record cua member cho hop dong nay
+            // Đóng ResidentApartment record của member cho hợp đồng này
             var residentApts = await _dbContext.ResidentApartments
                 .Where(ra => ra.UserId == member.ResidentId
                           && ra.ContractId == id
@@ -359,7 +359,7 @@ public class ContractService : IContractService
                     "UserDeactivatedOnContractTermination",
                     nameof(User),
                     member.Resident.UserId.ToString(),
-                    $"Tai khoan {member.Resident.Username} bi khoa vi khong con hop dong active nao sau khi ket thuc hop dong {contract.ContractNumber}.");
+                    $"Tài khoản {member.Resident.Username} bị khóa vì không còn hợp đồng active nào sau khi kết thúc hợp đồng {contract.ContractNumber}.");
             }
         }
 
@@ -367,9 +367,9 @@ public class ContractService : IContractService
             "TerminateContract",
             nameof(Contract),
             contract.ContractId.ToString(),
-            $"Ket thuc hop dong {contract.ContractNumber}. Ly do: {reason}. Nguoi thuc hien: {terminatedBy}");
+            $"Kết thúc hợp đồng {contract.ContractNumber}. Lý do: {reason}. Người thực hiện: {terminatedBy}");
 
-        // Sau khi ket thuc, kiem tra con ResidentApartment active nao cho apartment nay khong
+        // Sau khi kết thúc, kiểm tra còn ResidentApartment active nào cho apartment này không
         var stillHasActive = await _dbContext.ResidentApartments
             .AnyAsync(ra => ra.ApartmentId == contract.ApartmentId && ra.IsActive);
         if (!stillHasActive)
@@ -383,19 +383,19 @@ public class ContractService : IContractService
             }
         }
 
-        return (true, $"Da ket thuc hop dong {contract.ContractNumber} thanh cong.");
+        return (true, $"Đã kết thúc hợp đồng {contract.ContractNumber} thành công.");
     }
 
     public async Task<(bool Success, string Message)> DeleteContractAsync(int id, int deletedBy)
     {
         var contract = await _contractRepository.GetByIdAsync(id);
         if (contract == null || contract.IsDeleted)
-            return (false, "Khong tim thay hop dong.");
+            return (false, "Không tìm thấy hợp đồng.");
 
         if (contract.Status != ContractStatus.Draft)
             return (false, "Chỉ có thể xóa hợp đồng ở trạng thái bản nháp");
 
-        // Tra trang thai chung cu ve Available khi xoa hop dong Draft
+        // Trả trạng thái chung cư về Available khi xóa hợp đồng Draft
         var apt = await _dbContext.Apartments.FindAsync(contract.ApartmentId);
         if (apt != null)
         {
@@ -413,9 +413,9 @@ public class ContractService : IContractService
             "DeleteContract",
             nameof(Contract),
             contract.ContractId.ToString(),
-            $"Xoa hop dong {contract.ContractNumber} (ban nap). Nguoi thuc hien: {deletedBy}");
+            $"Xóa hợp đồng {contract.ContractNumber} (bản nháp). Người thực hiện: {deletedBy}");
 
-        return (true, $"Da xoa hop dong {contract.ContractNumber} thanh cong.");
+        return (true, $"Đã xóa hợp đồng {contract.ContractNumber} thành công.");
     }
 
     private async Task<string> GenerateUniqueUsernameAsync(string fullName)
@@ -427,7 +427,7 @@ public class ContractService : IContractService
             username = UsernameGenerator.Generate(fullName);
             attempts++;
             if (attempts > 100)
-                throw new InvalidOperationException("Khong the tao username unique sau 100 lan thu.");
+                throw new InvalidOperationException("Không thể tạo username unique sau 100 lần thử.");
         }
         while (await _userRepository.UsernameExistsAsync(username));
 

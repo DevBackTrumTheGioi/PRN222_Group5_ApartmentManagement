@@ -29,15 +29,12 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)]
     public InvoiceStatus? Status { get; set; }
 
-    [BindProperty(SupportsGet = true)]
-    public InvoiceApprovalStatus? ApprovalStatus { get; set; }
-
     [TempData]
     public string? StatusMessage { get; set; }
 
     public async Task OnGetAsync()
     {
-        Invoices = await _invoiceManagementService.GetInvoicesAsync(BillingMonth, BillingYear, Status, ApprovalStatus);
+        Invoices = await _invoiceManagementService.GetInvoicesAsync(BillingMonth, BillingYear, Status);
     }
 
     public async Task<IActionResult> OnPostGenerateAsync(int billingMonth, int billingYear, int dueDay = 10)
@@ -51,12 +48,5 @@ public class IndexModel : PageModel
         var result = await _invoiceManagementService.GenerateInvoicesAsync(billingMonth, billingYear, dueDay, userId);
         StatusMessage = result.Message;
         return RedirectToPage(new { BillingMonth = billingMonth, BillingYear = billingYear });
-    }
-
-    public async Task<IActionResult> OnPostSendAsync(int id)
-    {
-        var result = await _invoiceManagementService.SendInvoiceAsync(id);
-        StatusMessage = result.Message;
-        return RedirectToPage(new { BillingMonth, BillingYear, Status, ApprovalStatus });
     }
 }

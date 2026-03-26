@@ -20,8 +20,6 @@ public class PaymentTransactionRepository : GenericRepository<PaymentTransaction
                 .ThenInclude(i => i.Apartment)
             .Include(t => t.Invoice)
                 .ThenInclude(i => i.Creator)
-            .Include(t => t.Invoice)
-                .ThenInclude(i => i.Approver)
             .FirstOrDefaultAsync(t => t.TransactionId == transactionId);
     }
 
@@ -57,6 +55,47 @@ public class PaymentTransactionRepository : GenericRepository<PaymentTransaction
             .OrderByDescending(t => t.PaymentDate)
             .ThenByDescending(t => t.CreatedAt)
             .ToListAsync();
+    }
+
+    public async Task<List<PaymentTransaction>> GetHistoryByApartmentsAsync(
+        int? billingMonth, int? billingYear, string? paymentMethod, List<int> apartmentIds)
+    {
+        if (!apartmentIds.Any()) return new List<PaymentTransaction>();
+
+        var query = _dbSet
+            .Include(t => t.Creator)
+            .Include(t => t.Invoice)
+                .ThenInclude(i => i.Apartment)
+            .Where(t => apartmentIds.Contains(t.Invoice.ApartmentId))
+            .AsQueryable();
+
+        if (billingMonth.HasValue)
+        {
+            query = query.Where(t => t.Invoice.BillingMonth == billingMonth.Value);
+        }
+
+        if (billingYear.HasValue)
+        {
+            query = query.Where(t => t.Invoice.BillingYear == billingYear.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(paymentMethod))
+        {
+            query = query.Where(t => t.PaymentMethod == paymentMethod);
+        }
+
+        return await query
+            .OrderByDescending(t => t.PaymentDate)
+            .ThenByDescending(t => t.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<PaymentTransaction?> GetByTxnRefAsync(string txnRef)
+    {
+        return await _dbSet
+            .Include(t => t.Invoice)
+                .ThenInclude(i => i.Apartment)
+            .FirstOrDefaultAsync(t => t.VnpTxnRef == txnRef);
     }
 }
 

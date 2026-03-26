@@ -25,16 +25,7 @@
         InvoiceStatus.PartiallyPaid => "Thanh toán một phần",
         InvoiceStatus.Overdue => "Quá hạn",
         InvoiceStatus.Cancelled => "Đã hủy",
-        InvoiceStatus.Pending => "Chờ xác nhận",
-        _ => status.ToString()
-    };
-
-    string GetApprovalLabel(InvoiceApprovalStatus status) => status switch
-    {
-        InvoiceApprovalStatus.Draft => "Bản nháp",
-        InvoiceApprovalStatus.PendingApproval => "Chờ duyệt",
-        InvoiceApprovalStatus.Approved => "Đã duyệt",
-        InvoiceApprovalStatus.Rejected => "Từ chối",
+        InvoiceStatus.Issued => "Đã phát hành",
         _ => status.ToString()
     };
 }
@@ -247,8 +238,6 @@
                 <div class="invoice-quad-grid">
                     <div>Trạng thái:</div>
                     <div>@GetPaymentLabel(invoice.Status)</div>
-                    <div>Phê duyệt:</div>
-                    <div>@GetApprovalLabel(invoice.ApprovalStatus)</div>
                 </div>
             </div>
 
@@ -317,7 +306,7 @@
                     <div class="font-bold uppercase">Người duyệt</div>
                     <div class="mt-1 italic">(Ký, ghi rõ họ tên)</div>
                     <div class="h-24"></div>
-                    <div>@(invoice.Approver?.FullName ?? "Chưa duyệt")</div>
+                    <div>-</div>
                 </div>
             </div>
 

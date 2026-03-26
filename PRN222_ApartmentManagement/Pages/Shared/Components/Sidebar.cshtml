@@ -93,10 +93,17 @@
     }
 
     var financeItems = new List<SidebarMenuItem>();
-    if (isBqlManager || isBqlStaff || isResident)
+    if (isBqlManager)
     {
-        financeItems.Add(new SidebarMenuItem { Icon = "receipt_long", Label = "Hóa đơn", Href = "/Invoices", Key = "invoices" });
-        financeItems.Add(new SidebarMenuItem { Icon = "payments", Label = "Thanh toán", Href = "/Payments", Key = "payments" });
+        financeItems.Add(new SidebarMenuItem { Icon = "receipt_long", Label = "Hóa đơn", Href = "/BQL_Manager/Invoices", Key = "invoices" });
+    }
+    if (isBqlStaff)
+    {
+        financeItems.Add(new SidebarMenuItem { Icon = "receipt_long", Label = "Hóa đơn", Href = "/BQL_Staff/Invoices", Key = "invoices" });
+    }
+    if (isResident)
+    {
+        financeItems.Add(new SidebarMenuItem { Icon = "receipt_long", Label = "Hóa đơn", Href = "/Resident/Invoices", Key = "invoices" });
     }
 
     if (isBqlManager || isBqtHead || isBqtMember)
