@@ -76,14 +76,17 @@
                 <span class="material-icons text-base">edit</span>
                 Sửa
             </a>
-            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Apartment.Apartment.ApartmentId"
-                  onsubmit="return confirm('Xác nhận xóa căn hộ này?');">
-                <button type="submit"
-                        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100 transition-colors">
-                    <span class="material-icons text-base">delete</span>
-                    Xóa
-                </button>
-            </form>
+            @if (Model.IsAdmin)
+            {
+                <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Apartment.Apartment.ApartmentId"
+                      onsubmit="return confirm('Xác nhận xóa căn hộ này?');">
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100 transition-colors">
+                        <span class="material-icons text-base">delete</span>
+                        Xóa
+                    </button>
+                </form>
+            }
         </div>
     </div>
 

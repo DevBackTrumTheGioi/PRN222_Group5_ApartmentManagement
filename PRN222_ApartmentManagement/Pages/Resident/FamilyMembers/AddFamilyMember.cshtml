@@ -1,0 +1,288 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Resident.FamilyMembers.AddFamilyMemberModel
+@using PRN222_ApartmentManagement.Models.DTOs;
+@{
+    ViewData["Title"] = "Gắn thành viên gia đình";
+    ViewData["CurrentPage"] = "family-members";
+}
+
+<div class="max-w-4xl mx-auto space-y-6">
+
+    @* Back link *@
+    <div>
+        <a href="/Resident/FamilyMembers/Details?apartmentId=@Model.ApartmentId" class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+            <span class="material-icons text-base">arrow_back</span>
+            Quay về chi tiết căn hộ
+        </a>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @* ── Page header ────────────────────────────────────── *@
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 px-6 py-4">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white">
+                <span class="material-icons text-xl">group_add</span>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-800">Gắn thành viên gia đình</h1>
+                <p class="text-xs text-slate-400 mt-0.5">
+                    Căn hộ <strong>@Model.ApartmentNumber</strong> — Thêm thành viên cư trú cùng căn hộ
+                </p>
+            </div>
+        </div>
+    </div>
+
+    @* ── Two-tab form ────────────────────────────────────── *@
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        @* Tab headers *@
+        <div class="flex border-b border-slate-200 bg-slate-50">
+            <button type="button" id="tabNew" onclick="switchTab('new')"
+                    class="flex-1 px-6 py-3.5 text-sm font-semibold text-emerald-600 border-b-2 border-emerald-500 bg-white transition-colors">
+                <span class="material-icons text-base align-middle mr-1.5">person_add</span>
+                Tạo tài khoản mới
+            </button>
+        </div>
+
+        @* ── Hidden form (submit via modal) ──────────────── *@
+        <form id="createForm" method="post" asp-page-handler="Create" class="hidden">
+            @Html.AntiForgeryToken()
+            <input name="apartmentId" id="hiddenApartmentId" value="@Model.ApartmentId" />
+            <input name="Input.FullName" id="hiddenFullName" />
+            <input name="Input.IdentityCardNumber" id="hiddenCccdNew" />
+            <input name="Input.Email" id="hiddenEmail" />
+            <input name="Input.PhoneNumber" id="hiddenPhone" />
+            <input name="Input.DateOfBirth" id="hiddenDob" />
+        </form>
+
+        @* ── Tab: Tạo tài khoản mới ─────────────────── *@
+        <div id="panelNew">
+            <form method="post" id="formNew" class="p-6 space-y-5">
+                @Html.AntiForgeryToken()
+
+                @if (!Model.ModelState.IsValid)
+                {
+                    <div class="flex gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <span class="material-icons text-red-500 mt-0.5 text-lg shrink-0">error_outline</span>
+                        <div asp-validation-summary="All" class="text-sm text-red-600 space-y-1"></div>
+                    </div>
+                }
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    @* Họ tên *@
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-medium text-slate-700">
+                            Họ tên <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="Input.FullName" id="inputFullName"
+                               placeholder="VD: Nguyễn Văn B"
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm placeholder-slate-400" />
+                        <span asp-validation-for="Input.FullName" class="text-red-500 text-xs"></span>
+                    </div>
+
+                    @* Số CCCD *@
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-medium text-slate-700">
+                            Số CCCD <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="Input.IdentityCardNumber" id="inputCccd"
+                               placeholder="VD: 079200001234"
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm placeholder-slate-400" />
+                        <span asp-validation-for="Input.IdentityCardNumber" class="text-red-500 text-xs"></span>
+                    </div>
+
+                    @* Email *@
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-medium text-slate-700">
+                            Email <span class="text-xs text-slate-400 font-normal">(không bắt buộc)</span>
+                        </label>
+                        <input asp-for="Input.Email" id="inputEmail"
+                               type="email"
+                               placeholder="VD: thanhviengd@email.com"
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm placeholder-slate-400" />
+                        <span asp-validation-for="Input.Email" class="text-red-500 text-xs"></span>
+                    </div>
+
+                    @* Số điện thoại *@
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-medium text-slate-700">
+                            Số điện thoại <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="Input.PhoneNumber" id="inputPhone"
+                               placeholder="VD: 0912345678"
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm placeholder-slate-400" />
+                        <span asp-validation-for="Input.PhoneNumber" class="text-red-500 text-xs"></span>
+                    </div>
+
+                    @* Ngày sinh *@
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-medium text-slate-700">
+                            Ngày sinh <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="Input.DateOfBirth" id="inputDob"
+                               type="date"
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm text-slate-700" />
+                        <span asp-validation-for="Input.DateOfBirth" class="text-red-500 text-xs"></span>
+                    </div>
+                </div>
+
+                @* Lưu ý *@
+                <div class="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl text-blue-700 text-sm">
+                    <span class="material-icons text-blue-400 mt-0.5 text-lg shrink-0">info</span>
+                    <div>
+                        <p class="font-medium">Mật khẩu mặc định: <code class="font-mono bg-blue-100 px-1.5 py-0.5 rounded text-blue-800">123456789</code></p>
+                        <p class="mt-1 text-blue-600">Tài khoản sẽ ở trạng thái <strong>chưa kích hoạt</strong>. Thành viên cần đăng nhập và xác minh OTP qua SĐT.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" onclick="openModalNew()"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-semibold shadow-sm">
+                        <span class="material-icons text-base">person_add</span>
+                        Tạo tài khoản
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@* ── Modal xác nhận (tạo mới) ─────────────────────────────── *@
+<div id="modalNew" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-amber-100">
+                    <span class="material-icons text-amber-600 text-xl">help_outline</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold text-slate-800">Xác nhận tạo tài khoản</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Vui lòng kiểm tra thông tin trước khi tạo</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modalNew')" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <span class="material-icons text-xl">close</span>
+            </button>
+        </div>
+
+        <div class="px-6 py-5 space-y-3">
+            <p class="text-sm font-medium text-slate-700 mb-3">Thông tin thành viên gia đình:</p>
+            <div class="grid grid-cols-[100px_1fr] gap-x-4 gap-y-2.5 text-sm">
+                <span class="text-slate-500 font-medium">Họ tên:</span>
+                <span id="sumNewFullName" class="text-slate-800 font-medium"></span>
+                <span class="text-slate-500 font-medium">Số CCCD:</span>
+                <span id="sumNewCccd" class="text-slate-800 font-mono"></span>
+                <span class="text-slate-500 font-medium">Email:</span>
+                <span id="sumNewEmail" class="text-slate-800"></span>
+                <span class="text-slate-500 font-medium">SĐT:</span>
+                <span id="sumNewPhone" class="text-slate-800"></span>
+                <span class="text-slate-500 font-medium">Ngày sinh:</span>
+                <span id="sumNewDob" class="text-slate-800"></span>
+            </div>
+
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-700 space-y-1">
+                <p><strong>Tài khoản:</strong> sẽ được tạo với mật khẩu <code class="font-mono bg-blue-100 px-1 py-0.5 rounded">123456789</code></p>
+                <p><strong>Trạng thái:</strong> chưa kích hoạt — thành viên cần xác minh OTP qua SĐT đã cung cấp</p>
+            </div>
+            <div id="sumNewEmailNote" class="hidden p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700 flex items-start gap-2">
+                <span class="material-icons text-amber-500 text-base mt-0.5 shrink-0">email</span>
+                <p>Thông tin đăng nhập sẽ được gửi đến email bên trên.</p>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50">
+            <button type="button" onclick="closeModal('modalNew')"
+                    class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium">
+                Hủy
+            </button>
+            <button type="button" onclick="submitNew()"
+                    class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-semibold shadow-sm">
+                <span class="material-icons text-base">check</span>
+                Xác nhận tạo
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // ── Modal helpers ──────────────────────────────────────
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Close on backdrop click
+        document.getElementById('modalNew').addEventListener('click', function (e) {
+            if (e.target === document.getElementById('modalNew')) closeModal('modalNew');
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeModal('modalNew');
+        });
+
+        // ── Modal: Tạo mới ────────────────────────────────────
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            var parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            return parts[2] + '/' + parts[1] + '/' + parts[0];
+        }
+
+        function openModalNew() {
+            var inputFullName = document.getElementById('inputFullName');
+            var inputCccd = document.getElementById('inputCccd');
+            var inputEmail = document.getElementById('inputEmail');
+            var inputPhone = document.getElementById('inputPhone');
+            var inputDob = document.getElementById('inputDob');
+
+            var errors = [];
+            if (!inputFullName.value.trim()) errors.push('Họ tên không được để trống.');
+            if (!inputCccd.value.trim()) errors.push('Số CCCD không được để trống.');
+            if (!inputPhone.value.trim()) errors.push('SĐT không được để trống.');
+            if (!inputDob.value) errors.push('Ngày sinh không được để trống.');
+
+            if (errors.length > 0) {
+                alert(errors.join('\n'));
+                return;
+            }
+
+            document.getElementById('sumNewFullName').textContent = inputFullName.value.trim();
+            document.getElementById('sumNewCccd').textContent = inputCccd.value.trim();
+            document.getElementById('sumNewEmail').textContent = inputEmail.value.trim() || '—';
+            document.getElementById('sumNewPhone').textContent = inputPhone.value.trim();
+            document.getElementById('sumNewDob').textContent = formatDate(inputDob.value);
+
+            var emailNote = document.getElementById('sumNewEmailNote');
+            if (inputEmail.value.trim()) emailNote.classList.remove('hidden');
+            else emailNote.classList.add('hidden');
+
+            document.getElementById('hiddenFullName').value = inputFullName.value.trim();
+            document.getElementById('hiddenCccdNew').value = inputCccd.value.trim();
+            document.getElementById('hiddenEmail').value = inputEmail.value.trim();
+            document.getElementById('hiddenPhone').value = inputPhone.value.trim();
+            document.getElementById('hiddenDob').value = inputDob.value;
+
+            openModal('modalNew');
+        }
+
+        function submitNew() {
+            document.getElementById('createForm').action = '/Resident/FamilyMembers/AddFamilyMember?apartmentId=@Model.ApartmentId';
+            document.getElementById('createForm').submit();
+        }
+    </script>
+}

@@ -94,7 +94,7 @@ public class ServiceOrderRepository : GenericRepository<ServiceOrder>, IServiceO
             .Include(so => so.ServiceType)
             .Include(so => so.Apartment)
             .Include(so => so.Resident)
-            .Where(so => so.Status == (int)ServiceOrderStatus.Pending)
+            .Where(so => so.Status == ServiceOrderStatus.Pending)
             .OrderBy(so => so.RequestedDate)
             .ThenBy(so => so.CreatedAt)
             .ToListAsync();

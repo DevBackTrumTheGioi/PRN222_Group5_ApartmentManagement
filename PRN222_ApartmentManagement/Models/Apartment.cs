@@ -38,6 +38,8 @@ public class Apartment
 
     public DateTime? UpdatedAt { get; set; }
 
+    public bool IsDeleted { get; set; } = false;
+
     // Navigation properties
     public virtual ICollection<User> Residents { get; set; } = new List<User>();
     public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
