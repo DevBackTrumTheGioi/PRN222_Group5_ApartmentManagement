@@ -1,0 +1,197 @@
+@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.BQL_Staff.ServiceOrders.DetailsModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = $"Chi tiết đơn {Model.Order.OrderNumber}";
+    ViewData["Subtitle"] = "Cập nhật trạng thái xử lý, chi phí và ghi chú";
+    ViewData["CurrentPage"] = "assignedservices";
+
+    var statusCss = Model.Order.Status switch
+    {
+        ServiceOrderStatus.Pending => "bg-amber-50 text-amber-700 border-amber-200",
+        ServiceOrderStatus.Confirmed => "bg-sky-50 text-sky-700 border-sky-200",
+        ServiceOrderStatus.InProgress => "bg-blue-50 text-blue-700 border-blue-200",
+        ServiceOrderStatus.Completed => "bg-emerald-50 text-emerald-700 border-emerald-200",
+        ServiceOrderStatus.Cancelled => "bg-slate-100 text-slate-600 border-slate-200",
+        ServiceOrderStatus.Rejected => "bg-red-50 text-red-600 border-red-200",
+        _ => "bg-slate-100 text-slate-600 border-slate-200"
+    };
+
+    var isClosed = Model.Order.Status is ServiceOrderStatus.Completed or ServiceOrderStatus.Cancelled or ServiceOrderStatus.Rejected;
+}
+
+<div class="mx-auto max-w-4xl space-y-6">
+    <a asp-page="Assigned" class="inline-flex items-center text-sm text-slate-500 transition-colors hover:text-emerald-600">
+        <span class="material-icons mr-1 text-lg">arrow_back</span>
+        Quay lại đơn được giao
+    </a>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <span class="material-icons text-emerald-500">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+                <div class="mb-2 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-mono text-slate-400">@Model.Order.OrderNumber</span>
+                    <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium @statusCss">
+                        @Model.Order.Status.GetDisplayName()
+                    </span>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900">@Model.Order.ServiceType.ServiceTypeName</h2>
+                <p class="mt-2 text-sm text-slate-500">Căn hộ @Model.Order.Apartment.ApartmentNumber - @Model.Order.Resident.FullName</p>
+            </div>
+            <div class="rounded-lg bg-slate-50 px-4 py-3 text-right">
+                <p class="text-xs text-slate-500">Giá dự kiến</p>
+                <p class="text-lg font-bold text-slate-900">@string.Format("{0:N0} đ", Model.Order.EstimatedPrice ?? 0)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div class="space-y-6 lg:col-span-2">
+            <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-700">Thông tin đơn</h3>
+                <div class="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+                    <div>
+                        <p class="text-xs text-slate-400">Ngày yêu cầu</p>
+                        <p class="mt-1 font-medium text-slate-800">@Model.Order.RequestedDate.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Khung giờ</p>
+                        <p class="mt-1 font-medium text-slate-800">@(string.IsNullOrWhiteSpace(Model.Order.RequestedTimeSlot) ? "-" : Model.Order.RequestedTimeSlot)</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-xs text-slate-400">Mô tả cư dân</p>
+                        <p class="mt-1 whitespace-pre-wrap text-slate-700">@(string.IsNullOrWhiteSpace(Model.Order.Description) ? "Không có ghi chú." : Model.Order.Description)</p>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" asp-page-handler="UpdateStatus" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div class="space-y-6">
+                    @if (!ModelState.IsValid)
+                    {
+                        <div class="flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                            <span class="material-icons mt-0.5 shrink-0 text-lg text-red-500">error_outline</span>
+                            <div asp-validation-summary="All" class="space-y-1 text-sm text-red-600"></div>
+                        </div>
+                    }
+
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div class="space-y-1.5">
+                            <label asp-for="Input.ActualPrice" class="text-sm font-medium text-slate-700"></label>
+                            <input asp-for="Input.ActualPrice" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                            <span asp-validation-for="Input.ActualPrice" class="text-xs text-red-500"></span>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label asp-for="Input.AdditionalCharges" class="text-sm font-medium text-slate-700"></label>
+                            <input asp-for="Input.AdditionalCharges" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                            <span asp-validation-for="Input.AdditionalCharges" class="text-xs text-red-500"></span>
+                        </div>
+                        <div class="space-y-1.5 md:col-span-2">
+                            <label asp-for="Input.ChargeNotes" class="text-sm font-medium text-slate-700"></label>
+                            <textarea asp-for="Input.ChargeNotes" rows="3" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                            <span asp-validation-for="Input.ChargeNotes" class="text-xs text-red-500"></span>
+                        </div>
+                        <div class="space-y-1.5 md:col-span-2">
+                            <label asp-for="Input.CompletionNotes" class="text-sm font-medium text-slate-700"></label>
+                            <textarea asp-for="Input.CompletionNotes" rows="4" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                            <span asp-validation-for="Input.CompletionNotes" class="text-xs text-red-500"></span>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!isClosed)
+                {
+                    <div class="mt-6 flex flex-wrap gap-3 border-t border-slate-100 pt-6">
+                        @if (Model.Order.Status == ServiceOrderStatus.Pending)
+                        {
+                            <button type="submit" name="newStatus" value="@ServiceOrderStatus.Confirmed"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-700">
+                                <span class="material-icons text-base">verified</span>
+                                Xác nhận tiếp nhận
+                            </button>
+                        }
+                        @if (Model.Order.Status == ServiceOrderStatus.Confirmed)
+                        {
+                            <button type="submit" name="newStatus" value="@ServiceOrderStatus.InProgress"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                                <span class="material-icons text-base">sync</span>
+                                Bắt đầu thực hiện
+                            </button>
+                        }
+                        @if (Model.Order.Status == ServiceOrderStatus.InProgress)
+                        {
+                            <button type="submit" name="newStatus" value="@ServiceOrderStatus.Completed"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
+                                <span class="material-icons text-base">check_circle</span>
+                                Hoàn thành đơn
+                            </button>
+                        }
+                    </div>
+                }
+            </form>
+        </div>
+
+        <div class="space-y-4">
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-700">Tiến độ</h3>
+                <dl class="space-y-3 text-sm">
+                    <div>
+                        <dt class="text-xs text-slate-400">Được phân công lúc</dt>
+                        <dd class="mt-1 font-medium text-slate-800">@(Model.Order.AssignedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-slate-400">Cập nhật lần cuối</dt>
+                        <dd class="mt-1 font-medium text-slate-800">@(Model.Order.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-slate-400">Hoàn thành lúc</dt>
+                        <dd class="mt-1 font-medium text-slate-800">@(Model.Order.CompletedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-slate-400">Hoàn thành bởi</dt>
+                        <dd class="mt-1 font-medium text-slate-800">@(Model.Order.CompletedByUser?.FullName ?? "-")</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-700">Thông tin chi phí</h3>
+                <dl class="space-y-3 text-sm">
+                    <div>
+                        <dt class="text-xs text-slate-400">Giá dự kiến</dt>
+                        <dd class="mt-1 font-medium text-slate-800">@string.Format("{0:N0} đ", Model.Order.EstimatedPrice ?? 0)</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-slate-400">Chi phí thực tế</dt>
+                        <dd class="mt-1 font-medium text-slate-800">@string.Format("{0:N0} đ", Model.Order.ActualPrice ?? 0)</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-slate-400">Chi phí phát sinh</dt>
+                        <dd class="mt-1 font-medium text-slate-800">@string.Format("{0:N0} đ", Model.Order.AdditionalCharges)</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
