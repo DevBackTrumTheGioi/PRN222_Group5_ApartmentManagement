@@ -29,7 +29,7 @@
             IsCollapsible = false,
             Items = new List<SidebarMenuItem>
             {
-                new() { Icon = "dashboard", Label = "Dashboard", Href = dashboardHref, Key = "dashboard" }
+                new() { Icon = "dashboard", Label = "Bảng điều khiển", Href = dashboardHref, Key = "dashboard" }
             }
         }
     };
@@ -46,7 +46,10 @@
                 new() { Icon = "apartment", Label = "Căn hộ", Href = "/BQL_Manager/Apartments", Key = "apartments" },
                 new() { Icon = "description", Label = "Hợp đồng", Href = "/BQL_Manager/Contracts", Key = "contracts" },
                 new() { Icon = "people", Label = "Cư dân", Href = "/BQL_Manager/Residents", Key = "residents" },
-                new() { Icon = "credit_card", Label = "Thẻ căn hộ", Href = "/BQL_Manager/Cards", Key = "residentcards" }
+                new() { Icon = "credit_card", Label = "Thẻ căn hộ", Href = "/BQL_Manager/Cards", Key = "residentcards" },
+                new() { Icon = "pool", Label = "Tiện ích", Href = "/BQL_Manager/Amenities", Key = "amenities" },
+                new() { Icon = "cleaning_services", Label = "Loại dịch vụ", Href = "/BQL_Manager/Services", Key = "services" },
+                new() { Icon = "fact_check", Label = "Đơn dịch vụ", Href = "/BQL_Manager/ServiceOrders", Key = "serviceorders" }
             }
         });
     }
@@ -61,11 +64,19 @@
     if (isBqlStaff)
     {
         workItems.Add(new SidebarMenuItem { Icon = "assignment_ind", Label = "Việc được giao", Href = "/BQL_Staff/Requests/Assigned", Key = "assigned" });
+        workItems.Add(new SidebarMenuItem { Icon = "handyman", Label = "Đơn dịch vụ được giao", Href = "/BQL_Staff/ServiceOrders/Assigned", Key = "assignedservices" });
+        workItems.Add(new SidebarMenuItem { Icon = "groups", Label = "Khách ra vào", Href = "/BQL_Staff/Visitors", Key = "staffvisitors" });
+        workItems.Add(new SidebarMenuItem { Icon = "history", Label = "Lịch sử khách", Href = "/BQL_Staff/Visitors/History", Key = "staffvisitors" });
     }
 
     if (isResident)
     {
         workItems.Add(new SidebarMenuItem { Icon = "support_agent", Label = "Yêu cầu của tôi", Href = "/Resident/Requests/MyRequests", Key = "requests" });
+        workItems.Add(new SidebarMenuItem { Icon = "event_available", Label = "Đặt tiện ích", Href = "/Resident/Amenities", Key = "amenities" });
+        workItems.Add(new SidebarMenuItem { Icon = "cleaning_services", Label = "Dịch vụ theo yêu cầu", Href = "/Resident/Services", Key = "services" });
+        workItems.Add(new SidebarMenuItem { Icon = "list_alt", Label = "Đơn dịch vụ của tôi", Href = "/Resident/Services/MyOrders", Key = "services" });
+        workItems.Add(new SidebarMenuItem { Icon = "person_add", Label = "Đăng ký khách", Href = "/Resident/Visitors/Create", Key = "visitors" });
+        workItems.Add(new SidebarMenuItem { Icon = "groups", Label = "Khách của tôi", Href = "/Resident/Visitors", Key = "visitors" });
         workItems.Add(new SidebarMenuItem { Icon = "face", Label = "Face ID", Href = "/Resident/FaceAuth/Status", Key = "faceauth" });
     }
 

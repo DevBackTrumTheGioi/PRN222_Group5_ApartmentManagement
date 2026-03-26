@@ -1,0 +1,138 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQL_Staff.Visitors.HistoryModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Lịch sử khách";
+    ViewData["Subtitle"] = "Tra cứu các lượt khách đã được xử lý tại sảnh";
+    ViewData["CurrentPage"] = "staffvisitors";
+}
+
+<div class="space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h2 class="text-lg font-bold text-slate-900">Lịch sử khách</h2>
+            <p class="text-sm text-slate-500">Xem lại khách đã vào, đã ra, bị từ chối hoặc đã hủy.</p>
+        </div>
+        <a asp-page="Index" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50">
+            <span class="material-icons text-base">arrow_back</span>
+            Quay lại quầy check-in
+        </a>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 xl:grid-cols-5">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-slate-800">@Model.TotalCount</p>
+            <p class="mt-1 text-xs text-slate-500">Tổng lịch sử</p>
+        </div>
+        <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-blue-700">@Model.CheckedInCount</p>
+            <p class="mt-1 text-xs text-blue-600">Đã vào</p>
+        </div>
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-emerald-700">@Model.CheckedOutCount</p>
+            <p class="mt-1 text-xs text-emerald-600">Đã ra</p>
+        </div>
+        <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-red-700">@Model.RejectedCount</p>
+            <p class="mt-1 text-xs text-red-600">Từ chối</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-slate-700">@Model.CancelledCount</p>
+            <p class="mt-1 text-xs text-slate-500">Đã hủy</p>
+        </div>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <form method="get" class="flex flex-wrap items-end gap-3">
+            <div class="min-w-[220px] flex-1 space-y-1">
+                <label class="text-xs font-medium text-slate-600">Tìm kiếm</label>
+                <input asp-for="SearchQuery" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" placeholder="Tên khách, căn hộ, cư dân..." />
+            </div>
+            <div class="min-w-[180px] space-y-1">
+                <label asp-for="FromDate" class="text-xs font-medium text-slate-600">Từ ngày</label>
+                <input asp-for="FromDate" type="date" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+            </div>
+            <div class="min-w-[180px] space-y-1">
+                <label asp-for="ToDate" class="text-xs font-medium text-slate-600">Đến ngày</label>
+                <input asp-for="ToDate" type="date" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+            </div>
+            <div class="ml-auto flex gap-2">
+                @if (Model.HasFilter)
+                {
+                    <a asp-page="History" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50">
+                        <span class="material-icons text-base">close</span>
+                        Xóa lọc
+                    </a>
+                }
+                <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800">
+                    <span class="material-icons text-base">filter_list</span>
+                    Lọc
+                </button>
+            </div>
+        </form>
+    </div>
+
+    @if (!Model.Visitors.Any())
+    {
+        <div class="rounded-xl border border-slate-200 bg-white p-16 text-center shadow-sm">
+            <span class="material-icons text-5xl text-slate-300">history</span>
+            <p class="mt-3 font-medium text-slate-600">Chưa có dữ liệu lịch sử phù hợp.</p>
+        </div>
+    }
+    else
+    {
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50">
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Khách</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Căn hộ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Ngày đến</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var visitor in Model.Visitors)
+                        {
+                            var statusCss = visitor.Status switch
+                            {
+                                VisitorStatus.CheckedIn => "bg-blue-50 text-blue-700 border-blue-200",
+                                VisitorStatus.CheckedOut => "bg-emerald-50 text-emerald-700 border-emerald-200",
+                                VisitorStatus.Cancelled => "bg-slate-100 text-slate-600 border-slate-200",
+                                VisitorStatus.Rejected => "bg-red-50 text-red-600 border-red-200",
+                                _ => "bg-slate-100 text-slate-600 border-slate-200"
+                            };
+
+                            <tr class="transition-colors hover:bg-slate-50">
+                                <td class="px-4 py-3">
+                                    <p class="font-medium text-slate-800">@visitor.VisitorName</p>
+                                    <p class="text-xs text-slate-500">@visitor.PhoneNumber</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <p class="font-medium text-slate-800">Căn hộ @visitor.Apartment.ApartmentNumber</p>
+                                    <p class="text-xs text-slate-500">@visitor.RegisteredByUser.FullName</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <p class="font-medium text-slate-800">@visitor.VisitDate.ToString("dd/MM/yyyy")</p>
+                                    <p class="text-xs text-slate-500">Giờ vào: @(visitor.CheckInTime?.ToString("HH:mm dd/MM") ?? "-")</p>
+                                    <p class="text-xs text-slate-500">Giờ ra: @(visitor.CheckOutTime?.ToString("HH:mm dd/MM") ?? "-")</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium @statusCss">
+                                        @visitor.Status.GetDisplayName()
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600">
+                                    @(string.IsNullOrWhiteSpace(visitor.Notes) ? "Không có ghi chú." : visitor.Notes)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

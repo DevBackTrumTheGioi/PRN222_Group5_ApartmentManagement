@@ -1,0 +1,75 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Resident.Visitors.CreateModel
+@{
+    ViewData["Title"] = "Đăng ký khách";
+    ViewData["Subtitle"] = "Khai báo trước khách sẽ đến căn hộ của bạn";
+    ViewData["CurrentPage"] = "visitors";
+}
+
+<div class="mx-auto max-w-3xl space-y-6">
+    <a asp-page="Index" class="inline-flex items-center text-sm text-slate-500 transition-colors hover:text-emerald-600">
+        <span class="material-icons mr-1 text-lg">arrow_back</span>
+        Quay lại danh sách khách
+    </a>
+
+    <form method="post" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="space-y-6 p-6">
+            <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+                Vui lòng đăng ký trước để Ban Quản lý chủ động hỗ trợ check-in cho khách tại sảnh.
+            </div>
+
+            @if (!ModelState.IsValid)
+            {
+                <div class="flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                    <span class="material-icons mt-0.5 shrink-0 text-lg text-red-500">error_outline</span>
+                    <div asp-validation-summary="All" class="space-y-1 text-sm text-red-600"></div>
+                </div>
+            }
+
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div class="space-y-1.5 md:col-span-2">
+                    <label asp-for="Input.VisitorName" class="text-sm font-medium text-slate-700"></label>
+                    <input asp-for="Input.VisitorName" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <span asp-validation-for="Input.VisitorName" class="text-xs text-red-500"></span>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label asp-for="Input.PhoneNumber" class="text-sm font-medium text-slate-700"></label>
+                    <input asp-for="Input.PhoneNumber" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <span asp-validation-for="Input.PhoneNumber" class="text-xs text-red-500"></span>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label asp-for="Input.IdentityCard" class="text-sm font-medium text-slate-700"></label>
+                    <input asp-for="Input.IdentityCard" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <span asp-validation-for="Input.IdentityCard" class="text-xs text-red-500"></span>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label asp-for="Input.VisitDate" class="text-sm font-medium text-slate-700"></label>
+                    <input asp-for="Input.VisitDate" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <span asp-validation-for="Input.VisitDate" class="text-xs text-red-500"></span>
+                </div>
+
+                <div class="space-y-1.5 md:col-span-2">
+                    <label asp-for="Input.Notes" class="text-sm font-medium text-slate-700"></label>
+                    <textarea asp-for="Input.Notes" rows="4" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              placeholder="Thông tin thêm như thời gian dự kiến, mục đích đến, ghi chú nhận diện..."></textarea>
+                    <span asp-validation-for="Input.Notes" class="text-xs text-red-500"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+            <a asp-page="Index" class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100">Hủy</a>
+            <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
+                <span class="material-icons text-base">person_add</span>
+                Đăng ký khách
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
