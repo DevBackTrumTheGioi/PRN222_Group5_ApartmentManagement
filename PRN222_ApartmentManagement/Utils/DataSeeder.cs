@@ -415,6 +415,47 @@ public static class DataSeeder
             }
         }
 
+        // ========== 10b. RESIDENT APARTMENTS (chạy độc lập, không phụ thuộc Contracts seed lần đầu) ==========
+        if (!await context.ResidentApartments.AnyAsync() && allResidents.Any())
+        {
+            var residentApts = new List<ResidentApartment>();
+
+            foreach (var resident in allResidents)
+            {
+                if (!resident.ApartmentId.HasValue) continue;
+
+                var contract = await context.Contracts
+                    .FirstOrDefaultAsync(c => c.ApartmentId == resident.ApartmentId && c.Status == ContractStatus.Active);
+
+                if (contract == null) continue;
+
+                var residencyType = resident.ResidentType switch
+                {
+                    ResidentType.Owner => ResidencyType.Owner,
+                    ResidentType.Tenant => ResidencyType.Tenant,
+                    ResidentType.FamilyMember => ResidencyType.FamilyMember,
+                    _ => ResidencyType.Other
+                };
+
+                residentApts.Add(new ResidentApartment
+                {
+                    UserId = resident.UserId,
+                    ApartmentId = resident.ApartmentId.Value,
+                    ContractId = contract.ContractId,
+                    ResidencyType = residencyType,
+                    IsActive = true,
+                    MoveInDate = resident.MoveInDate ?? now.AddMonths(-12),
+                    CreatedAt = now
+                });
+            }
+
+            if (residentApts.Any())
+            {
+                context.ResidentApartments.AddRange(residentApts);
+                await context.SaveChangesAsync();
+            }
+        }
+
         // ========== 11. INVOICES ==========
         if (!await context.Invoices.AnyAsync() && adminUser != null && targetApts.Any())
         {
@@ -426,7 +467,7 @@ public static class DataSeeder
                 for (int month = 1; month <= 2; month++) // Tháng 1 và 2 năm 2026
                 {
                     var totalAmount = 1500000m + (apt.Area ?? 50) * 18000 + Random.Shared.Next(500000, 2000000);
-                    var status = month == 1 ? InvoiceStatus.Paid : (Random.Shared.Next(2) == 0 ? InvoiceStatus.Unpaid : InvoiceStatus.Pending);
+                    var status = month == 1 ? InvoiceStatus.Paid : (Random.Shared.Next(2) == 0 ? InvoiceStatus.Issued : InvoiceStatus.Overdue);
                     
                     invoices.Add(new Invoice
                     {

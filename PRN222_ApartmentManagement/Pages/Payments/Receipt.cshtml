@@ -10,7 +10,7 @@
         Title = "Biên lai thanh toán",
         BreadcrumbItems = new[]
         {
-            new { Label = "Thanh toán", Href = "/Payments" },
+            new { Label = "Hóa đơn", Href = Model.ReturnUrl },
             new { Label = "Biên lai", Href = "#" }
         }
     };
@@ -30,9 +30,9 @@
 
 <div class="max-w-4xl mx-auto space-y-6">
     <div class="flex items-center justify-between gap-3 print-hidden">
-        <a href="/Payments" class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+        <a href="@Model.ReturnUrl" class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 transition-colors">
             <span class="material-icons text-lg mr-1">arrow_back</span>
-            Quay lại lịch sử thanh toán
+            Quay lại danh sách hóa đơn
         </a>
         <button type="button"
                 onclick="window.print()"

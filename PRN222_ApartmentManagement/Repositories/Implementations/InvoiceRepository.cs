@@ -48,7 +48,6 @@ public class InvoiceRepository : GenericRepository<Invoice>, IInvoiceRepository
         return await _dbSet
             .Include(i => i.Apartment)
             .Include(i => i.Creator)
-            .Include(i => i.Approver)
             .Include(i => i.InvoiceDetails)
                 .ThenInclude(d => d.ServiceType)
             .Include(i => i.InvoiceDetails)
@@ -60,13 +59,11 @@ public class InvoiceRepository : GenericRepository<Invoice>, IInvoiceRepository
     public async Task<List<Invoice>> GetFilteredAsync(
         int? billingMonth,
         int? billingYear,
-        InvoiceStatus? status,
-        InvoiceApprovalStatus? approvalStatus)
+        InvoiceStatus? status)
     {
         var query = _dbSet
             .Include(i => i.Apartment)
             .Include(i => i.Creator)
-            .Include(i => i.Approver)
             .AsQueryable();
 
         if (billingMonth.HasValue)
@@ -84,11 +81,6 @@ public class InvoiceRepository : GenericRepository<Invoice>, IInvoiceRepository
             query = query.Where(i => i.Status == status.Value);
         }
 
-        if (approvalStatus.HasValue)
-        {
-            query = query.Where(i => i.ApprovalStatus == approvalStatus.Value);
-        }
-
         return await query
             .OrderByDescending(i => i.BillingYear)
             .ThenByDescending(i => i.BillingMonth)
@@ -98,11 +90,17 @@ public class InvoiceRepository : GenericRepository<Invoice>, IInvoiceRepository
 
     public async Task<List<Invoice>> GetByApartmentAsync(int apartmentId, int? billingMonth = null, int? billingYear = null)
     {
+        return await GetByApartmentsAsync(new List<int> { apartmentId }, billingMonth, billingYear);
+    }
+
+    public async Task<List<Invoice>> GetByApartmentsAsync(List<int> apartmentIds, int? billingMonth = null, int? billingYear = null)
+    {
+        if (!apartmentIds.Any()) return new List<Invoice>();
+
         var query = _dbSet
             .Include(i => i.Apartment)
             .Include(i => i.Creator)
-            .Include(i => i.Approver)
-            .Where(i => i.ApartmentId == apartmentId);
+            .Where(i => apartmentIds.Contains(i.ApartmentId));
 
         if (billingMonth.HasValue)
         {

@@ -61,7 +61,7 @@ public class Contract
 
     public bool IsDeleted { get; set; } = false;
 
-    // Thong tin chu ho (luu tru de tao tai khoan khi kich hoat hop dong)
+    // Thông tin chủ hộ (lưu trữ để tạo tài khoản khi kích hoạt hợp đồng)
     [MaxLength(200)]
     public string? OwnerFullName { get; set; }
 

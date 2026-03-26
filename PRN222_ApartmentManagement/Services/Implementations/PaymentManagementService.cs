@@ -14,26 +14,28 @@ public class PaymentManagementService : IPaymentManagementService
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly IPaymentTransactionRepository _paymentTransactionRepository;
     private readonly IActivityLogService _activityLogService;
+    private readonly VNPayHelper _vnPayHelper;
 
     public PaymentManagementService(
         ApartmentDbContext context,
         IInvoiceRepository invoiceRepository,
         IPaymentTransactionRepository paymentTransactionRepository,
-        IActivityLogService activityLogService)
+        IActivityLogService activityLogService,
+        VNPayHelper vnPayHelper)
     {
         _context = context;
         _invoiceRepository = invoiceRepository;
         _paymentTransactionRepository = paymentTransactionRepository;
         _activityLogService = activityLogService;
+        _vnPayHelper = vnPayHelper;
     }
 
     public async Task<List<Invoice>> GetCollectableInvoicesAsync(int? billingMonth, int? billingYear)
     {
-        var invoices = await _invoiceRepository.GetFilteredAsync(billingMonth, billingYear, null, null);
+        var invoices = await _invoiceRepository.GetFilteredAsync(billingMonth, billingYear, null);
 
         return invoices
             .Where(i =>
-                i.ApprovalStatus == InvoiceApprovalStatus.Approved &&
                 i.Status != InvoiceStatus.Paid &&
                 i.Status != InvoiceStatus.Cancelled)
             .OrderByDescending(i => i.BillingYear)
@@ -49,32 +51,24 @@ public class PaymentManagementService : IPaymentManagementService
 
     public async Task<List<Invoice>> GetResidentPayableInvoicesAsync(int residentUserId, int? billingMonth, int? billingYear)
     {
-        var resident = await GetResidentAsync(residentUserId);
-        if (resident?.ApartmentId == null)
-        {
-            return new List<Invoice>();
-        }
+        var apartmentIds = await GetResidentApartmentIdsAsync(residentUserId);
+        if (!apartmentIds.Any()) return new List<Invoice>();
 
-        var invoices = await _invoiceRepository.GetByApartmentAsync(resident.ApartmentId.Value, billingMonth, billingYear);
+        var invoices = await _invoiceRepository.GetByApartmentsAsync(apartmentIds, billingMonth, billingYear);
 
         return invoices
-            .Where(i =>
-                i.ApprovalStatus == InvoiceApprovalStatus.Approved &&
-                i.IsSent &&
-                i.Status != InvoiceStatus.Paid &&
-                i.Status != InvoiceStatus.Cancelled)
+            .Where(i => i.IsSent
+                        && i.Status != InvoiceStatus.Paid
+                        && i.Status != InvoiceStatus.Cancelled)
             .ToList();
     }
 
     public async Task<List<PaymentTransaction>> GetResidentTransactionsAsync(int residentUserId, int? billingMonth, int? billingYear, string? paymentMethod)
     {
-        var resident = await GetResidentAsync(residentUserId);
-        if (resident?.ApartmentId == null)
-        {
-            return new List<PaymentTransaction>();
-        }
+        var apartmentIds = await GetResidentApartmentIdsAsync(residentUserId);
+        if (!apartmentIds.Any()) return new List<PaymentTransaction>();
 
-        return await _paymentTransactionRepository.GetHistoryAsync(billingMonth, billingYear, paymentMethod, resident.ApartmentId.Value);
+        return await _paymentTransactionRepository.GetHistoryByApartmentsAsync(billingMonth, billingYear, paymentMethod, apartmentIds);
     }
 
     public Task<PaymentTransaction?> GetReceiptForManagementAsync(int transactionId)
@@ -84,14 +78,11 @@ public class PaymentManagementService : IPaymentManagementService
 
     public async Task<PaymentTransaction?> GetReceiptForResidentAsync(int transactionId, int residentUserId)
     {
-        var resident = await GetResidentAsync(residentUserId);
-        if (resident?.ApartmentId == null)
-        {
-            return null;
-        }
+        var apartmentIds = await GetResidentApartmentIdsAsync(residentUserId);
+        if (!apartmentIds.Any()) return null;
 
         var transaction = await _paymentTransactionRepository.GetWithInvoiceAsync(transactionId);
-        if (transaction == null || transaction.Invoice.ApartmentId != resident.ApartmentId.Value)
+        if (transaction == null || !apartmentIds.Contains(transaction.Invoice.ApartmentId))
         {
             return null;
         }
@@ -115,14 +106,14 @@ public class PaymentManagementService : IPaymentManagementService
 
     public async Task<(bool Success, string Message)> CreateOnlinePaymentAsync(int invoiceId, int residentUserId, string gateway)
     {
-        var resident = await GetResidentAsync(residentUserId);
-        if (resident?.ApartmentId == null)
+        var apartmentIds = await GetResidentApartmentIdsAsync(residentUserId);
+        if (!apartmentIds.Any())
         {
             return (false, "Không tìm thấy cư dân hợp lệ.");
         }
 
         var invoice = await _invoiceRepository.GetWithDetailsAsync(invoiceId);
-        if (invoice == null || invoice.ApartmentId != resident.ApartmentId.Value)
+        if (invoice == null || !apartmentIds.Contains(invoice.ApartmentId))
         {
             return (false, "Không tìm thấy hóa đơn phù hợp.");
         }
@@ -165,11 +156,6 @@ public class PaymentManagementService : IPaymentManagementService
         if (invoice == null)
         {
             return (false, "Không tìm thấy hóa đơn.");
-        }
-
-        if (invoice.ApprovalStatus != InvoiceApprovalStatus.Approved)
-        {
-            return (false, "Chỉ có thể thanh toán hóa đơn đã được duyệt.");
         }
 
         if (invoice.Status == InvoiceStatus.Cancelled)
@@ -241,9 +227,164 @@ public class PaymentManagementService : IPaymentManagementService
         return InvoiceStatus.Unpaid;
     }
 
-    private Task<User?> GetResidentAsync(int residentUserId)
+    public async Task<(bool Success, string PaymentUrl, string Message)> CreateOnlinePaymentRequestAsync(
+        int invoiceId, int residentUserId)
     {
-        return _context.Users.FirstOrDefaultAsync(u =>
+        var apartmentIds = await GetResidentApartmentIdsAsync(residentUserId);
+        if (!apartmentIds.Any())
+        {
+            return (false, "", "Không tìm thấy cư dân hợp lệ.");
+        }
+
+        var invoice = await _invoiceRepository.GetWithDetailsAsync(invoiceId);
+        if (invoice == null || !apartmentIds.Contains(invoice.ApartmentId))
+        {
+            return (false, "", "Không tìm thấy hóa đơn phù hợp.");
+        }
+
+        if (invoice.Status == InvoiceStatus.Cancelled)
+        {
+            return (false, "", "Không thể thanh toán hóa đơn đã hủy.");
+        }
+
+        var remainingAmount = invoice.TotalAmount - invoice.PaidAmount;
+        if (remainingAmount <= 0)
+        {
+            return (false, "", "Hóa đơn này đã được thanh toán đủ.");
+        }
+
+        var txnRef = $"INV-{invoiceId}-{DateTimeOffset.Now.ToUnixTimeSeconds()}";
+
+        var existingPending = await _context.PaymentTransactions
+            .Where(t => t.InvoiceId == invoiceId && t.PaymentMethod == "VNPay" && t.Status == (int)PaymentTransactionStatus.Pending)
+            .FirstOrDefaultAsync();
+
+        int transactionId;
+        if (existingPending != null)
+        {
+            transactionId = existingPending.TransactionId;
+            existingPending.VnpTxnRef = txnRef;
+            existingPending.Amount = remainingAmount;
+            existingPending.PaymentDate = DateTime.Now;
+            existingPending.GatewayResponse = "Yêu cầu thanh toán được tạo lại";
+            await _paymentTransactionRepository.UpdateAsync(existingPending);
+        }
+        else
+        {
+            var transaction = new PaymentTransaction
+            {
+                InvoiceId = invoiceId,
+                TransactionCode = StringUtils.GenerateTransactionCode(),
+                Amount = remainingAmount,
+                PaymentMethod = "VNPay",
+                PaymentDate = DateTime.Now,
+                Status = (int)PaymentTransactionStatus.Pending,
+                VnpTxnRef = txnRef,
+                CreatedBy = residentUserId,
+                CreatedAt = DateTime.Now
+            };
+            await _paymentTransactionRepository.AddAsync(transaction);
+            transactionId = transaction.TransactionId;
+        }
+
+        var paymentUrl = _vnPayHelper.CreatePaymentUrl(
+            invoiceId,
+            remainingAmount,
+            invoice.InvoiceNumber,
+            txnRef);
+
+        return (true, paymentUrl, "Đang chuyển hướng đến cổng thanh toán VNPay.");
+    }
+
+    public async Task<(bool Success, string Message)> ProcessPaymentCallbackAsync(
+        string txnRef, string responseCode, string transactionNo,
+        string bankCode, string payDate, string secureHash,
+        Dictionary<string, string>? allParams = null)
+    {
+        if (allParams != null && allParams.Count > 0)
+        {
+            if (!_vnPayHelper.VerifySignature(allParams))
+            {
+                return (false, "Chữ ký không hợp lệ.");
+            }
+        }
+        else
+        {
+            var parameters = new Dictionary<string, string>
+            {
+                ["vnp_TxnRef"] = txnRef,
+                ["vnp_ResponseCode"] = responseCode,
+                ["vnp_TransactionNo"] = transactionNo,
+                ["vnp_BankCode"] = bankCode,
+                ["vnp_PayDate"] = payDate,
+                ["vnp_SecureHash"] = secureHash
+            };
+            if (!_vnPayHelper.VerifySignature(parameters))
+            {
+                return (false, "Chữ ký không hợp lệ.");
+            }
+        }
+
+        var transaction = await _paymentTransactionRepository.GetByTxnRefAsync(txnRef);
+        if (transaction == null)
+        {
+            return (false, "Không tìm thấy giao dịch.");
+        }
+
+        if (transaction.Status == (int)PaymentTransactionStatus.Success)
+        {
+            return (true, "Giao dịch đã được xác nhận trước đó.");
+        }
+
+        if (responseCode == "00")
+        {
+            transaction.Status = (int)PaymentTransactionStatus.Success;
+            transaction.GatewayResponse = $"Thanh toán thành công qua VNPay. Mã GD VNPay: {transactionNo}";
+
+            var invoice = await _invoiceRepository.GetWithDetailsAsync(transaction.InvoiceId);
+            if (invoice != null)
+            {
+                invoice.PaidAmount += transaction.Amount;
+                invoice.PaymentMethod = "VNPay";
+                invoice.PaymentDate = DateTime.Now;
+                invoice.Status = GetInvoiceStatus(invoice.TotalAmount, invoice.PaidAmount, invoice.DueDate);
+                invoice.UpdatedAt = DateTime.Now;
+            }
+
+            await _activityLogService.LogCustomAsync(
+                "VNPayPaymentSuccess",
+                nameof(PaymentTransaction),
+                transaction.TransactionId.ToString(),
+                $"Thanh toán VNPay thành công {transaction.Amount:N0} VND cho hóa đơn");
+
+            return (true, "Xác nhận thành công");
+        }
+        else
+        {
+            transaction.Status = (int)PaymentTransactionStatus.Failed;
+            transaction.GatewayResponse = $"Thanh toán thất bại qua VNPay. Mã lỗi: {responseCode}";
+
+            await _activityLogService.LogCustomAsync(
+                "VNPayPaymentFailed",
+                nameof(PaymentTransaction),
+                transaction.TransactionId.ToString(),
+                $"Thanh toán VNPay thất bại. Mã lỗi: {responseCode}");
+
+            return (true, $"Thanh toán thất bại. Mã lỗi: {responseCode}");
+        }
+    }
+
+    private async Task<List<int>> GetResidentApartmentIdsAsync(int residentUserId)
+    {
+        return await _context.ResidentApartments
+            .Where(ra => ra.UserId == residentUserId && ra.IsActive)
+            .Select(ra => ra.ApartmentId)
+            .ToListAsync();
+    }
+
+    private async Task<User?> GetResidentAsync(int residentUserId)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u =>
             u.UserId == residentUserId &&
             u.Role == UserRole.Resident &&
             !u.IsDeleted);
