@@ -23,12 +23,16 @@ public class ApartmentRepository : IApartmentRepository
 
     public async Task<IEnumerable<Apartment>> GetAllAsync()
     {
-        return await _context.Apartments.ToListAsync();
+        return await _context.Apartments
+            .Where(a => !a.IsDeleted)
+            .ToListAsync();
     }
 
     public async Task<Apartment?> GetByIdAsync(int id)
     {
-        return await _context.Apartments.FindAsync(id);
+        return await _context.Apartments
+            .Where(a => !a.IsDeleted)
+            .FirstOrDefaultAsync(a => a.ApartmentId == id);
     }
 
     public async Task AddAsync(Apartment apartment)
@@ -36,7 +40,6 @@ public class ApartmentRepository : IApartmentRepository
         _context.Apartments.Add(apartment);
         await _context.SaveChangesAsync();
 
-        // Log CREATE action
         await _activityLog.LogCreateAsync(
             entityName: "Apartment",
             entityId: apartment.ApartmentId.ToString(),
@@ -47,14 +50,13 @@ public class ApartmentRepository : IApartmentRepository
 
     public async Task UpdateAsync(Apartment apartment)
     {
-        // Get old values for logging
         var oldApartment = await _context.Apartments.AsNoTracking()
+            .Where(a => !a.IsDeleted)
             .FirstOrDefaultAsync(a => a.ApartmentId == apartment.ApartmentId);
 
         _context.Entry(apartment).State = EntityState.Modified;
         await _context.SaveChangesAsync();
 
-        // Log UPDATE action
         await _activityLog.LogUpdateAsync(
             entityName: "Apartment",
             entityId: apartment.ApartmentId.ToString(),
@@ -67,24 +69,27 @@ public class ApartmentRepository : IApartmentRepository
     public async Task DeleteAsync(int id)
     {
         var apartment = await _context.Apartments.FindAsync(id);
-        if (apartment != null)
+        if (apartment != null && !apartment.IsDeleted)
         {
-            _context.Apartments.Remove(apartment);
+            apartment.IsDeleted = true;
+            apartment.UpdatedAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
-            // Log DELETE action
             await _activityLog.LogDeleteAsync(
                 entityName: "Apartment",
                 entityId: id.ToString(),
                 oldValues: apartment,
-                description: $"Xóa căn hộ: {apartment.ApartmentNumber}"
+                description: $"Xóa mềm căn hộ: {apartment.ApartmentNumber}"
             );
         }
     }
 
     public async Task<IEnumerable<Apartment>> FindAsync(Expression<Func<Apartment, bool>> predicate)
     {
-        return await _context.Apartments.Where(predicate).ToListAsync();
+        return await _context.Apartments
+            .Where(a => !a.IsDeleted)
+            .Where(predicate)
+            .ToListAsync();
     }
 
     public async Task AddRangeAsync(IEnumerable<Apartment> entities)
@@ -95,18 +100,30 @@ public class ApartmentRepository : IApartmentRepository
 
     public async Task DeleteAsync(Apartment entity)
     {
-        _context.Apartments.Remove(entity);
-        await _context.SaveChangesAsync();
+        if (!entity.IsDeleted)
+        {
+            entity.IsDeleted = true;
+            entity.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            await _activityLog.LogDeleteAsync(
+                entityName: "Apartment",
+                entityId: entity.ApartmentId.ToString(),
+                oldValues: entity,
+                description: $"Xóa mềm căn hộ: {entity.ApartmentNumber}"
+            );
+        }
     }
 
     public async Task<bool> ExistsAsync(int id)
     {
-        return await _context.Apartments.AnyAsync(a => a.ApartmentId == id);
+        return await _context.Apartments
+            .Where(a => !a.IsDeleted)
+            .AnyAsync(a => a.ApartmentId == id);
     }
 
     public async Task<IEnumerable<Apartment>> GetAvailableApartmentsAsync()
     {
-        // Căn trống = không có ResidentApartment đang active
         var occupiedApartmentIds = await _context.ResidentApartments
             .Where(ra => ra.IsActive)
             .Select(ra => ra.ApartmentId)
@@ -114,8 +131,7 @@ public class ApartmentRepository : IApartmentRepository
             .ToListAsync();
 
         return await _context.Apartments
-            .Where(a => !occupiedApartmentIds.Contains(a.ApartmentId))
+            .Where(a => !a.IsDeleted && !occupiedApartmentIds.Contains(a.ApartmentId))
             .ToListAsync();
     }
 }
-
