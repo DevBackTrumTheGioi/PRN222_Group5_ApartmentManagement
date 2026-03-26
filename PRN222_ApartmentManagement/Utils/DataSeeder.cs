@@ -88,7 +88,7 @@ public static class DataSeeder
         await EnsureVisitorsAsync(context, residentUsers, now);
         await EnsureAnnouncementsAsync(context, adminUser.UserId, now);
         await EnsureDocumentsAsync(context, adminUser.UserId, now);
-        await EnsureInvoicesAsync(context, adminUser.UserId, managerUsers.First().UserId, apartments, residentUsers, serviceTypeByName, servicePrices, now);
+        await EnsureInvoicesAsync(context, adminUser.UserId, apartments, residentUsers, serviceTypeByName, servicePrices, now);
         await EnsureNotificationsAsync(context, residentUsers, now);
         await EnsureAnnouncementAssetsAsync(context, residentUsers, now);
         await EnsureFaceAuthAsync(context, residentUsers, now);
@@ -1177,7 +1177,6 @@ public static class DataSeeder
     private static async Task EnsureInvoicesAsync(
         ApartmentDbContext context,
         int createdByUserId,
-        int approvedByUserId,
         IReadOnlyList<Apartment> apartments,
         IReadOnlyList<User> residentUsers,
         IReadOnlyDictionary<string, ServiceType> serviceTypeByName,
@@ -1219,12 +1218,9 @@ public static class DataSeeder
                         DueDate = dueDate,
                         TotalAmount = 0,
                         PaidAmount = 0,
-                        Status = isCurrentMonth ? InvoiceStatus.Pending : InvoiceStatus.Unpaid,
-                        ApprovalStatus = isCurrentMonth && apartmentId % 4 == 0 ? InvoiceApprovalStatus.PendingApproval : InvoiceApprovalStatus.Approved,
-                        ApprovedBy = isCurrentMonth && apartmentId % 4 == 0 ? null : approvedByUserId,
-                        ApprovedAt = isCurrentMonth && apartmentId % 4 == 0 ? null : issueDate.AddDays(1),
-                        IsSent = !(isCurrentMonth && apartmentId % 4 == 0),
-                        SentAt = isCurrentMonth && apartmentId % 4 == 0 ? null : issueDate.AddDays(1),
+                        Status = InvoiceStatus.Issued,
+                        IsSent = true,
+                        SentAt = issueDate.AddDays(1),
                         Notes = $"Hóa đơn tổng hợp dịch vụ tháng {period:MM/yyyy} cho căn {apartment.ApartmentNumber}.",
                         CreatedBy = createdByUserId,
                         CreatedAt = issueDate
@@ -1324,7 +1320,7 @@ public static class DataSeeder
 
         if (!await context.PaymentTransactions.AnyAsync())
         {
-            var invoices = await context.Invoices.Where(i => i.ApprovalStatus == InvoiceApprovalStatus.Approved).OrderBy(i => i.BillingYear).ThenBy(i => i.BillingMonth).ThenBy(i => i.ApartmentId).ToListAsync();
+            var invoices = await context.Invoices.OrderBy(i => i.BillingYear).ThenBy(i => i.BillingMonth).ThenBy(i => i.ApartmentId).ToListAsync();
 
             for (var index = 0; index < invoices.Count; index++)
             {
@@ -1375,7 +1371,7 @@ public static class DataSeeder
                     invoice.PaymentDate = paymentDate;
                 }
 
-                invoice.Status = DetermineInvoiceStatus(invoice.TotalAmount, invoice.PaidAmount, invoice.DueDate, invoice.ApprovalStatus, invoice.IsSent, now);
+                invoice.Status = DetermineInvoiceStatus(invoice.TotalAmount, invoice.PaidAmount, invoice.DueDate, invoice.IsSent, now);
                 invoice.UpdatedAt = now;
             }
 
@@ -1684,13 +1680,12 @@ public static class DataSeeder
         decimal totalAmount,
         decimal paidAmount,
         DateTime dueDate,
-        InvoiceApprovalStatus approvalStatus,
         bool isSent,
         DateTime now)
     {
-        if (approvalStatus != InvoiceApprovalStatus.Approved || !isSent)
+        if (!isSent)
         {
-            return InvoiceStatus.Pending;
+            return InvoiceStatus.Unpaid;
         }
 
         if (paidAmount >= totalAmount && totalAmount > 0)
