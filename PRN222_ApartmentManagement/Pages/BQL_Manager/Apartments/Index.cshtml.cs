@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -16,6 +17,8 @@ public class IndexModel : PageModel
     {
         _apartmentService = apartmentService;
     }
+
+    public bool IsAdmin { get; private set; }
 
     public List<ApartmentRowVm> Rows { get; set; } = new();
 
@@ -57,6 +60,7 @@ public class IndexModel : PageModel
     public async Task<IActionResult> OnGetAsync()
     {
         TempData.Remove("StatusMessage");
+        IsAdmin = User.IsInRole(nameof(UserRole.Admin));
 
         var stats = await _apartmentService.GetStatsAsync();
         Total = stats.Total;
@@ -120,6 +124,9 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
+        if (!User.IsInRole(nameof(UserRole.Admin)))
+            return Forbid();
+
         var (success, message) = await _apartmentService.DeleteAsync(id);
         StatusMessage = message;
         return RedirectToPage(new
