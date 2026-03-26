@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN222_ApartmentManagement.Data;
 
@@ -11,9 +12,11 @@ using PRN222_ApartmentManagement.Data;
 namespace PRN222_ApartmentManagement.Migrations
 {
     [DbContext(typeof(ApartmentDbContext))]
-    partial class ApartmentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260326111151_AddMeetingsModule")]
+    partial class AddMeetingsModule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -106,14 +109,8 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Property<int?>("AmenityTypeId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CancellationDeadlineHours")
-                        .HasColumnType("int");
-
                     b.Property<int?>("Capacity")
                         .HasColumnType("int");
-
-                    b.Property<TimeSpan>("CloseTime")
-                        .HasColumnType("time");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -132,14 +129,8 @@ namespace PRN222_ApartmentManagement.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<TimeSpan>("OpenTime")
-                        .HasColumnType("time");
-
                     b.Property<decimal?>("PricePerHour")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("RequiresBooking")
-                        .HasColumnType("bit");
 
                     b.HasKey("AmenityId");
 
@@ -175,9 +166,6 @@ namespace PRN222_ApartmentManagement.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("ParticipantCount")
-                        .HasColumnType("int");
-
                     b.Property<int>("ResidentId")
                         .HasColumnType("int");
 
@@ -200,11 +188,11 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.HasKey("BookingId");
 
+                    b.HasIndex("AmenityId");
+
                     b.HasIndex("ApartmentId");
 
                     b.HasIndex("ResidentId");
-
-                    b.HasIndex("AmenityId", "BookingDate", "StartTime", "EndTime");
 
                     b.ToTable("AmenityBookings");
                 });
@@ -403,9 +391,6 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.Property<int>("Floor")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -868,14 +853,6 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Property<string>("MinutesContent")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("MinutesFileName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("MinutesFilePath")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<DateTime>("ScheduledDate")
                         .HasColumnType("datetime2");
 
@@ -994,26 +971,6 @@ namespace PRN222_ApartmentManagement.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("VnpBankCode")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("VnpPayDate")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("VnpResponseCode")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("VnpTransactionNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("VnpTxnRef")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.HasKey("TransactionId");
 
                     b.HasIndex("CreatedBy");
@@ -1022,8 +979,6 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.HasIndex("TransactionCode")
                         .IsUnique();
-
-                    b.HasIndex("VnpTxnRef");
 
                     b.ToTable("PaymentTransactions");
                 });

@@ -50,6 +50,9 @@ public class ApartmentDbContext : DbContext
     // Communication entities
     public DbSet<Notification> Notifications { get; set; }
 
+    // BQT meeting entities
+    public DbSet<Meeting> Meetings { get; set; }
+
     // Contract entities
     public DbSet<Contract> Contracts { get; set; }
     public DbSet<ContractMember> ContractMembers { get; set; }
@@ -184,6 +187,16 @@ public class ApartmentDbContext : DbContext
 
         modelBuilder.Entity<Notification>()
             .Property(n => n.Priority)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Meeting>()
+            .Property(m => m.MeetingType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Meeting>()
+            .Property(m => m.Status)
             .HasConversion<string>()
             .HasMaxLength(20);
 
@@ -398,6 +411,12 @@ public class ApartmentDbContext : DbContext
             .HasOne(v => v.RegisteredByUser)
             .WithMany(u => u.RegisteredVisitors)
             .HasForeignKey(v => v.RegisteredBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Meeting>()
+            .HasOne(m => m.Creator)
+            .WithMany()
+            .HasForeignKey(m => m.CreatedBy)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<AmenityBooking>()

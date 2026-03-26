@@ -79,6 +79,7 @@
         workItems.Add(new SidebarMenuItem { Icon = "groups", Label = "Khách của tôi", Href = "/Resident/Visitors", Key = "visitors" });
         workItems.Add(new SidebarMenuItem { Icon = "home", Label = "Căn hộ của tôi", Href = "/Resident/FamilyMembers", Key = "family-members" });
         workItems.Add(new SidebarMenuItem { Icon = "face", Label = "Face ID", Href = "/Resident/FaceAuth/Status", Key = "faceauth" });
+        workItems.Add(new SidebarMenuItem { Icon = "event", Label = "Lịch họp", Href = "/Resident/Meetings", Key = "meetings" });
     }
 
     if (workItems.Count > 0)
@@ -119,6 +120,20 @@
             Icon = "account_balance_wallet",
             IsCollapsible = financeItems.Count > 1,
             Items = financeItems
+        });
+    }
+
+    if (isBqtHead || isBqtMember)
+    {
+        menuGroups.Add(new SidebarMenuGroup
+        {
+            GroupName = "Ban Quản Trị",
+            Icon = "groups",
+            IsCollapsible = true,
+            Items = new List<SidebarMenuItem>
+            {
+                new() { Icon = "event", Label = "Lịch họp", Href = isBqtHead ? "/BQT_Head/Meetings" : "/BQT_Member/Meetings", Key = "meetings" }
+            }
         });
     }
 
