@@ -52,10 +52,16 @@
                 <h2 class="text-lg font-semibold text-slate-900">Tra cứu dữ liệu Face ID</h2>
                 <p class="mt-1 text-sm text-slate-500">Hỗ trợ đăng ký tại quầy, xem danh sách đã đăng ký và đặt lại dữ liệu khi cần.</p>
             </div>
-            <a href="/FaceAuth/Logs" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
-                <span class="material-icons text-base">history</span>
-                Lịch sử xác thực
-            </a>
+            <div class="flex flex-wrap gap-3">
+                <a asp-page="./AmenityAccess" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                    <span class="material-icons text-base">verified_user</span>
+                    Test tiện ích
+                </a>
+                <a href="/FaceAuth/Logs" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                    <span class="material-icons text-base">history</span>
+                    Lịch sử xác thực
+                </a>
+            </div>
         </div>
 
         <form method="get" class="grid grid-cols-1 gap-4 md:grid-cols-4">

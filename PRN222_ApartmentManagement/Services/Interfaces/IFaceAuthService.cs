@@ -15,4 +15,6 @@ public interface IFaceAuthService
     Task<List<FaceResidentSummaryDto>> GetResidentSummariesAsync(string? searchTerm, bool? isRegistered);
     Task<List<FaceAuthLogDto>> GetManagementLogsAsync(string? searchTerm, bool? isSuccess, DateTime? fromDate, DateTime? toDate, int take = 200);
     Task<FaceAuthDashboardDto> GetDashboardAsync(int recentDays = 30);
+    Task<AmenityFaceAccessResultDto> ValidateAmenityAccessAsync(int amenityId, string faceDescriptor, string? ipAddress, string? deviceInfo);
+    Task<AmenityFaceAccessResultDto> ValidateAmenityAccessManualAsync(int amenityId, int residentId, int staffUserId, string? ipAddress, string? deviceInfo);
 }

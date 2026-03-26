@@ -45,3 +45,24 @@ public class FaceAuthDashboardDto
     public int RecentDays { get; set; }
     public List<FaceAuthLogDto> RecentLogs { get; set; } = new();
 }
+
+public class AmenityFaceAccessResultDto
+{
+    public DateTime CheckedAt { get; set; } = DateTime.Now;
+    public int AmenityId { get; set; }
+    public string AmenityName { get; set; } = string.Empty;
+    public bool AmenityRequiresBooking { get; set; }
+    public bool IsMatchFound { get; set; }
+    public bool AccessGranted { get; set; }
+    public bool IsManualOverride { get; set; }
+    public bool IsWithinOperatingHours { get; set; }
+    public bool HasValidBooking { get; set; }
+    public int? ResidentId { get; set; }
+    public string? ResidentName { get; set; }
+    public string? ApartmentNumber { get; set; }
+    public string? BuildingBlock { get; set; }
+    public double ConfidenceScore { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public string? BookingWindowLabel { get; set; }
+    public string AccessModeLabel { get; set; } = "Quét khuôn mặt";
+}
