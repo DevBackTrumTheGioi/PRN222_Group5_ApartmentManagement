@@ -24,13 +24,35 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)]
     public int? AmenityFilter { get; set; }
 
+    [BindProperty(SupportsGet = true)]
+    public int PageIndex { get; set; } = 1;
+
+    [BindProperty(SupportsGet = true)]
+    public int PageSize { get; set; } = 10;
+
+    public int TotalItems { get; set; }
+    public int TotalPages { get; set; }
+
     public async Task OnGetAsync()
     {
-        Amenities = await _context.Amenities
+        var q = _context.Amenities
             .Include(a => a.AmenityType)
             .Where(a => a.IsActive && !a.IsDeleted)
-            .OrderBy(a => a.AmenityName)
-            .ToListAsync();
+            .AsQueryable();
+
+        if (AmenityFilter.HasValue)
+        {
+            q = q.Where(a => a.AmenityTypeId == AmenityFilter.Value);
+        }
+
+        q = q.OrderBy(a => a.AmenityName);
+
+        TotalItems = await q.CountAsync();
+        if (PageIndex < 1) PageIndex = 1;
+        TotalPages = (int)Math.Ceiling(TotalItems / (double)PageSize);
+        if (PageIndex > TotalPages && TotalPages > 0) PageIndex = TotalPages;
+
+        Amenities = await q.Skip((PageIndex - 1) * PageSize).Take(PageSize).ToListAsync();
 
         AmenityTypes = await _context.AmenityTypes
             .Where(t => t.IsActive && !t.IsDeleted)
