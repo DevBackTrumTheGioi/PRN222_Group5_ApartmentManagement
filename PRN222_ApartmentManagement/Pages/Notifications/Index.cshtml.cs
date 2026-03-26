@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Services.Interfaces;
+using PRN222_ApartmentManagement.Utils;
 
 namespace PRN222_ApartmentManagement.Pages.Notifications;
 
@@ -40,6 +41,7 @@ public class IndexModel : PageModel
         public DateTime CreatedAt { get; set; }
         public string Icon { get; set; } = "🔔";
         public string TimeAgo { get; set; } = string.Empty;
+        public string RedirectUrl { get; set; } = "/Notifications";
     }
 
     public async Task<IActionResult> OnGetAsync(int page = 1, string? type = null)
@@ -59,6 +61,8 @@ public class IndexModel : PageModel
         var (items, totalCount) = await _notificationService.GetUserNotificationsAsync(
             userId.Value, CurrentPage, PageSize, typeFilter);
 
+        var role = User.FindFirstValue(ClaimTypes.Role);
+
         TotalCount = totalCount;
         TotalPages = (int)Math.Ceiling((double)totalCount / PageSize);
         UnreadCount = await _notificationService.GetUnreadCountAsync(userId.Value);
@@ -77,7 +81,12 @@ public class IndexModel : PageModel
             Priority = n.Priority.ToString(),
             CreatedAt = n.CreatedAt,
             Icon = Utils.NotificationUtils.GetNotificationIcon(n.NotificationType.ToString()),
-            TimeAgo = GetTimeAgo(n.CreatedAt)
+            TimeAgo = GetTimeAgo(n.CreatedAt),
+            RedirectUrl = NotificationUtils.GetNotificationRedirectUrl(
+                n.NotificationType.ToString(),
+                n.ReferenceType.ToString(),
+                n.ReferenceId,
+                role)
         }).ToList();
 
         return Page();
@@ -99,6 +108,7 @@ public class IndexModel : PageModel
         var userId = GetCurrentUserId();
         if (userId == null) return new JsonResult(new { items = Array.Empty<object>() });
 
+        var role = User.FindFirstValue(ClaimTypes.Role);
         var items = await _notificationService.GetRecentNotificationsAsync(userId.Value, 5);
         var result = items.Select(n => new
         {
@@ -112,7 +122,12 @@ public class IndexModel : PageModel
             Priority = n.Priority.ToString(),
             CreatedAt = n.CreatedAt.ToString("dd/MM/yyyy HH:mm"),
             Icon = Utils.NotificationUtils.GetNotificationIcon(n.NotificationType.ToString()),
-            TimeAgo = GetTimeAgo(n.CreatedAt)
+            TimeAgo = GetTimeAgo(n.CreatedAt),
+            RedirectUrl = NotificationUtils.GetNotificationRedirectUrl(
+                n.NotificationType.ToString(),
+                n.ReferenceType.ToString(),
+                n.ReferenceId,
+                role)
         });
 
         return new JsonResult(new { items = result });

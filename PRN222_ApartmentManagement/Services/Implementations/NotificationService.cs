@@ -5,6 +5,7 @@ using PRN222_ApartmentManagement.Hubs;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
 using PRN222_ApartmentManagement.Services.Interfaces;
+using PRN222_ApartmentManagement.Utils;
 
 namespace PRN222_ApartmentManagement.Services.Implementations;
 
@@ -172,6 +173,11 @@ public class NotificationService : INotificationService
 
     private async Task PushNotificationAsync(int userId, Notification notification)
     {
+        var recipientRole = await _context.Users
+            .Where(u => u.UserId == userId)
+            .Select(u => u.Role.ToString())
+            .FirstOrDefaultAsync();
+
         var payload = new
         {
             notification.NotificationId,
@@ -182,7 +188,12 @@ public class NotificationService : INotificationService
             notification.ReferenceId,
             Priority = notification.Priority.ToString(),
             CreatedAt = notification.CreatedAt.ToString("dd/MM/yyyy HH:mm"),
-            notification.IsRead
+            notification.IsRead,
+            RedirectUrl = NotificationUtils.GetNotificationRedirectUrl(
+                notification.NotificationType.ToString(),
+                notification.ReferenceType.ToString(),
+                notification.ReferenceId,
+                recipientRole)
         };
 
         await _hubContext.Clients.Group($"user_{userId}")
