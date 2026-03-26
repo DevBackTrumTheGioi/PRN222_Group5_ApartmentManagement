@@ -31,23 +31,30 @@ public class IndexModel : PageModel
     public int TotalCount { get; set; }
     public int PendingCount { get; set; }
     public int CheckedInCount { get; set; }
-    public int TodayCount { get; set; }
+    public int UpcomingCount { get; set; }
     public int ClosedCount { get; set; }
 
     public bool HasFilter => StatusFilter.HasValue || VisitDateFilter.HasValue || !string.IsNullOrWhiteSpace(SearchQuery);
 
     public async Task<IActionResult> OnGetAsync()
     {
-        var defaultQueue = await _visitorManagementService.GetStaffVisitorsAsync(null, null, null);
+        var defaultQueue = (await _visitorManagementService.GetStaffVisitorsAsync(null, null, null))
+            .Where(IsOperationalWindow)
+            .ToList();
         var today = DateTime.Now.Date;
+        var tomorrow = today.AddDays(1);
 
         TotalCount = defaultQueue.Count;
         PendingCount = defaultQueue.Count(v => v.Status == VisitorStatus.Pending);
         CheckedInCount = defaultQueue.Count(v => v.Status == VisitorStatus.CheckedIn);
-        TodayCount = defaultQueue.Count(v => v.VisitDate == today);
+        UpcomingCount = defaultQueue.Count(v => v.VisitDate == today || v.VisitDate == tomorrow);
         ClosedCount = defaultQueue.Count(v => v.Status is VisitorStatus.CheckedOut or VisitorStatus.Cancelled or VisitorStatus.Rejected);
 
-        Visitors = await _visitorManagementService.GetStaffVisitorsAsync(StatusFilter, VisitDateFilter, SearchQuery);
+        var filteredVisitors = await _visitorManagementService.GetStaffVisitorsAsync(StatusFilter, null, SearchQuery);
+        Visitors = filteredVisitors
+            .Where(IsOperationalWindow)
+            .Where(v => !VisitDateFilter.HasValue || v.VisitDate == VisitDateFilter.Value.Date)
+            .ToList();
         return Page();
     }
 
@@ -80,5 +87,12 @@ public class IndexModel : PageModel
             VisitDateFilter,
             SearchQuery
         });
+    }
+
+    private static bool IsOperationalWindow(Visitor visitor)
+    {
+        var today = DateTime.Now.Date;
+        var tomorrow = today.AddDays(1);
+        return visitor.VisitDate == today || visitor.VisitDate == tomorrow;
     }
 }

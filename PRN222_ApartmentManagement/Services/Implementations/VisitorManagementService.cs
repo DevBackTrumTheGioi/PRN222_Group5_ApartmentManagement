@@ -106,6 +106,8 @@ public class VisitorManagementService : IVisitorManagementService
 
     public async Task<IReadOnlyList<Visitor>> GetResidentVisitorsAsync(int residentId, VisitorStatus? status, DateTime? visitDate)
     {
+        await AutoCloseExpiredPendingVisitorsAsync();
+
         var query = BaseVisitorQuery()
             .Where(v => v.RegisteredBy == residentId);
 
@@ -148,13 +150,16 @@ public class VisitorManagementService : IVisitorManagementService
 
     public async Task<IReadOnlyList<Visitor>> GetStaffVisitorsAsync(VisitorStatus? status, DateTime? visitDate, string? search)
     {
+        await AutoCloseExpiredPendingVisitorsAsync();
+
         var query = BaseVisitorQuery();
         var hasExplicitFilter = status.HasValue || visitDate.HasValue || !string.IsNullOrWhiteSpace(search);
 
         if (!hasExplicitFilter)
         {
             var today = DateTime.Now.Date;
-            query = query.Where(v => v.VisitDate == today || v.Status == VisitorStatus.Pending || v.Status == VisitorStatus.CheckedIn);
+            var tomorrow = today.AddDays(1);
+            query = query.Where(v => v.VisitDate == today || v.VisitDate == tomorrow);
         }
 
         if (status.HasValue)
@@ -289,6 +294,27 @@ public class VisitorManagementService : IVisitorManagementService
             .Include(v => v.RegisteredByUser);
     }
 
+    private async Task AutoCloseExpiredPendingVisitorsAsync()
+    {
+        var today = DateTime.Now.Date;
+        var expiredVisitors = await _context.Visitors
+            .Where(v => v.Status == VisitorStatus.Pending && v.VisitDate < today)
+            .ToListAsync();
+
+        if (expiredVisitors.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var visitor in expiredVisitors)
+        {
+            visitor.Status = VisitorStatus.Cancelled;
+            visitor.Notes = AppendAutoCloseNote(visitor.Notes);
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
     private static string? NormalizeText(string? value, int maxLength)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -324,5 +350,23 @@ public class VisitorManagementService : IVisitorManagementService
     private static bool IsValidIdentityCard(string value)
     {
         return value.Length is >= 9 and <= 20 && value.All(char.IsLetterOrDigit);
+    }
+
+    private static string AppendAutoCloseNote(string? existingNotes)
+    {
+        const string systemNote = "Tự động đóng vì đã quá ngày khách đến.";
+
+        if (string.IsNullOrWhiteSpace(existingNotes))
+        {
+            return systemNote;
+        }
+
+        if (existingNotes.Contains(systemNote, StringComparison.OrdinalIgnoreCase))
+        {
+            return existingNotes;
+        }
+
+        var combined = $"{existingNotes.Trim()} | {systemNote}";
+        return combined.Length > 500 ? combined[..500] : combined;
     }
 }

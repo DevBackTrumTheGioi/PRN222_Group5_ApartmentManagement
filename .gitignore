@@ -566,6 +566,16 @@ MODULE4_NOTES.md
 # Temp files
 **/temp/
 **/tmp/
+
+###############################################################################
+# Local assistant / ad-hoc build outputs
+###############################################################################
+# Temporary build folders created during local verification
+_temp_build*/
+_temp_*/
+
+# Local agent workspace files
+.agents/
 ###############################################################################
 # File uploads (development only)
 ###############################################################################

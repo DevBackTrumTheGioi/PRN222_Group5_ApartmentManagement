@@ -4,7 +4,7 @@
 @using PRN222_ApartmentManagement.Utils
 @{
     ViewData["Title"] = "Khách ra vào";
-    ViewData["Subtitle"] = "Theo dõi khách hôm nay, khách chờ đến và lịch sử check-in/check-out";
+    ViewData["Subtitle"] = "Theo dõi khách ra vào trong hôm nay và ngày mai";
     ViewData["CurrentPage"] = "staffvisitors";
 
     var statusFilterValue = Model.StatusFilter?.ToString();
@@ -43,8 +43,8 @@
             <p class="mt-1 text-xs text-blue-600">Đang ở sảnh</p>
         </div>
         <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center shadow-sm">
-            <p class="text-2xl font-bold text-emerald-700">@Model.TodayCount</p>
-            <p class="mt-1 text-xs text-emerald-600">Lịch hôm nay</p>
+            <p class="text-2xl font-bold text-emerald-700">@Model.UpcomingCount</p>
+            <p class="mt-1 text-xs text-emerald-600">Hôm nay và ngày mai</p>
         </div>
         <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center shadow-sm">
             <p class="text-2xl font-bold text-slate-700">@Model.ClosedCount</p>
@@ -72,7 +72,10 @@
             <div class="min-w-[180px] space-y-1">
                 <label class="text-xs font-medium text-slate-600">Ngày khách đến</label>
                 <input asp-for="VisitDateFilter"
+                       min="@today.ToString("yyyy-MM-dd")"
+                       max="@today.AddDays(1).ToString("yyyy-MM-dd")"
                        class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                <p class="text-[11px] text-slate-400">Chỉ hỗ trợ lọc trong hôm nay hoặc ngày mai.</p>
             </div>
             <div class="min-w-[180px] space-y-1">
                 <label class="text-xs font-medium text-slate-600">Trạng thái</label>
