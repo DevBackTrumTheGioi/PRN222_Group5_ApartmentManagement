@@ -1,28 +1,19 @@
-@page
-@model PRN222_ApartmentManagement.Pages.Visitors.MyVisitorsModel
+@page "/Visitors/MyVisitors"
+@model PRN222_ApartmentManagement.Pages.Resident.Visitors.MyVisitorsModel
 @{
     ViewData["Title"] = "Khách của tôi";
 }
 
 <div class="max-w-4xl mx-auto p-6 bg-white rounded-xl border">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold">Danh sách khách đã đăng ký</h2>
-        <a asp-page="Register" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm hover:bg-slate-100">Đăng ký khách mới</a>
-    </div>
+    <h2 class="text-lg font-bold mb-4">Danh sách khách đã đăng ký</h2>
 
     @if (TempData["Success"] != null)
     {
-        <div class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm mb-4">
-            <span class="material-icons text-emerald-500">check_circle</span>
-            @TempData["Success"]
-        </div>
+        <div class="text-emerald-600 mb-4">@TempData["Success"]</div>
     }
     @if (TempData["Error"] != null)
     {
-        <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm mb-4">
-            <span class="material-icons text-red-500">error</span>
-            @TempData["Error"]
-        </div>
+        <div class="text-rose-600 mb-4">@TempData["Error"]</div>
     }
 
     <table class="w-full text-sm">

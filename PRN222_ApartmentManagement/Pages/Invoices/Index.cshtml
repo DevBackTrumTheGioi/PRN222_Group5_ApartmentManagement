@@ -1,0 +1,50 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Invoices.IndexModel
+@{
+    ViewData["Title"] = "Danh sách hóa đơn";
+}
+
+<div class="space-y-4">
+    <div class="bg-white p-4 rounded-xl border border-slate-200">
+        <div class="flex justify-between items-center">
+            <h3 class="font-bold">Danh sách hóa đơn</h3>
+            <div>
+                <a href="/Services/Orders" class="px-3 py-2 bg-slate-50 border rounded text-slate-700">Quay lại đơn</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="min-w-full w-full table-auto">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Số hóa đơn</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Căn hộ</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Ngày phát hành</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Hạn thanh toán</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Tổng</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Trạng thái</th>
+                        <th class="px-6 py-4 text-sm text-slate-500 font-medium text-left">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach (var inv in Model.Invoices)
+                    {
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@inv.InvoiceNumber</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@inv.Apartment?.ApartmentNumber</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@inv.IssueDate.ToString("dd/MM/yyyy")</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@inv.DueDate.ToString("dd/MM/yyyy")</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@inv.TotalAmount.ToString("N0") đ</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">@inv.Status</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
+                                <a href="/Invoices/Details/@inv.InvoiceId" class="text-emerald-600 hover:underline">Chi tiết</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,108 @@
+@page "/Visitors"
+@model PRN222_ApartmentManagement.Pages.BQL_Staff.Visitors.IndexModel
+@{
+    ViewData["Title"] = "Quản lý khách";
+}
+
+<div class="p-6 bg-white rounded-xl border"> <!-- restored framed container -->
+    <h2 class="text-lg font-bold mb-4">Quản lý khách đã đăng ký</h2>
+
+    <div class="flex items-center justify-between mb-4">
+        <form method="get" class="flex items-center gap-2">
+            <input type="text" name="SearchTerm" value="@Model.SearchTerm" placeholder="Tìm theo tên, sđt, cmnd, căn hộ" class="px-3 py-1 border rounded-lg" />
+            <select name="StatusFilter" class="px-3 py-1 border rounded-lg">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Pending" selected="@(Model.StatusFilter==PRN222_ApartmentManagement.Models.Enums.VisitorStatus.Pending)">Pending</option>
+                <option value="CheckedIn" selected="@(Model.StatusFilter==PRN222_ApartmentManagement.Models.Enums.VisitorStatus.CheckedIn)">CheckedIn</option>
+                <option value="CheckedOut" selected="@(Model.StatusFilter==PRN222_ApartmentManagement.Models.Enums.VisitorStatus.CheckedOut)">CheckedOut</option>
+                <option value="Cancelled" selected="@(Model.StatusFilter==PRN222_ApartmentManagement.Models.Enums.VisitorStatus.Cancelled)">Cancelled</option>
+            </select>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="ShowHistory" value="true" @(Model.ShowHistory?"checked":"") /> Lịch sử</label>
+            <input type="hidden" name="PageSize" value="@Model.PageSize" />
+            <button class="px-3 py-1 bg-emerald-600 text-white rounded-lg">Tìm</button>
+        </form>
+
+        <div class="text-sm text-slate-500">Tổng: @Model.TotalItems</div>
+    </div>
+
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="text-left text-slate-500 text-xs uppercase">
+                <th class="px-4 py-2">Tên</th>
+                <th class="px-4 py-2">Sđt</th>
+                <th class="px-4 py-2">CMND</th>
+                <th class="px-4 py-2">Căn hộ</th>
+                <th class="px-4 py-2">Ngày</th>
+                <th class="px-4 py-2">Giờ vào</th>
+                <th class="px-4 py-2">Giờ ra</th>
+                <th class="px-4 py-2">Trạng thái</th>
+                <th class="px-4 py-2">Đăng ký bởi</th>
+                <th class="px-4 py-2"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var v in Model.Visitors)
+            {
+                <tr class="border-t">
+                    <td class="px-4 py-2 whitespace-nowrap">@v.VisitorName</td>
+                    <td class="px-4 py-2 whitespace-nowrap">@v.PhoneNumber</td>
+                    <td class="px-4 py-2 whitespace-nowrap">@v.IdentityCard</td>
+                    <td class="px-4 py-2 whitespace-nowrap">@v.Apartment?.ApartmentNumber</td>
+                    <td class="px-4 py-2 whitespace-nowrap">@v.VisitDate.ToString("dd/MM/yyyy")</td>
+                    <td class="px-4 py-2 whitespace-nowrap">@(Model.ShowHistory ? v.CheckInTime?.ToString("dd/MM HH:mm") : v.CheckInTime?.ToString("HH:mm"))</td>
+                    <td class="px-4 py-2 whitespace-nowrap">@(Model.ShowHistory ? v.CheckOutTime?.ToString("dd/MM HH:mm") : v.CheckOutTime?.ToString("HH:mm"))</td>
+                    <td class="px-4 py-2 whitespace-nowrap">@v.Status</td>
+                    <td class="px-4 py-2 whitespace-nowrap">@v.RegisteredByUser?.FullName</td>
+                    <td class="px-4 py-2 text-right">
+                        @if (!Model.ShowHistory)
+                        {
+                            if (v.Status == PRN222_ApartmentManagement.Models.Enums.VisitorStatus.Pending)
+                            {
+                                <a asp-page="./CheckIn" asp-route-id="@v.VisitorId" class="text-emerald-600 mr-2">Check-in</a>
+                            }
+                            else if (v.Status == PRN222_ApartmentManagement.Models.Enums.VisitorStatus.CheckedIn)
+                            {
+                                <a asp-page="./CheckOut" asp-route-id="@v.VisitorId" class="text-rose-600">Check-out</a>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-4 flex items-center justify-between">
+        <div>
+            <form method="get" class="inline">
+                <input type="hidden" name="PageIndex" value="@(Model.PageIndex-1)" />
+                <input type="hidden" name="PageSize" value="@Model.PageSize" />
+                <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+                <input type="hidden" name="StatusFilter" value="@(Model.StatusFilter?.ToString())" />
+                <input type="hidden" name="FromDate" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="ToDate" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="ShowHistory" value="@(Model.ShowHistory?"true":"false")" />
+                <button class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm" @(Model.PageIndex==1?"disabled":"")>Trước</button>
+            </form>
+        </div>
+
+        <div class="flex items-center gap-2">
+            @for (int i = 1; i <= Math.Max(1, Model.TotalPages); i++)
+            {
+                <a href="?PageIndex=@i&PageSize=@Model.PageSize&SearchTerm=@Model.SearchTerm&StatusFilter=@(Model.StatusFilter?.ToString())&FromDate=@(Model.FromDate?.ToString("yyyy-MM-dd"))&ToDate=@(Model.ToDate?.ToString("yyyy-MM-dd"))&ShowHistory=@(Model.ShowHistory?"true":"false")" class="px-3 py-1 rounded-lg text-sm @(i==Model.PageIndex?"bg-primary-600 text-white":"bg-white border")">@i</a>
+            }
+        </div>
+
+        <div>
+            <form method="get" class="inline">
+                <input type="hidden" name="PageIndex" value="@(Model.PageIndex+1)" />
+                <input type="hidden" name="PageSize" value="@Model.PageSize" />
+                <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+                <input type="hidden" name="StatusFilter" value="@(Model.StatusFilter?.ToString())" />
+                <input type="hidden" name="FromDate" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="ToDate" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="ShowHistory" value="@(Model.ShowHistory?"true":"false")" />
+                <button class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm" @(Model.PageIndex==Model.TotalPages?"disabled":"")>Sau</button>
+            </form>
+        </div>
+    </div>
+</div>

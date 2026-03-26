@@ -1,0 +1,51 @@
+@page "/Visitors/CheckIn"
+@model PRN222_ApartmentManagement.Pages.BQL_Staff.Visitors.CheckInModel
+@{
+    ViewData["Title"] = "Check-in khách";
+}
+
+<div class="max-w-2xl mx-auto p-6 bg-white rounded-xl border">
+    <h2 class="text-lg font-bold mb-4">Ghi nhận khách đến</h2>
+
+    <div class="bg-white p-4 rounded-lg border">
+        <div class="mb-4">
+            <p class="font-semibold text-lg">@Model.Visitor?.VisitorName</p>
+            <p class="text-sm text-slate-500">@Model.Visitor?.PhoneNumber — @Model.Visitor?.Apartment?.ApartmentNumber</p>
+            @if (!string.IsNullOrEmpty(Model.Visitor?.IdentityCard))
+            {
+                <p class="text-sm text-slate-500">CMND/CCCD: @Model.Visitor.IdentityCard</p>
+            }
+            <p class="text-sm text-slate-500">Đăng ký bởi: @Model.Visitor?.RegisteredByUser?.FullName</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 text-sm text-slate-700">
+            <div>
+                <div class="text-xs text-slate-500">Ngày đến</div>
+                <div class="font-medium">@Model.Visitor?.VisitDate.ToString("dd/MM/yyyy")</div>
+            </div>
+            <div>
+                <div class="text-xs text-slate-500">Giờ dự kiến</div>
+                <div class="font-medium">@Model.Visitor?.CheckInTime?.ToString("HH:mm")</div>
+            </div>
+            <div>
+                <div class="text-xs text-slate-500">Trạng thái</div>
+                <div class="font-medium">@Model.Visitor?.Status</div>
+            </div>
+            <div>
+                <div class="text-xs text-slate-500">Mã QR</div>
+                <div class="font-medium">@Model.Visitor?.QRCode ?? "-"</div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Visitor?.Notes))
+        {
+            <div class="mb-4 text-sm text-slate-600">Ghi chú: @Model.Visitor.Notes</div>
+        }
+
+        <form method="post" class="mt-4">
+            <input type="hidden" name="id" value="@Model.Visitor?.VisitorId" />
+            <button type="submit" class="btn btn-primary">Xác nhận check-in</button>
+            <a asp-page="/BQL_Staff/Visitors/Index" class="ml-3 text-sm text-slate-500">Hủy</a>
+        </form>
+    </div>
+</div>

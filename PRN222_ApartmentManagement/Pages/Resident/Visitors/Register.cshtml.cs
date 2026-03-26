@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 
-namespace PRN222_ApartmentManagement.Pages.Visitors;
+namespace PRN222_ApartmentManagement.Pages.Resident.Visitors;
 
 [Authorize(Policy = "ResidentOnly")]
 public class RegisterModel : PageModel
@@ -106,6 +106,6 @@ public class RegisterModel : PageModel
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "Đăng ký khách thành công.";
-        return RedirectToPage("MyVisitors");
+        return RedirectToPage("/Resident/Visitors/MyVisitors");
     }
 }

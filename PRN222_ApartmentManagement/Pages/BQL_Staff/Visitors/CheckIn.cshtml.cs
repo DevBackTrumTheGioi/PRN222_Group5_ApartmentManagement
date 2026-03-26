@@ -6,14 +6,14 @@ using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
 
-namespace PRN222_ApartmentManagement.Pages.Visitors;
+namespace PRN222_ApartmentManagement.Pages.BQL_Staff.Visitors;
 
 [Authorize(Roles = "BQL_Staff,BQL_Manager,Admin")]
-public class CheckOutModel : PageModel
+public class CheckInModel : PageModel
 {
     private readonly ApartmentDbContext _context;
 
-    public CheckOutModel(ApartmentDbContext context)
+    public CheckInModel(ApartmentDbContext context)
     {
         _context = context;
     }
@@ -24,7 +24,7 @@ public class CheckOutModel : PageModel
     {
         Visitor = await _context.Visitors.Include(v => v.Apartment).Include(v => v.RegisteredByUser).FirstOrDefaultAsync(v => v.VisitorId == id);
         if (Visitor == null) return NotFound();
-        if (Visitor.Status != VisitorStatus.CheckedIn) return BadRequest();
+        if (Visitor.Status != VisitorStatus.Pending) return BadRequest();
         return Page();
     }
 
@@ -32,13 +32,14 @@ public class CheckOutModel : PageModel
     {
         var visitor = await _context.Visitors.FindAsync(id);
         if (visitor == null) return NotFound();
-        if (visitor.Status != VisitorStatus.CheckedIn) return BadRequest();
+        if (visitor.Status != VisitorStatus.Pending) return BadRequest();
 
-        visitor.Status = VisitorStatus.CheckedOut;
-        visitor.CheckOutTime = DateTime.Now;
+        visitor.CheckInTime = DateTime.Now;
+        visitor.Status = VisitorStatus.CheckedIn;
+
         await _context.SaveChangesAsync();
 
-        TempData["Success"] = "Đã xác nhận khách ra.";
-        return RedirectToPage("Index");
+        TempData["Success"] = "Đã ghi nhận khách vào.";
+        return RedirectToPage("/BQL_Staff/Visitors/Index");
     }
 }
