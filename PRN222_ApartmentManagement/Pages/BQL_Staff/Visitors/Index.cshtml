@@ -1,0 +1,224 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQL_Staff.Visitors.IndexModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Khách ra vào";
+    ViewData["Subtitle"] = "Theo dõi khách ra vào trong hôm nay và ngày mai";
+    ViewData["CurrentPage"] = "staffvisitors";
+
+    var statusFilterValue = Model.StatusFilter?.ToString();
+    var visitDateFilterValue = Model.VisitDateFilter?.ToString("yyyy-MM-dd");
+    var today = DateTime.Now.Date;
+}
+
+<div class="space-y-6">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <span class="material-icons text-emerald-500">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="grid grid-cols-2 gap-4 xl:grid-cols-5">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-slate-800">@Model.TotalCount</p>
+            <p class="mt-1 text-xs text-slate-500">Hàng đợi mặc định</p>
+        </div>
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-amber-700">@Model.PendingCount</p>
+            <p class="mt-1 text-xs text-amber-600">Chờ đến</p>
+        </div>
+        <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-blue-700">@Model.CheckedInCount</p>
+            <p class="mt-1 text-xs text-blue-600">Đang ở sảnh</p>
+        </div>
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-emerald-700">@Model.UpcomingCount</p>
+            <p class="mt-1 text-xs text-emerald-600">Hôm nay và ngày mai</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-slate-700">@Model.ClosedCount</p>
+            <p class="mt-1 text-xs text-slate-500">Đã đóng</p>
+        </div>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="mb-4 flex justify-end">
+            <a asp-page="History" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50">
+                <span class="material-icons text-base">history</span>
+                Xem lịch sử khách
+            </a>
+        </div>
+
+        <form method="get" class="flex flex-wrap items-end gap-3">
+            <div class="min-w-[220px] flex-1 space-y-1">
+                <label class="text-xs font-medium text-slate-600">Tìm kiếm</label>
+                <input type="text"
+                       name="SearchQuery"
+                       value="@Model.SearchQuery"
+                       placeholder="Tên khách, số điện thoại, căn hộ..."
+                       class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+            </div>
+            <div class="min-w-[180px] space-y-1">
+                <label class="text-xs font-medium text-slate-600">Ngày khách đến</label>
+                <input asp-for="VisitDateFilter"
+                       min="@today.ToString("yyyy-MM-dd")"
+                       max="@today.AddDays(1).ToString("yyyy-MM-dd")"
+                       class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                <p class="text-[11px] text-slate-400">Chỉ hỗ trợ lọc trong hôm nay hoặc ngày mai.</p>
+            </div>
+            <div class="min-w-[180px] space-y-1">
+                <label class="text-xs font-medium text-slate-600">Trạng thái</label>
+                <select asp-for="StatusFilter"
+                        class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                    <option value="">Tất cả trạng thái</option>
+                    @foreach (var status in Enum.GetValues<VisitorStatus>())
+                    {
+                        <option value="@status">@status.GetDisplayName()</option>
+                    }
+                </select>
+            </div>
+            <div class="ml-auto flex gap-2">
+                @if (Model.HasFilter)
+                {
+                    <a asp-page="Index" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50">
+                        <span class="material-icons text-base">close</span>
+                        Xóa lọc
+                    </a>
+                }
+                <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800">
+                    <span class="material-icons text-base">filter_list</span>
+                    Lọc
+                </button>
+            </div>
+        </form>
+    </div>
+
+    @if (!Model.Visitors.Any())
+    {
+        <div class="rounded-xl border border-slate-200 bg-white p-16 text-center shadow-sm">
+            <span class="material-icons text-5xl text-slate-300">groups</span>
+            <p class="mt-3 font-medium text-slate-600">Không có khách phù hợp với điều kiện hiện tại.</p>
+        </div>
+    }
+    else
+    {
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50">
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Khách</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Căn hộ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Ngày đến</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Ghi chú</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var visitor in Model.Visitors)
+                        {
+                            var statusCss = visitor.Status switch
+                            {
+                                VisitorStatus.Pending => "bg-amber-50 text-amber-700 border-amber-200",
+                                VisitorStatus.CheckedIn => "bg-blue-50 text-blue-700 border-blue-200",
+                                VisitorStatus.CheckedOut => "bg-emerald-50 text-emerald-700 border-emerald-200",
+                                VisitorStatus.Cancelled => "bg-slate-100 text-slate-600 border-slate-200",
+                                VisitorStatus.Rejected => "bg-red-50 text-red-600 border-red-200",
+                                _ => "bg-slate-100 text-slate-600 border-slate-200"
+                            };
+
+                            var canCheckIn = visitor.Status == VisitorStatus.Pending && visitor.VisitDate.Date == today;
+                            var canReject = visitor.Status == VisitorStatus.Pending;
+                            var canCheckOut = visitor.Status == VisitorStatus.CheckedIn;
+
+                            <tr class="transition-colors hover:bg-slate-50">
+                                <td class="px-4 py-3">
+                                    <p class="font-medium text-slate-800">@visitor.VisitorName</p>
+                                    <p class="text-xs text-slate-500">@visitor.PhoneNumber</p>
+                                    <p class="text-xs text-slate-400">@(string.IsNullOrWhiteSpace(visitor.IdentityCard) ? "Chưa có CCCD/CMND" : visitor.IdentityCard)</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <p class="font-medium text-slate-800">Căn hộ @visitor.Apartment.ApartmentNumber</p>
+                                    <p class="text-xs text-slate-500">@visitor.RegisteredByUser.FullName</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <p class="font-medium text-slate-800">@visitor.VisitDate.ToString("dd/MM/yyyy")</p>
+                                    <p class="text-xs text-slate-500">Giờ vào: @(visitor.CheckInTime?.ToString("HH:mm dd/MM") ?? "-")</p>
+                                    <p class="text-xs text-slate-500">Giờ ra: @(visitor.CheckOutTime?.ToString("HH:mm dd/MM") ?? "-")</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium @statusCss">
+                                        @visitor.Status.GetDisplayName()
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600">
+                                    @(string.IsNullOrWhiteSpace(visitor.Notes) ? "Không có ghi chú." : visitor.Notes)
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="flex flex-wrap justify-end gap-2">
+                                        @if (canCheckIn)
+                                        {
+                                            <form method="post" asp-page-handler="CheckIn" class="inline-flex">
+                                                <input type="hidden" name="visitorId" value="@visitor.VisitorId" />
+                                                <input type="hidden" name="StatusFilter" value="@statusFilterValue" />
+                                                <input type="hidden" name="VisitDateFilter" value="@visitDateFilterValue" />
+                                                <input type="hidden" name="SearchQuery" value="@Model.SearchQuery" />
+                                                <button type="submit" class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700">
+                                                    Ghi nhận vào
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (canCheckOut)
+                                        {
+                                            <form method="post" asp-page-handler="CheckOut" class="inline-flex">
+                                                <input type="hidden" name="visitorId" value="@visitor.VisitorId" />
+                                                <input type="hidden" name="StatusFilter" value="@statusFilterValue" />
+                                                <input type="hidden" name="VisitDateFilter" value="@visitDateFilterValue" />
+                                                <input type="hidden" name="SearchQuery" value="@Model.SearchQuery" />
+                                                <button type="submit" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-700">
+                                                    Xác nhận ra
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (canReject)
+                                        {
+                                            <form method="post" asp-page-handler="Reject" class="inline-flex">
+                                                <input type="hidden" name="visitorId" value="@visitor.VisitorId" />
+                                                <input type="hidden" name="StatusFilter" value="@statusFilterValue" />
+                                                <input type="hidden" name="VisitDateFilter" value="@visitDateFilterValue" />
+                                                <input type="hidden" name="SearchQuery" value="@Model.SearchQuery" />
+                                                <button type="submit" class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50">
+                                                    Từ chối
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (!canCheckIn && !canCheckOut && !canReject)
+                                        {
+                                            <span class="text-xs text-slate-400">Không khả dụng</span>
+                                        }
+                                        @if (visitor.Status == VisitorStatus.Pending && visitor.VisitDate.Date != today)
+                                        {
+                                            <span class="text-xs text-amber-600">Chờ đúng ngày để check-in</span>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

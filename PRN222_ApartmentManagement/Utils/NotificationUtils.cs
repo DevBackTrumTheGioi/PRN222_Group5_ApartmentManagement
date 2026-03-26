@@ -218,6 +218,52 @@ public static class NotificationUtils
             _ => "badge-secondary"
         };
     }
+
+    /// <summary>
+    /// Lấy URL điều hướng cho thông báo
+    /// </summary>
+    public static string GetNotificationRedirectUrl(string notificationType, string referenceType, int? referenceId, string? recipientRole = null)
+    {
+        if (!referenceId.HasValue || referenceId.Value <= 0)
+        {
+            return "/Notifications";
+        }
+
+        return referenceType switch
+        {
+            "Request" => GetRequestRedirectUrl(recipientRole, referenceId.Value),
+            "Announcement" => $"/Announcements/Details/{referenceId.Value}",
+            "Invoice" => $"/Invoices/Index?highlight={referenceId.Value}",
+            "Contract" => $"/Contracts/Details/{referenceId.Value}",
+            "Amenity" => $"/Amenities/Bookings/{referenceId.Value}",
+            _ => "/Notifications"
+        };
+    }
+
+    private static string GetRequestRedirectUrl(string? recipientRole, int requestId)
+    {
+        if (string.Equals(recipientRole, "BQT_Head", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"/BQT_Head/Complaints/Response/{requestId}";
+        }
+
+        if (string.Equals(recipientRole, "BQL_Staff", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"/BQL_Staff/Requests/Details/{requestId}";
+        }
+
+        if (string.Equals(recipientRole, "BQL_Manager", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"/BQL_Manager/Requests/Details/{requestId}";
+        }
+
+        if (string.Equals(recipientRole, "Resident", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"/Resident/Requests/Details/{requestId}";
+        }
+
+        return $"/Notifications?highlightRequestId={requestId}";
+    }
 }
 
 /// <summary>
