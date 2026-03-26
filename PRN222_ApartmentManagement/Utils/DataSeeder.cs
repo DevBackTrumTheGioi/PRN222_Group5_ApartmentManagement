@@ -265,16 +265,16 @@ public static class DataSeeder
         {
             var amenities = new List<Amenity>
             {
-                new Amenity { AmenityName = "Hồ bơi", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Thể thao").AmenityTypeId, Location = "Tầng 3, Block A", Capacity = 50, PricePerHour = 50000, IsActive = true, Description = "Hồ bơi ngoài trời 25m x 10m", CreatedAt = now },
-                new Amenity { AmenityName = "Phòng Gym", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Thể thao").AmenityTypeId, Location = "Tầng 2, Block A", Capacity = 30, PricePerHour = 0, IsActive = true, Description = "Phòng tập gym đầy đủ thiết bị", CreatedAt = now },
-                new Amenity { AmenityName = "Sân Tennis", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Thể thao").AmenityTypeId, Location = "Tầng 5, Block B", Capacity = 4, PricePerHour = 150000, IsActive = true, Description = "Sân tennis tiêu chuẩn", CreatedAt = now },
-                new Amenity { AmenityName = "Sân Cầu lông", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Thể thao").AmenityTypeId, Location = "Tầng 5, Block B", Capacity = 4, PricePerHour = 100000, IsActive = true, Description = "2 sân cầu lông trong nhà", CreatedAt = now },
-                new Amenity { AmenityName = "Phòng Yoga", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Thể thao").AmenityTypeId, Location = "Tầng 2, Block A", Capacity = 20, PricePerHour = 0, IsActive = true, Description = "Phòng yoga và thiền", CreatedAt = now },
-                new Amenity { AmenityName = "Phòng BBQ", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Giải trí").AmenityTypeId, Location = "Tầng thượng Block A", Capacity = 20, PricePerHour = 500000, IsActive = true, Description = "Khu vực BBQ ngoài trời với view đẹp", CreatedAt = now },
-                new Amenity { AmenityName = "Phòng Sauna", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Giải trí").AmenityTypeId, Location = "Tầng 3, Block A", Capacity = 10, PricePerHour = 100000, IsActive = true, Description = "Phòng xông hơi khô và ướt", CreatedAt = now },
-                new Amenity { AmenityName = "Phòng họp A", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Làm việc").AmenityTypeId, Location = "Tầng 1, Block A", Capacity = 10, PricePerHour = 200000, IsActive = true, Description = "Phòng họp nhỏ 10 người", CreatedAt = now },
-                new Amenity { AmenityName = "Phòng họp B", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Làm việc").AmenityTypeId, Location = "Tầng 1, Block B", Capacity = 20, PricePerHour = 350000, IsActive = true, Description = "Phòng họp lớn 20 người", CreatedAt = now },
-                new Amenity { AmenityName = "Khu vui chơi trẻ em", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Trẻ em").AmenityTypeId, Location = "Tầng 2, Block B", Capacity = 30, PricePerHour = 0, IsActive = true, Description = "Khu vui chơi trong nhà cho trẻ", CreatedAt = now },
+                new Amenity { AmenityName = "Hồ bơi", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Thể thao").AmenityTypeId, Location = "Tầng 3, Block A", Capacity = 50, PricePerHour = 0, RequiresBooking = false, OpenTime = new TimeSpan(5, 0, 0), CloseTime = new TimeSpan(21, 0, 0), CancellationDeadlineHours = 0, IsActive = true, Description = "Hồ bơi ngoài trời 25m x 10m", CreatedAt = now },
+                new Amenity { AmenityName = "Phòng Gym", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Thể thao").AmenityTypeId, Location = "Tầng 2, Block A", Capacity = 30, PricePerHour = 0, RequiresBooking = false, OpenTime = new TimeSpan(5, 0, 0), CloseTime = new TimeSpan(22, 0, 0), CancellationDeadlineHours = 0, IsActive = true, Description = "Phòng tập gym đầy đủ thiết bị", CreatedAt = now },
+                new Amenity { AmenityName = "Sân Tennis", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Thể thao").AmenityTypeId, Location = "Tầng 5, Block B", Capacity = 4, PricePerHour = 150000, RequiresBooking = true, OpenTime = new TimeSpan(6, 0, 0), CloseTime = new TimeSpan(22, 0, 0), CancellationDeadlineHours = 4, IsActive = true, Description = "Sân tennis tiêu chuẩn", CreatedAt = now },
+                new Amenity { AmenityName = "Sân Cầu lông", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Thể thao").AmenityTypeId, Location = "Tầng 5, Block B", Capacity = 4, PricePerHour = 100000, RequiresBooking = true, OpenTime = new TimeSpan(6, 0, 0), CloseTime = new TimeSpan(22, 0, 0), CancellationDeadlineHours = 4, IsActive = true, Description = "2 sân cầu lông trong nhà", CreatedAt = now },
+                new Amenity { AmenityName = "Phòng Yoga", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Thể thao").AmenityTypeId, Location = "Tầng 2, Block A", Capacity = 20, PricePerHour = 0, RequiresBooking = false, OpenTime = new TimeSpan(6, 0, 0), CloseTime = new TimeSpan(21, 0, 0), CancellationDeadlineHours = 0, IsActive = true, Description = "Phòng yoga và thiền", CreatedAt = now },
+                new Amenity { AmenityName = "Phòng BBQ", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Giải trí").AmenityTypeId, Location = "Tầng thượng Block A", Capacity = 20, PricePerHour = 500000, RequiresBooking = true, OpenTime = new TimeSpan(9, 0, 0), CloseTime = new TimeSpan(22, 0, 0), CancellationDeadlineHours = 6, IsActive = true, Description = "Khu vực BBQ ngoài trời với view đẹp", CreatedAt = now },
+                new Amenity { AmenityName = "Phòng Sauna", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Giải trí").AmenityTypeId, Location = "Tầng 3, Block A", Capacity = 10, PricePerHour = 100000, RequiresBooking = true, OpenTime = new TimeSpan(8, 0, 0), CloseTime = new TimeSpan(21, 0, 0), CancellationDeadlineHours = 4, IsActive = true, Description = "Phòng xông hơi khô và ướt", CreatedAt = now },
+                new Amenity { AmenityName = "Phòng họp A", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Làm việc").AmenityTypeId, Location = "Tầng 1, Block A", Capacity = 10, PricePerHour = 200000, RequiresBooking = true, OpenTime = new TimeSpan(7, 0, 0), CloseTime = new TimeSpan(21, 0, 0), CancellationDeadlineHours = 2, IsActive = true, Description = "Phòng họp nhỏ 10 người", CreatedAt = now },
+                new Amenity { AmenityName = "Phòng họp B", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Làm việc").AmenityTypeId, Location = "Tầng 1, Block B", Capacity = 20, PricePerHour = 350000, RequiresBooking = true, OpenTime = new TimeSpan(7, 0, 0), CloseTime = new TimeSpan(21, 0, 0), CancellationDeadlineHours = 2, IsActive = true, Description = "Phòng họp lớn 20 người", CreatedAt = now },
+                new Amenity { AmenityName = "Khu vui chơi trẻ em", AmenityTypeId = allAmenityTypes.First(t => t.TypeName == "Trẻ em").AmenityTypeId, Location = "Tầng 2, Block B", Capacity = 30, PricePerHour = 0, RequiresBooking = false, OpenTime = new TimeSpan(7, 0, 0), CloseTime = new TimeSpan(21, 0, 0), CancellationDeadlineHours = 0, IsActive = true, Description = "Khu vui chơi trong nhà cho trẻ", CreatedAt = now },
             };
             context.Amenities.AddRange(amenities);
             await context.SaveChangesAsync();
@@ -286,15 +286,21 @@ public static class DataSeeder
         if (!await context.AmenityBookings.AnyAsync() && allResidents.Any() && allAmenities.Any())
         {
             var bookings = new List<AmenityBooking>();
-            var statuses = new[] { "Pending", "Confirmed", "Completed", "Cancelled" };
+            var statuses = new[]
+            {
+                AmenityBookingStatusHelper.Confirmed,
+                AmenityBookingStatusHelper.Completed,
+                AmenityBookingStatusHelper.Cancelled
+            };
 
             for (int i = 0; i < 30; i++)
             {
                 var resident = allResidents[Random.Shared.Next(allResidents.Count)];
-                var amenity = allAmenities[Random.Shared.Next(allAmenities.Count)];
+                var amenity = allAmenities.Where(a => a.RequiresBooking).OrderBy(_ => Guid.NewGuid()).First();
                 var bookingDate = now.AddDays(Random.Shared.Next(-30, 30));
                 var startHour = Random.Shared.Next(6, 20);
                 var duration = Random.Shared.Next(1, 4);
+                var status = statuses[Random.Shared.Next(statuses.Length)];
 
                 bookings.Add(new AmenityBooking
                 {
@@ -306,7 +312,8 @@ public static class DataSeeder
                     EndTime = new TimeSpan(startHour + duration, 0, 0),
                     TotalHours = duration,
                     TotalAmount = (amenity.PricePerHour ?? 0) * duration,
-                    Status = statuses[Random.Shared.Next(statuses.Length)],
+                    ParticipantCount = Random.Shared.Next(1, Math.Max(2, amenity.Capacity ?? 2)),
+                    Status = status,
                     Notes = i % 3 == 0 ? "Đặt cho sinh nhật" : null,
                     CreatedAt = now.AddDays(-Random.Shared.Next(1, 60))
                 });

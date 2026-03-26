@@ -39,6 +39,8 @@ public class AmenityBooking
     [Column(TypeName = "decimal(18,2)")]
     public decimal? TotalAmount { get; set; }
 
+    public int ParticipantCount { get; set; } = 1;
+
     [MaxLength(20)]
     public string Status { get; set; } = "Pending";
 

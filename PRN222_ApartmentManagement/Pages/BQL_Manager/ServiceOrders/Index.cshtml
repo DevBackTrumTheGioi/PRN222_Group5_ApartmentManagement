@@ -1,0 +1,196 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.ServiceOrders.IndexModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Xử lý đơn dịch vụ";
+    ViewData["Subtitle"] = "Danh sách toàn bộ đơn dịch vụ để phân công và theo dõi";
+    ViewData["CurrentPage"] = "serviceorders";
+}
+
+<div class="space-y-6">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <span class="material-icons text-emerald-500">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-slate-800">@Model.TotalCount</p>
+            <p class="mt-0.5 text-xs text-slate-500">Tổng đơn</p>
+        </div>
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-amber-700">@Model.PendingCount</p>
+            <p class="mt-0.5 text-xs text-amber-600">Chờ xử lý</p>
+        </div>
+        <div class="rounded-xl border border-sky-200 bg-sky-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-sky-700">@Model.ConfirmedCount</p>
+            <p class="mt-0.5 text-xs text-sky-600">Đã xác nhận</p>
+        </div>
+        <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-blue-700">@Model.InProgressCount</p>
+            <p class="mt-0.5 text-xs text-blue-600">Đang thực hiện</p>
+        </div>
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-emerald-700">@Model.CompletedCount</p>
+            <p class="mt-0.5 text-xs text-emerald-600">Hoàn thành</p>
+        </div>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <form method="get" class="flex flex-wrap items-end gap-3">
+            <div class="min-w-[220px] flex-1">
+                <label class="mb-1 block text-xs font-medium text-slate-600">Tìm kiếm</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-base text-slate-400">search</span>
+                    <input asp-for="SearchQuery"
+                           class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                           placeholder="Mã đơn, dịch vụ, cư dân, căn hộ..." />
+                </div>
+            </div>
+
+            <div class="min-w-[170px]">
+                <label class="mb-1 block text-xs font-medium text-slate-600">Trạng thái</label>
+                <select asp-for="StatusFilter"
+                        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Tất cả</option>
+                    @foreach (var status in Enum.GetValues<ServiceOrderStatus>())
+                    {
+                        <option value="@status" selected="@(Model.StatusFilter == status)">@status.GetDisplayName()</option>
+                    }
+                </select>
+            </div>
+
+            <div class="min-w-[200px]">
+                <label class="mb-1 block text-xs font-medium text-slate-600">Loại dịch vụ</label>
+                <select asp-for="ServiceTypeIdFilter"
+                        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Tất cả</option>
+                    @foreach (var serviceType in Model.ServiceTypes)
+                    {
+                        <option value="@serviceType.ServiceTypeId" selected="@(Model.ServiceTypeIdFilter == serviceType.ServiceTypeId)">@serviceType.ServiceTypeName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="flex gap-2">
+                @if (Model.HasFilter)
+                {
+                    <a asp-page="Index"
+                       class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50">
+                        <span class="material-icons text-base">close</span>
+                        Xóa lọc
+                    </a>
+                }
+
+                <button type="submit"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800">
+                    <span class="material-icons text-base">filter_list</span>
+                    Lọc
+                </button>
+            </div>
+        </form>
+    </div>
+
+    @if (!Model.Orders.Any())
+    {
+        <div class="rounded-xl border border-slate-200 bg-white p-16 text-center shadow-sm">
+            <span class="material-icons mb-3 text-5xl text-slate-300">inbox</span>
+            <p class="font-medium text-slate-500">Không có đơn dịch vụ nào.</p>
+        </div>
+    }
+    else
+    {
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50">
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Đơn</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Cư dân</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Dịch vụ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Giá dự kiến</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Phân công</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var order in Model.Orders)
+                        {
+                            var statusCss = order.Status switch
+                            {
+                                ServiceOrderStatus.Pending => "bg-amber-50 text-amber-700 border-amber-200",
+                                ServiceOrderStatus.Confirmed => "bg-sky-50 text-sky-700 border-sky-200",
+                                ServiceOrderStatus.InProgress => "bg-blue-50 text-blue-700 border-blue-200",
+                                ServiceOrderStatus.Completed => "bg-emerald-50 text-emerald-700 border-emerald-200",
+                                ServiceOrderStatus.Cancelled => "bg-slate-100 text-slate-600 border-slate-200",
+                                ServiceOrderStatus.Rejected => "bg-red-50 text-red-600 border-red-200",
+                                _ => "bg-slate-100 text-slate-600 border-slate-200"
+                            };
+
+                            var isClosed = order.Status is ServiceOrderStatus.Completed or ServiceOrderStatus.Cancelled or ServiceOrderStatus.Rejected;
+
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-3">
+                                    <p class="text-xs font-mono text-slate-400">@order.OrderNumber</p>
+                                    <p class="font-semibold text-slate-800">@order.RequestedDate.ToString("dd/MM/yyyy")</p>
+                                    <p class="text-xs text-slate-500">@(string.IsNullOrWhiteSpace(order.RequestedTimeSlot) ? "Chưa chọn khung giờ" : order.RequestedTimeSlot)</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <p class="font-medium text-slate-800">@order.Resident.FullName</p>
+                                    <p class="text-xs text-slate-500">Căn hộ @order.Apartment.ApartmentNumber</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <p class="font-medium text-slate-800">@order.ServiceType.ServiceTypeName</p>
+                                    <p class="text-xs text-slate-500">@(string.IsNullOrWhiteSpace(order.Description) ? "Không có ghi chú" : order.Description)</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium @statusCss">
+                                        @order.Status.GetDisplayName()
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-slate-700">@string.Format("{0:N0} đ", order.EstimatedPrice ?? 0)</td>
+                                <td class="px-4 py-3">
+                                    @if (isClosed)
+                                    {
+                                        <span class="text-xs text-slate-500">@(order.AssignedStaff?.FullName ?? "-")</span>
+                                    }
+                                    else
+                                    {
+                                        <form method="post" asp-page-handler="Assign" class="flex flex-col gap-2 sm:flex-row">
+                                            <input type="hidden" name="serviceOrderId" value="@order.ServiceOrderId" />
+                                            <select name="staffId"
+                                                    class="min-w-[180px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                                <option value="">-- Chọn nhân viên --</option>
+                                                @foreach (var staff in Model.StaffList)
+                                                {
+                                                    <option value="@staff.UserId" selected="@(order.AssignedTo == staff.UserId)">@staff.FullName</option>
+                                                }
+                                            </select>
+                                            <button type="submit"
+                                                    class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700">
+                                                <span class="material-icons text-base">assignment_ind</span>
+                                                Lưu
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

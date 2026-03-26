@@ -433,6 +433,9 @@ public class ApartmentDbContext : DbContext
             .HasForeignKey(ab => ab.ResidentId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        modelBuilder.Entity<AmenityBooking>()
+            .HasIndex(ab => new { ab.AmenityId, ab.BookingDate, ab.StartTime, ab.EndTime });
+
         modelBuilder.Entity<ContractMember>()
             .HasOne(cm => cm.Resident)
             .WithMany(u => u.ContractMembers)

@@ -1,0 +1,169 @@
+@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.Resident.Services.DetailsModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = $"Chi tiết đơn {Model.Order.OrderNumber}";
+    ViewData["Subtitle"] = "Theo dõi trạng thái và thông tin xử lý dịch vụ";
+    ViewData["CurrentPage"] = "services";
+
+    var statusCss = Model.Order.Status switch
+    {
+        ServiceOrderStatus.Pending => "bg-amber-50 text-amber-700 border-amber-200",
+        ServiceOrderStatus.Confirmed => "bg-sky-50 text-sky-700 border-sky-200",
+        ServiceOrderStatus.InProgress => "bg-blue-50 text-blue-700 border-blue-200",
+        ServiceOrderStatus.Completed => "bg-emerald-50 text-emerald-700 border-emerald-200",
+        ServiceOrderStatus.Cancelled => "bg-slate-100 text-slate-600 border-slate-200",
+        ServiceOrderStatus.Rejected => "bg-red-50 text-red-600 border-red-200",
+        _ => "bg-slate-100 text-slate-600 border-slate-200"
+    };
+}
+
+<div class="mx-auto max-w-4xl space-y-6">
+    <a asp-page="MyOrders" class="inline-flex items-center text-sm text-slate-500 transition-colors hover:text-emerald-600">
+        <span class="material-icons mr-1 text-lg">arrow_back</span>
+        Quay lại đơn của tôi
+    </a>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <span class="material-icons text-emerald-500">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+                <div class="mb-2 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-mono text-slate-400">@Model.Order.OrderNumber</span>
+                    <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium @statusCss">
+                        @Model.Order.Status.GetDisplayName()
+                    </span>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900">@Model.Order.ServiceType.ServiceTypeName</h2>
+                <p class="mt-2 text-sm text-slate-500">@Model.GetStatusNote()</p>
+            </div>
+
+            @if (Model.Order.Status == ServiceOrderStatus.Pending)
+            {
+                <form method="post" asp-page-handler="Cancel">
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
+                        <span class="material-icons text-base">cancel</span>
+                        Hủy đơn
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-700">Thông tin yêu cầu</h3>
+            <dl class="space-y-4 text-sm">
+                <div>
+                    <dt class="text-xs text-slate-400">Ngày yêu cầu</dt>
+                    <dd class="mt-1 font-medium text-slate-800">@Model.Order.RequestedDate.ToString("dd/MM/yyyy")</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-slate-400">Khung giờ</dt>
+                    <dd class="mt-1 font-medium text-slate-800">@(string.IsNullOrWhiteSpace(Model.Order.RequestedTimeSlot) ? "-" : Model.Order.RequestedTimeSlot)</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-slate-400">Giá dự kiến</dt>
+                    <dd class="mt-1 font-medium text-slate-800">@string.Format("{0:N0} đ", Model.Order.EstimatedPrice ?? 0)</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-slate-400">Nhân viên phụ trách</dt>
+                    <dd class="mt-1 font-medium text-slate-800">@(Model.Order.AssignedStaff?.FullName ?? "Chưa phân công")</dd>
+                </div>
+                @if (Model.Order.ActualPrice.HasValue)
+                {
+                    <div>
+                        <dt class="text-xs text-slate-400">Chi phí thực tế</dt>
+                        <dd class="mt-1 font-medium text-slate-800">@string.Format("{0:N0} đ", Model.Order.ActualPrice.Value)</dd>
+                    </div>
+                }
+                @if (Model.Order.CompletedAt.HasValue)
+                {
+                    <div>
+                        <dt class="text-xs text-slate-400">Hoàn thành lúc</dt>
+                        <dd class="mt-1 font-medium text-slate-800">@Model.Order.CompletedAt.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </div>
+                }
+            </dl>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-700">Mô tả và ghi chú</h3>
+            <div class="space-y-4 text-sm text-slate-700">
+                <div>
+                    <p class="mb-1 text-xs text-slate-400">Mô tả của cư dân</p>
+                    <p class="whitespace-pre-wrap">@(string.IsNullOrWhiteSpace(Model.Order.Description) ? "Không có ghi chú." : Model.Order.Description)</p>
+                </div>
+                <div>
+                    <p class="mb-1 text-xs text-slate-400">Ghi chú chi phí</p>
+                    <p class="whitespace-pre-wrap">@(string.IsNullOrWhiteSpace(Model.Order.ChargeNotes) ? "Chưa có." : Model.Order.ChargeNotes)</p>
+                </div>
+                <div>
+                    <p class="mb-1 text-xs text-slate-400">Ghi chú hoàn thành</p>
+                    <p class="whitespace-pre-wrap">@(string.IsNullOrWhiteSpace(Model.Order.CompletionNotes) ? "Chưa có." : Model.Order.CompletionNotes)</p>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.Order.CancelReason))
+                {
+                    <div>
+                        <p class="mb-1 text-xs text-slate-400">Lý do hủy / từ chối</p>
+                        <p class="whitespace-pre-wrap">@Model.Order.CancelReason</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Order.Status == ServiceOrderStatus.Completed && !Model.Order.Rating.HasValue)
+    {
+        <form method="post" asp-page-handler="Review" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div asp-validation-summary="ModelOnly" class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-700">Đánh giá dịch vụ</h3>
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                    <label asp-for="Rating" class="text-sm font-medium text-slate-700"></label>
+                    <select asp-for="Rating" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                        <option value="">Chọn số sao</option>
+                        @for (var star = 5; star >= 1; star--)
+                        {
+                            <option value="@star">@star sao</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Rating" class="text-xs text-red-600"></span>
+                </div>
+                <div class="space-y-2 md:col-span-2">
+                    <label asp-for="ReviewComment" class="text-sm font-medium text-slate-700"></label>
+                    <textarea asp-for="ReviewComment" rows="4" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"></textarea>
+                    <span asp-validation-for="ReviewComment" class="text-xs text-red-600"></span>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">Gửi đánh giá</button>
+            </div>
+        </form>
+    }
+    else if (Model.Order.Rating.HasValue)
+    {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-emerald-800">Đánh giá của bạn</h3>
+            <p class="mt-2 text-sm text-emerald-700">@Model.Order.Rating sao</p>
+            <p class="mt-1 text-sm text-emerald-700">@(string.IsNullOrWhiteSpace(Model.Order.ReviewComment) ? "Không có nhận xét bổ sung." : Model.Order.ReviewComment)</p>
+        </div>
+    }
+</div>

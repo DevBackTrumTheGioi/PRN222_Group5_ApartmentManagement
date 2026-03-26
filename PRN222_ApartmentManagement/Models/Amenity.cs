@@ -26,6 +26,16 @@ public class Amenity
     [Column(TypeName = "decimal(18,2)")]
     public decimal? PricePerHour { get; set; }
 
+    public bool RequiresBooking { get; set; } = true;
+
+    [Column(TypeName = "time")]
+    public TimeSpan OpenTime { get; set; } = new(6, 0, 0);
+
+    [Column(TypeName = "time")]
+    public TimeSpan CloseTime { get; set; } = new(22, 0, 0);
+
+    public int CancellationDeadlineHours { get; set; } = 4;
+
     public bool IsActive { get; set; } = true;
 
     public bool IsDeleted { get; set; } = false;

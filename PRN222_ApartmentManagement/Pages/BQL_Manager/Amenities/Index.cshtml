@@ -1,0 +1,181 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Amenities.IndexModel
+@{
+    ViewData["Title"] = "Quản lý tiện ích";
+    ViewData["Subtitle"] = "Thiết lập tiện ích, loại sử dụng và giá theo giờ";
+    ViewData["CurrentPage"] = "amenities";
+}
+
+<div class="space-y-6">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <span class="material-icons text-emerald-500">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-slate-800">@Model.TotalCount</p>
+            <p class="mt-0.5 text-xs text-slate-500">Tổng tiện ích</p>
+        </div>
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-emerald-700">@Model.ActiveCount</p>
+            <p class="mt-0.5 text-xs text-emerald-600">Đang hoạt động</p>
+        </div>
+        <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-blue-700">@Model.BookingCount</p>
+            <p class="mt-0.5 text-xs text-blue-600">Cần đặt trước</p>
+        </div>
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center shadow-sm">
+            <p class="text-2xl font-bold text-amber-700">@Model.OpenAccessCount</p>
+            <p class="mt-0.5 text-xs text-amber-600">Mở tự do</p>
+        </div>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <form method="get" class="flex flex-wrap items-end gap-3">
+            <div class="min-w-[220px] flex-1">
+                <label class="mb-1 block text-xs font-medium text-slate-600">Tìm kiếm</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-base text-slate-400">search</span>
+                    <input asp-for="SearchTerm"
+                           class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                           placeholder="Tên tiện ích, vị trí, loại..." />
+                </div>
+            </div>
+
+            <div class="min-w-[160px]">
+                <label class="mb-1 block text-xs font-medium text-slate-600">Trạng thái</label>
+                <select asp-for="ActiveFilter"
+                        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Tất cả</option>
+                    <option value="true">Đang hoạt động</option>
+                    <option value="false">Tạm ngưng</option>
+                </select>
+            </div>
+
+            <div class="min-w-[180px]">
+                <label class="mb-1 block text-xs font-medium text-slate-600">Hình thức sử dụng</label>
+                <select asp-for="RequiresBookingFilter"
+                        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Tất cả</option>
+                    <option value="true">Cần đặt trước</option>
+                    <option value="false">Mở tự do</option>
+                </select>
+            </div>
+
+            <div class="ml-auto flex gap-2">
+                @if (Model.HasFilter)
+                {
+                    <a asp-page="Index"
+                       class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50">
+                        <span class="material-icons text-base">close</span>
+                        Xóa lọc
+                    </a>
+                }
+
+                <button type="submit"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800">
+                    <span class="material-icons text-base">filter_list</span>
+                    Lọc
+                </button>
+
+                <a asp-page="Create"
+                   class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
+                    <span class="material-icons text-base">add</span>
+                    Thêm tiện ích
+                </a>
+            </div>
+        </form>
+    </div>
+
+    @if (!Model.Amenities.Any())
+    {
+        <div class="rounded-xl border border-slate-200 bg-white p-16 text-center shadow-sm">
+            <span class="material-icons mb-3 text-5xl text-slate-300">pool</span>
+            <p class="font-medium text-slate-500">Không có tiện ích nào phù hợp.</p>
+            <p class="mt-1 text-sm text-slate-400">Thử đổi bộ lọc hoặc thêm tiện ích mới.</p>
+        </div>
+    }
+    else
+    {
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50">
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Tiện ích</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Loại</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Sử dụng</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Giờ mở cửa</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Sức chứa</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Giá/giờ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var amenity in Model.Amenities)
+                        {
+                            var statusCss = amenity.IsActive
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-slate-100 text-slate-600 border-slate-200";
+                            var accessCss = amenity.RequiresBooking
+                                ? "bg-blue-50 text-blue-700 border-blue-200"
+                                : "bg-amber-50 text-amber-700 border-amber-200";
+
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-3">
+                                    <p class="font-semibold text-slate-800">@amenity.AmenityName</p>
+                                    <p class="mt-0.5 text-xs text-slate-500">@(!string.IsNullOrWhiteSpace(amenity.Location) ? amenity.Location : "Chưa cập nhật vị trí")</p>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600">@(amenity.AmenityType?.TypeName ?? "Chưa phân loại")</td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium @accessCss">
+                                        @(amenity.RequiresBooking ? "Cần đặt trước" : "Mở tự do")
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600">@amenity.OpenTime.ToString(@"hh\:mm") - @amenity.CloseTime.ToString(@"hh\:mm")</td>
+                                <td class="px-4 py-3 text-slate-600">@(amenity.Capacity?.ToString() ?? "—") người</td>
+                                <td class="px-4 py-3 text-slate-600">
+                                    @(amenity.RequiresBooking ? string.Format("{0:N0} đ", amenity.PricePerHour ?? 0) : "Miễn phí")
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium @statusCss">
+                                        @(amenity.IsActive ? "Đang hoạt động" : "Tạm ngưng")
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <a asp-page="Edit" asp-route-id="@amenity.AmenityId"
+                                           class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700">
+                                            <span class="material-icons text-sm">edit</span>
+                                            Sửa
+                                        </a>
+                                        <form method="post" asp-page-handler="Delete" onsubmit="return confirm('Bạn có chắc muốn ngừng hiển thị tiện ích này?');">
+                                            <input type="hidden" name="id" value="@amenity.AmenityId" />
+                                            <button type="submit"
+                                                    class="inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50">
+                                                <span class="material-icons text-sm">delete</span>
+                                                Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
