@@ -24,14 +24,14 @@ public class SeedDataModel : PageModel
         try
         {
             string connectionString = _configuration.GetConnectionString("DefaultConnection") 
-                ?? throw new InvalidOperationException("Connection string not found.");
+                ?? throw new InvalidOperationException("Không tìm thấy chuỗi kết nối cơ sở dữ liệu.");
             
-            await DataSeeder.SeedAsync(connectionString);
-            Message = "Database seeded successfully!";
+            await DataSeeder.ResetAndSeedAsync(connectionString);
+            Message = "Đã xoá toàn bộ dữ liệu cũ và khởi tạo lại dữ liệu mẫu thành công.";
         }
         catch (Exception ex)
         {
-            Message = $"Error: {ex.Message}";
+            Message = $"Lỗi: {ex.Message}";
         }
 
         return Page();

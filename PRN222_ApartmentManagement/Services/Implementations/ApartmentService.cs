@@ -42,7 +42,7 @@ public class ApartmentService : IApartmentService
         int pageIndex,
         int pageSize)
     {
-        var query = _dbContext.Apartments.AsQueryable();
+        var query = _dbContext.Apartments.Where(a => !a.IsDeleted).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -153,7 +153,7 @@ public class ApartmentService : IApartmentService
             return (false, "Tầng phải lớn hơn 0.");
 
         var exists = await _dbContext.Apartments
-            .AnyAsync(a => a.ApartmentNumber == dto.ApartmentNumber.Trim());
+            .AnyAsync(a => !a.IsDeleted && a.ApartmentNumber == dto.ApartmentNumber.Trim());
         if (exists)
             return (false, $"Căn hộ '{dto.ApartmentNumber}' đã tồn tại.");
 
@@ -186,7 +186,7 @@ public class ApartmentService : IApartmentService
             return (false, "Tầng phải lớn hơn 0.");
 
         var duplicate = await _dbContext.Apartments
-            .AnyAsync(a => a.ApartmentId != id && a.ApartmentNumber == dto.ApartmentNumber.Trim());
+            .AnyAsync(a => !a.IsDeleted && a.ApartmentId != id && a.ApartmentNumber == dto.ApartmentNumber.Trim());
         if (duplicate)
             return (false, $"Số căn hộ '{dto.ApartmentNumber}' đã được sử dụng bởi căn khác.");
 

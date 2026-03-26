@@ -1,0 +1,201 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Resident.FamilyMembers.IndexModel
+@using PRN222_ApartmentManagement.Models.Enums;
+@{
+    ViewData["Title"] = "Thông tin căn hộ";
+    ViewData["CurrentPage"] = "family-members";
+}
+
+<div class="max-w-5xl mx-auto space-y-6">
+
+    @* ── Toast messages ──────────────────────────── *@
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <span class="material-icons text-red-500 shrink-0">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm">
+            <span class="material-icons text-emerald-500 shrink-0">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @* ── Page header ─────────────────────────────── *@
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg shadow-emerald-200">
+                <span class="material-icons text-2xl">home_work</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">Căn hộ của tôi</h1>
+                <p class="text-sm text-slate-400 mt-0.5">Quản lý thông tin căn hộ và thành viên gia đình</p>
+            </div>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 text-sm text-slate-400">
+            <span class="material-icons text-base">apartment</span>
+            <span>@Model.Apartments.Count căn hộ</span>
+        </div>
+    </div>
+
+    @* ── Apartment list ──────────────────────────── *@
+    @if (Model.Apartments.Count == 0)
+    {
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-16 text-center">
+            <div class="flex flex-col items-center gap-4">
+                <div class="flex items-center justify-center w-20 h-20 rounded-full bg-slate-50">
+                    <span class="material-icons text-5xl text-slate-200">home</span>
+                </div>
+                <div>
+                    <p class="text-base font-semibold text-slate-500">Không tìm thấy thông tin căn hộ</p>
+                    <p class="text-sm text-slate-400 mt-1">Vui lòng liên hệ Ban Quản Lý để được hỗ trợ.</p>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-4">
+            @foreach (var apt in Model.Apartments)
+            {
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-200 group">
+                    @* Accent bar on the left *@
+                    <div class="flex">
+                        <div class="w-1.5 flex-shrink-0 bg-gradient-to-b from-emerald-400 to-emerald-600"></div>
+
+                        <div class="flex-1">
+                            @* ── Row 1: header ────────────────────── *@
+                            <div class="px-6 py-5 flex items-start justify-between gap-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-500 shrink-0">
+                                        <span class="material-icons text-xl">home</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-slate-800 leading-tight">Căn @apt.ApartmentNumber</h3>
+                                        <p class="text-sm text-slate-400 mt-0.5">
+                                            Tầng @apt.Floor
+                                            @(string.IsNullOrWhiteSpace(apt.BuildingBlock) ? "" : $" · Block {apt.BuildingBlock}")
+                                            <span class="mx-1.5 text-slate-300">·</span>
+                                            @(apt.Area.HasValue ? $"{apt.Area.Value:F1} m²" : "—")
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3 shrink-0">
+                                    @* Residency badge *@
+                                    <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium
+                                        @(apt.ResidencyType == ResidencyType.Owner
+                                            ? "bg-violet-50 text-violet-600 ring-1 ring-violet-200"
+                                            : apt.ResidencyType == ResidencyType.Tenant
+                                                ? "bg-blue-50 text-blue-600 ring-1 ring-blue-200"
+                                                : "bg-slate-100 text-slate-500 ring-1 ring-slate-200")">
+                                        @(apt.ResidencyType switch
+                                        {
+                                            ResidencyType.Owner => "Chủ sở hữu",
+                                            ResidencyType.Tenant => "Người thuê",
+                                            _ => apt.ResidencyType.ToString()
+                                        })
+                                    </span>
+
+                                    @* Status badge *@
+                                    @if (apt.Status == ApartmentStatus.Occupied)
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                            Đang sử dụng
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-50 text-slate-400 ring-1 ring-slate-200">
+                                            @apt.Status
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            @* ── Row 2: info grid ──────────────────── *@
+                            <div class="px-6 pb-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wide">Loại hợp đồng</span>
+                                    <p class="text-sm font-semibold text-slate-700">
+                                        @(apt.ContractType switch
+                                        {
+                                            ContractType.Rental => "Thuê",
+                                            ContractType.Purchase => "Mua",
+                                            _ => "—"
+                                        })
+                                    </p>
+                                </div>
+
+                                @if (apt.ContractType == ContractType.Rental)
+                                {
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-xs text-slate-400 font-medium uppercase tracking-wide">Hạn hợp đồng</span>
+                                        <p class="text-sm font-semibold text-slate-700">
+                                            @(apt.ContractStartDate?.ToString("dd/MM/yyyy") ?? "—")
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-xs text-slate-400 font-medium uppercase tracking-wide">Ngày kết thúc</span>
+                                        <p class="text-sm font-semibold @(apt.ContractEndDate.HasValue && apt.ContractEndDate.Value <= DateTime.Now.AddDays(30) ? "text-amber-600" : "text-slate-700")">
+                                            @(apt.ContractEndDate?.ToString("dd/MM/yyyy") ?? "—")
+                                        </p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-xs text-slate-400 font-medium uppercase tracking-wide">Giá mua</span>
+                                        <p class="text-sm font-semibold text-slate-700">@(apt.ContractType == ContractType.Purchase ? "— ₫" : "—")</p>
+                                    </div>
+                                }
+
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wide">Thành viên gia đình</span>
+                                    <p class="text-sm font-semibold text-slate-700">@apt.FamilyMemberCount người</p>
+                                </div>
+                            </div>
+
+                            @* ── Row 3: contract expiry banner ─────── *@
+                            @if (apt.ContractType == ContractType.Rental && apt.ContractEndDate.HasValue && apt.ContractEndDate.Value <= DateTime.Now.AddDays(30))
+                            {
+                                <div class="mx-6 mb-5 flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700">
+                                    <span class="material-icons text-amber-500 text-lg shrink-0">schedule</span>
+                                    <p class="text-sm">
+                                        <strong>Hợp đồng sắp hết hạn</strong> —
+                                        Hết hạn vào <strong>@apt.ContractEndDate.Value.ToString("dd/MM/yyyy")</strong>
+                                        (@((apt.ContractEndDate.Value - DateTime.Now).Days) ngày nữa)
+                                    </p>
+                                </div>
+                            }
+
+                            @* ── Row 4: footer ────────────────────── *@
+                            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-4 text-sm text-slate-400">
+                                    @if (!string.IsNullOrWhiteSpace(apt.ContractNumber))
+                                    {
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="material-icons text-base">description</span>
+                                            <span class="font-mono">@apt.ContractNumber</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <a href="/Resident/FamilyMembers/Details?apartmentId=@apt.ApartmentId"
+                                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-600 border border-slate-200 hover:border-emerald-300 rounded-xl transition-all duration-200 text-sm font-semibold shadow-sm group-hover:shadow">
+                                    <span class="material-icons text-base">visibility</span>
+                                    Chi tiết
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

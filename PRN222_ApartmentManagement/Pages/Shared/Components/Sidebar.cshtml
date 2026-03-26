@@ -77,6 +77,7 @@
         workItems.Add(new SidebarMenuItem { Icon = "list_alt", Label = "Đơn dịch vụ của tôi", Href = "/Resident/Services/MyOrders", Key = "services" });
         workItems.Add(new SidebarMenuItem { Icon = "person_add", Label = "Đăng ký khách", Href = "/Resident/Visitors/Create", Key = "visitors" });
         workItems.Add(new SidebarMenuItem { Icon = "groups", Label = "Khách của tôi", Href = "/Resident/Visitors", Key = "visitors" });
+        workItems.Add(new SidebarMenuItem { Icon = "home", Label = "Căn hộ của tôi", Href = "/Resident/FamilyMembers", Key = "family-members" });
         workItems.Add(new SidebarMenuItem { Icon = "face", Label = "Face ID", Href = "/Resident/FaceAuth/Status", Key = "faceauth" });
         workItems.Add(new SidebarMenuItem { Icon = "event", Label = "Lịch họp", Href = "/Resident/Meetings", Key = "meetings" });
     }
@@ -93,10 +94,17 @@
     }
 
     var financeItems = new List<SidebarMenuItem>();
-    if (isBqlManager || isBqlStaff || isResident)
+    if (isBqlManager)
     {
-        financeItems.Add(new SidebarMenuItem { Icon = "receipt_long", Label = "Hóa đơn", Href = "/Invoices", Key = "invoices" });
-        financeItems.Add(new SidebarMenuItem { Icon = "payments", Label = "Thanh toán", Href = "/Payments", Key = "payments" });
+        financeItems.Add(new SidebarMenuItem { Icon = "receipt_long", Label = "Hóa đơn", Href = "/BQL_Manager/Invoices", Key = "invoices" });
+    }
+    if (isBqlStaff)
+    {
+        financeItems.Add(new SidebarMenuItem { Icon = "receipt_long", Label = "Hóa đơn", Href = "/BQL_Staff/Invoices", Key = "invoices" });
+    }
+    if (isResident)
+    {
+        financeItems.Add(new SidebarMenuItem { Icon = "receipt_long", Label = "Hóa đơn", Href = "/Resident/Invoices", Key = "invoices" });
     }
 
     if (isBqlManager || isBqtHead || isBqtMember)

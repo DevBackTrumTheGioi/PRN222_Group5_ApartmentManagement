@@ -175,11 +175,6 @@ public class ApartmentDbContext : DbContext
             .HasConversion<string>()
             .HasMaxLength(20);
 
-        modelBuilder.Entity<Invoice>()
-            .Property(i => i.ApprovalStatus)
-            .HasConversion<string>()
-            .HasMaxLength(20);
-
         modelBuilder.Entity<Notification>()
             .Property(n => n.NotificationType)
             .HasConversion<string>()
@@ -247,6 +242,9 @@ public class ApartmentDbContext : DbContext
             .HasIndex(pt => pt.TransactionCode)
             .IsUnique();
 
+        modelBuilder.Entity<PaymentTransaction>()
+            .HasIndex(pt => pt.VnpTxnRef);
+
         modelBuilder.Entity<Request>()
             .HasIndex(r => r.RequestNumber)
             .IsUnique();
@@ -299,12 +297,6 @@ public class ApartmentDbContext : DbContext
             .WithMany(u => u.CreatedInvoices)
             .HasForeignKey(i => i.CreatedBy)
             .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<Invoice>()
-            .HasOne(i => i.Approver)
-            .WithMany()
-            .HasForeignKey(i => i.ApprovedBy)
-            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<InvoiceDetail>()
             .HasOne(id => id.ServiceType)
