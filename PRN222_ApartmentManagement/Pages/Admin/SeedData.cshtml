@@ -27,9 +27,9 @@
                     <div>
                         <strong class="text-amber-800 text-sm block mb-1">Lưu ý quan trọng:</strong>
                         <ul class="text-xs text-amber-700 list-disc list-inside space-y-1">
-                            <li>Hệ thống chỉ thêm dữ liệu nếu các bảng đang trống (tránh trùng lặp).</li>
+                            <li>Khi bấm nút seed, hệ thống sẽ xoá toàn bộ dữ liệu hiện có trong cơ sở dữ liệu và tạo lại dữ liệu mẫu từ đầu.</li>
                             <li>Mật khẩu cho tất cả tài khoản mẫu là: <code class="bg-amber-100 px-1 rounded font-bold">123456</code></li>
-                            <li>Quá trình này có thể mất vài giây tùy thuộc vào tốc độ ổ đĩa.</li>
+                            <li>Quá trình này có thể mất vài giây vì hệ thống sẽ xoá dữ liệu cũ, tạo lại schema và nạp dữ liệu mới hoàn toàn.</li>
                         </ul>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
             <form method="post" class="flex justify-center">
                 <button type="submit" class="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-bold shadow-lg flex items-center gap-2">
                     <span class="material-icons">storage</span>
-                    Kích hoạt Seed Data ngay
+                    Xoá dữ liệu cũ và seed lại ngay
                 </button>
             </form>
         </div>
