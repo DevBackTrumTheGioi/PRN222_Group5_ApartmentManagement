@@ -25,7 +25,7 @@ public class UserManagementService : IUserManagementService
     {
         var apartments = await _apartmentRepository.GetAllAsync();
         return apartments
-            .Where(a => a.Status != ApartmentStatus.Maintenance)
+            .Where(a => a.Status != ApartmentStatus.Reserved)
             .OrderBy(a => a.ApartmentNumber)
             .ToList();
     }

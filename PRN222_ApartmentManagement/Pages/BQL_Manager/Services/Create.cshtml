@@ -1,0 +1,63 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Services.CreateModel
+@{
+    ViewData["Title"] = "Thêm loại dịch vụ";
+    ViewData["CurrentPage"] = "services";
+}
+
+<div class="mx-auto max-w-4xl space-y-6">
+    <div>
+        <h2 class="text-2xl font-bold tracking-tight text-slate-900">Thêm loại dịch vụ</h2>
+        <p class="text-sm text-slate-500">Khai báo danh mục dịch vụ mới và bảng giá ban đầu cho cư dân đặt.</p>
+    </div>
+
+    <form method="post" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div asp-validation-summary="ModelOnly" class="mx-6 mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+
+        <div class="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
+            <div class="space-y-2 md:col-span-2">
+                <label asp-for="Input.ServiceTypeName" class="text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.ServiceTypeName" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                <span asp-validation-for="Input.ServiceTypeName" class="text-xs text-red-600"></span>
+            </div>
+
+            <div class="space-y-2 md:col-span-2">
+                <label asp-for="Input.Description" class="text-sm font-medium text-slate-700"></label>
+                <textarea asp-for="Input.Description" rows="4" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"></textarea>
+                <span asp-validation-for="Input.Description" class="text-xs text-red-600"></span>
+            </div>
+
+            <div class="space-y-2">
+                <label asp-for="Input.MeasurementUnit" class="text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.MeasurementUnit" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                <span asp-validation-for="Input.MeasurementUnit" class="text-xs text-red-600"></span>
+            </div>
+
+            <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                <input asp-for="Input.IsActive" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                <label asp-for="Input.IsActive" class="text-sm font-medium text-slate-700"></label>
+            </div>
+
+            <div class="space-y-2">
+                <label asp-for="Input.UnitPrice" class="text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.UnitPrice" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                <span asp-validation-for="Input.UnitPrice" class="text-xs text-red-600"></span>
+            </div>
+
+            <div class="space-y-2">
+                <label asp-for="Input.PriceDescription" class="text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.PriceDescription" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                <span asp-validation-for="Input.PriceDescription" class="text-xs text-red-600"></span>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+            <a asp-page="Index" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-white">Quay lại</a>
+            <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">Lưu loại dịch vụ</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -8,7 +8,7 @@ using PRN222_ApartmentManagement.Services.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Cards;
 
-[Authorize(Roles = "BQL_Manager")]
+[Authorize(Policy = "AdminAndBQLManager")]
 public class DetailsModel : PageModel
 {
     private readonly IResidentCardService _residentCardService;

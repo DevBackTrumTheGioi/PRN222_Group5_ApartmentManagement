@@ -29,9 +29,53 @@ ViewData["PageHeader"] = pageHeader;
 <body class="bg-slate-50 text-slate-900 antialiased overflow-x-hidden">
     <partial name="Components/Sidebar" />
 
+    <!-- Toast container -->
+    <div id="notificationToastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Main Content Area -->
     <div class="flex flex-col min-h-screen transition-all duration-300 lg:ml-64">
         <header class="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/80 px-6 py-4 backdrop-blur-md">
-            @await Html.PartialAsync("Components/PageHeader", pageHeader)
+            @if (ViewData["PageHeader"] != null)
+            {
+                @await Html.PartialAsync("Components/PageHeader", pageHeader)
+            }
+            else
+            {
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">@ViewData["Title"]</h1>
+                        @if (ViewData["Subtitle"] != null)
+                        {
+                            <p class="text-sm text-slate-500 mt-1">@ViewData["Subtitle"]</p>
+                        }
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="relative" id="notifBellWrapper">
+                            <button id="notifBellBtn" class="p-2 text-slate-400 hover:text-emerald-600 transition-colors relative"
+                                    onclick="toggleNotifDropdown()">
+                                <span class="material-icons">notifications</span>
+                                <span id="notifBadge" class="absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white hidden">0</span>
+                            </button>
+                            <div id="notifDropdown" class="absolute right-0 top-full mt-2 w-96 bg-white rounded-xl shadow-xl border border-slate-200 z-50 hidden overflow-hidden">
+                                <div class="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
+                                    <h3 class="text-sm font-semibold text-slate-900">Thông báo</h3>
+                                    <button onclick="markAllReadFromDropdown()" class="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
+                                        Đánh dấu tất cả đã đọc
+                                    </button>
+                                </div>
+                                <div id="notifDropdownList" class="max-h-80 overflow-y-auto">
+                                    <div class="flex items-center justify-center py-8 text-slate-400">
+                                        <span class="material-icons animate-spin mr-2">refresh</span> Đang tải...
+                                    </div>
+                                </div>
+                                <a href="/Notifications" class="block text-center py-3 text-sm font-medium text-emerald-600 hover:bg-emerald-50 border-t border-slate-200 transition-colors">
+                                    Xem tất cả thông báo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         </header>
 
         <main class="flex-1 p-4 md:p-6 lg:p-8">
@@ -122,7 +166,7 @@ ViewData["PageHeader"] = pageHeader;
 
                 list.innerHTML = data.items.map(n => `
                     <div class="px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-100 last:border-0 ${n.isRead ? '' : 'bg-blue-50/30'}"
-                         onclick="window.location.href='/Notifications'">
+                         onclick="window.location.href='${n.redirectUrl || '/Notifications'}'">
                         <div class="flex items-start gap-3">
                             <span class="text-lg flex-shrink-0 mt-0.5">${n.icon}</span>
                             <div class="flex-1 min-w-0">
@@ -140,6 +184,59 @@ ViewData["PageHeader"] = pageHeader;
             .catch(() => {
                 list.innerHTML = '<div class="py-4 text-center text-slate-400 text-sm">Lỗi tải thông báo</div>';
             });
+        }
+
+        function showNotificationToast(notification) {
+            const container = document.getElementById('notificationToastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = 'pointer-events-auto w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden transform transition-all duration-300 translate-x-4 opacity-0';
+            toast.innerHTML = `
+                <div class="w-full text-left p-4 cursor-pointer" data-url="${notification.redirectUrl || '/Notifications'}">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-xl flex-shrink-0">
+                            ${notification.icon || '🔔'}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <p class="text-sm font-semibold text-slate-900 truncate">${notification.title || 'Thông báo mới'}</p>
+                                <span class="text-[10px] text-slate-400 flex-shrink-0">Vừa xong</span>
+                            </div>
+                            <p class="text-sm text-slate-600 line-clamp-2">${notification.content || ''}</p>
+                        </div>
+                        <button type="button" class="ml-2 text-slate-400 hover:text-slate-600" data-close-toast="true">
+                            <span class="material-icons text-base">close</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            const closeToast = () => {
+                toast.classList.add('translate-x-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 250);
+            };
+
+            toast.addEventListener('click', function (e) {
+                if (e.target.closest('[data-close-toast="true"]')) {
+                    e.stopPropagation();
+                    closeToast();
+                    return;
+                }
+
+                const target = toast.querySelector('[data-url]');
+                const url = target?.getAttribute('data-url') || '/Notifications';
+                window.location.href = url;
+            });
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-4', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                if (toast.isConnected) closeToast();
+            }, 6000);
         }
 
         function markAllReadFromDropdown() {
@@ -170,6 +267,7 @@ ViewData["PageHeader"] = pageHeader;
                 }
 
                 loadUnreadCount();
+                showNotificationToast(notification);
 
                 window.dispatchEvent(new CustomEvent('app:notification-received', {
                     detail: notification

@@ -1,0 +1,135 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQL_Manager.Amenities.CreateModel
+@{
+    ViewData["Title"] = "Thêm tiện ích";
+    ViewData["Subtitle"] = "Tạo mới tiện ích cư dân sẽ nhìn thấy và đặt lịch";
+    ViewData["CurrentPage"] = "amenities";
+}
+
+<div class="mx-auto max-w-4xl space-y-6">
+    <div>
+        <a asp-page="Index" class="inline-flex items-center gap-1 text-sm text-slate-500 transition-colors hover:text-emerald-600">
+            <span class="material-icons text-base">arrow_back</span>
+            Quay lại danh sách
+        </a>
+    </div>
+
+    <form method="post" class="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <span class="material-icons">pool</span>
+            </div>
+            <div>
+                <h2 class="text-base font-semibold text-slate-900">Thông tin tiện ích</h2>
+                <p class="mt-0.5 text-xs text-slate-500">Cấu hình hình thức sử dụng, sức chứa và giá theo giờ.</p>
+            </div>
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+                <label asp-for="Input.AmenityName" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.AmenityName" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <span asp-validation-for="Input.AmenityName" class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div>
+                <label asp-for="Input.AmenityTypeId" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                <select asp-for="Input.AmenityTypeId" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Chọn loại tiện ích</option>
+                    @foreach (var type in Model.AmenityTypes)
+                    {
+                        <option value="@type.AmenityTypeId">@type.TypeName</option>
+                    }
+                </select>
+                <span asp-validation-for="Input.AmenityTypeId" class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div>
+                <label asp-for="Input.Location" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.Location" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <span asp-validation-for="Input.Location" class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div>
+                <label asp-for="Input.Capacity" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.Capacity" type="number" min="1" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <span asp-validation-for="Input.Capacity" class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="mb-2 block text-sm font-medium text-slate-700">Hình thức sử dụng</label>
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4">
+                        <input asp-for="Input.RequiresBooking" type="radio" value="false" class="mt-1 h-4 w-4 border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                        <div>
+                            <p class="font-medium text-slate-800">Mở tự do</p>
+                            <p class="mt-1 text-sm text-slate-500">Dùng cho Gym, hồ bơi, phòng yoga... cư dân vào trực tiếp và miễn phí.</p>
+                        </div>
+                    </label>
+                    <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4">
+                        <input asp-for="Input.RequiresBooking" type="radio" value="true" class="mt-1 h-4 w-4 border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                        <div>
+                            <p class="font-medium text-slate-800">Cần đặt trước</p>
+                            <p class="mt-1 text-sm text-slate-500">Dùng cho BBQ, sân tennis, phòng họp... cư dân phải chọn slot theo giờ.</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label asp-for="Input.PricePerHour" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.PricePerHour" type="number" min="0" step="1000" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <p class="mt-1 text-xs text-slate-500">Với tiện ích mở tự do, hệ thống sẽ tự chuyển về miễn phí.</p>
+                <span asp-validation-for="Input.PricePerHour" class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div>
+                <label asp-for="Input.CancellationDeadlineHours" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.CancellationDeadlineHours" type="number" min="0" max="72" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <span asp-validation-for="Input.CancellationDeadlineHours" class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div>
+                <label asp-for="Input.OpenTime" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.OpenTime" type="time" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <span asp-validation-for="Input.OpenTime" class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div>
+                <label asp-for="Input.CloseTime" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.CloseTime" type="time" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <span asp-validation-for="Input.CloseTime" class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="md:col-span-2">
+                <label asp-for="Input.Description" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                <textarea asp-for="Input.Description" rows="4" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                <span asp-validation-for="Input.Description" class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+                    <input asp-for="Input.IsActive" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                    Bật hiển thị tiện ích ngay sau khi lưu
+                </label>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3 border-t border-slate-100 pt-4">
+            <a asp-page="Index" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
+                <span class="material-icons text-base">close</span>
+                Hủy
+            </a>
+            <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
+                <span class="material-icons text-base">save</span>
+                Lưu tiện ích
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
