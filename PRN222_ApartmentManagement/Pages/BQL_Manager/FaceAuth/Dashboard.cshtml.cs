@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_ApartmentManagement.Models.DTOs;
@@ -6,7 +6,7 @@ using PRN222_ApartmentManagement.Services.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.BQL_Manager.FaceAuth;
 
-[Authorize(Roles = "BQL_Manager")]
+[Authorize(Policy = "AdminAndBQLManager")]
 public class DashboardModel : PageModel
 {
     private readonly IFaceAuthService _faceAuthService;

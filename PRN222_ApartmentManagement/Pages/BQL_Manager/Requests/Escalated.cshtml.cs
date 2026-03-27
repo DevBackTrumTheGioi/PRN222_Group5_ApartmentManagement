@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,7 +8,7 @@ using PRN222_ApartmentManagement.Services.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Requests;
 
-[Authorize(Roles = "BQL_Manager")]
+[Authorize(Policy = "AdminAndBQLManager")]
 public class EscalatedModel : PageModel
 {
     private readonly IRequestService _requestService;

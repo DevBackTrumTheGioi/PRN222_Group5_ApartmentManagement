@@ -82,6 +82,12 @@ public class CreateModel : PageModel
                 return Page();
             }
 
+            if (Input.StartDate.Date < DateTime.Today)
+            {
+                ErrorMessage = "Ngày bắt đầu hợp đồng không được trong quá khứ.";
+                return Page();
+            }
+
             if (Input.ContractType == ContractType.Rental)
             {
                 if (!Input.EndDate.HasValue)
@@ -137,6 +143,10 @@ public class CreateModel : PageModel
             if (Input.StartDate == default)
             {
                 ModelState.AddModelError("Input.StartDate", "Vui lòng chọn ngày bắt đầu.");
+            }
+            else if (Input.StartDate.Date < DateTime.Today)
+            {
+                ModelState.AddModelError("Input.StartDate", "Ngày bắt đầu hợp đồng không được trong quá khứ.");
             }
 
             if (Input.ContractType == ContractType.Rental)
