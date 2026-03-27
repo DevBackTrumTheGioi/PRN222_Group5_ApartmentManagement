@@ -13,12 +13,16 @@ namespace PRN222_ApartmentManagement.Pages.Resident.Services;
 public class CreateModel : PageModel
 {
     private readonly IServiceManagementService _serviceManagementService;
+    private readonly IResidentApartmentAccessService _residentApartmentAccessService;
 
     private static readonly string[] TimeSlots = ["Sáng", "Chiều", "Tối"];
 
-    public CreateModel(IServiceManagementService serviceManagementService)
+    public CreateModel(
+        IServiceManagementService serviceManagementService,
+        IResidentApartmentAccessService residentApartmentAccessService)
     {
         _serviceManagementService = serviceManagementService;
+        _residentApartmentAccessService = residentApartmentAccessService;
     }
 
     [BindProperty]
@@ -28,6 +32,7 @@ public class CreateModel : PageModel
         RequestedTimeSlot = "Sáng"
     };
 
+    public SelectList ApartmentOptions { get; set; } = null!;
     public SelectList ServiceOptions { get; set; } = null!;
     public SelectList TimeSlotOptions { get; set; } = null!;
     public IReadOnlyList<ServiceType> ActiveServices { get; set; } = [];
@@ -35,6 +40,10 @@ public class CreateModel : PageModel
 
     public class InputModel
     {
+        [Required(ErrorMessage = "Vui lòng chọn căn hộ áp dụng.")]
+        [Display(Name = "Căn hộ áp dụng")]
+        public int? ApartmentId { get; set; }
+
         [Required(ErrorMessage = "Vui lòng chọn dịch vụ.")]
         [Display(Name = "Loại dịch vụ")]
         public int? ServiceTypeId { get; set; }
@@ -55,14 +64,26 @@ public class CreateModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(int? serviceTypeId)
     {
+        var userId = GetUserId();
+        if (userId == null)
+        {
+            return Forbid();
+        }
+
         Input.ServiceTypeId = serviceTypeId;
-        await LoadReferenceDataAsync();
+        await LoadReferenceDataAsync(userId.Value);
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        await LoadReferenceDataAsync();
+        var userId = GetUserId();
+        if (userId == null)
+        {
+            return Forbid();
+        }
+
+        await LoadReferenceDataAsync(userId.Value);
 
         ValidateRequestedTimeSlot();
 
@@ -71,14 +92,9 @@ public class CreateModel : PageModel
             return Page();
         }
 
-        var userId = GetUserId();
-        if (userId == null)
-        {
-            return Forbid();
-        }
-
         var result = await _serviceManagementService.CreateOrderAsync(
             userId.Value,
+            Input.ApartmentId!.Value,
             Input.ServiceTypeId!.Value,
             Input.RequestedDate,
             Input.RequestedTimeSlot,
@@ -109,8 +125,24 @@ public class CreateModel : PageModel
             .FirstOrDefault();
     }
 
-    private async Task LoadReferenceDataAsync()
+    private async Task LoadReferenceDataAsync(int userId)
     {
+        var apartments = await _residentApartmentAccessService.GetActiveApartmentOptionsAsync(userId);
+        if (!Input.ApartmentId.HasValue && apartments.Count == 1)
+        {
+            Input.ApartmentId = apartments[0].ApartmentId;
+        }
+
+        ApartmentOptions = new SelectList(
+            apartments.Select(a => new
+            {
+                Value = a.ApartmentId,
+                Text = a.Display
+            }),
+            "Value",
+            "Text",
+            Input.ApartmentId);
+
         ActiveServices = await _serviceManagementService.GetResidentActiveServiceTypesAsync(null);
 
         if (!Input.ServiceTypeId.HasValue && ActiveServices.Any())

@@ -16,6 +16,7 @@ public interface IServiceManagementService
     Task<IReadOnlyList<ServiceType>> GetResidentActiveServiceTypesAsync(string? search);
     Task<(bool Success, string Message, ServiceOrder? Order)> CreateOrderAsync(
         int residentId,
+        int apartmentId,
         int serviceTypeId,
         DateTime requestedDate,
         string? requestedTimeSlot,

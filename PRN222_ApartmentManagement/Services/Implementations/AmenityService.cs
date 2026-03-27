@@ -17,17 +17,20 @@ public class AmenityService : IAmenityService
     private readonly IAmenityRepository _amenityRepository;
     private readonly IAmenityBookingRepository _amenityBookingRepository;
     private readonly INotificationService _notificationService;
+    private readonly IResidentApartmentAccessService _residentApartmentAccessService;
 
     public AmenityService(
         ApartmentDbContext context,
         IAmenityRepository amenityRepository,
         IAmenityBookingRepository amenityBookingRepository,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IResidentApartmentAccessService residentApartmentAccessService)
     {
         _context = context;
         _amenityRepository = amenityRepository;
         _amenityBookingRepository = amenityBookingRepository;
         _notificationService = notificationService;
+        _residentApartmentAccessService = residentApartmentAccessService;
     }
 
     public async Task<IReadOnlyList<Amenity>> GetManagerAmenitiesAsync(string? search, bool? isActive, bool? requiresBooking)
@@ -196,6 +199,7 @@ public class AmenityService : IAmenityService
 
     public async Task<(bool Success, string Message, AmenityBooking? Booking)> CreateBookingAsync(
         int residentId,
+        int apartmentId,
         int amenityId,
         DateTime bookingDate,
         TimeSpan startTime,
@@ -207,7 +211,7 @@ public class AmenityService : IAmenityService
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserId == residentId && u.IsActive && !u.IsDeleted);
 
-        if (resident?.ApartmentId == null)
+        if (resident == null)
         {
             return (false, "Bạn chưa được gán căn hộ. Vui lòng liên hệ Ban Quản Lý.", null);
         }
@@ -226,6 +230,11 @@ public class AmenityService : IAmenityService
             return (false, "Tiện ích này đang mở tự do cho cư dân, không cần đặt trước.", null);
         }
 
+        if (!await _residentApartmentAccessService.IsResidentInApartmentAsync(residentId, apartmentId))
+        {
+            return (false, "Căn hộ đã chọn không thuộc quyền sử dụng hiện tại của bạn.", null);
+        }
+
         var validationMessage = await ValidateBookingAsync(amenity, residentId, bookingDate, startTime, endTime, participantCount);
         if (validationMessage != null)
         {
@@ -236,7 +245,7 @@ public class AmenityService : IAmenityService
         var booking = new AmenityBooking
         {
             AmenityId = amenity.AmenityId,
-            ApartmentId = resident.ApartmentId.Value,
+            ApartmentId = apartmentId,
             ResidentId = residentId,
             BookingDate = bookingDate.Date,
             StartTime = startTime,
@@ -308,8 +317,7 @@ public class AmenityService : IAmenityService
 
     public async Task<bool> ResidentHasApartmentAsync(int residentId)
     {
-        return await _context.Users
-            .AnyAsync(u => u.UserId == residentId && u.ApartmentId != null && u.IsActive && !u.IsDeleted);
+        return await _residentApartmentAccessService.HasAnyActiveApartmentAsync(residentId);
     }
 
     private IQueryable<Amenity> BaseAmenityQuery()

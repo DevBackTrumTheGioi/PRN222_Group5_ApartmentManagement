@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using PRN222_ApartmentManagement.Services.Interfaces;
 
 namespace PRN222_ApartmentManagement.Pages.Resident.Visitors;
@@ -11,10 +12,14 @@ namespace PRN222_ApartmentManagement.Pages.Resident.Visitors;
 public class CreateModel : PageModel
 {
     private readonly IVisitorManagementService _visitorManagementService;
+    private readonly IResidentApartmentAccessService _residentApartmentAccessService;
 
-    public CreateModel(IVisitorManagementService visitorManagementService)
+    public CreateModel(
+        IVisitorManagementService visitorManagementService,
+        IResidentApartmentAccessService residentApartmentAccessService)
     {
         _visitorManagementService = visitorManagementService;
+        _residentApartmentAccessService = residentApartmentAccessService;
     }
 
     [BindProperty]
@@ -23,8 +28,14 @@ public class CreateModel : PageModel
         VisitDate = DateTime.Now.Date
     };
 
+    public SelectList ApartmentOptions { get; set; } = null!;
+
     public class InputModel
     {
+        [Required(ErrorMessage = "Vui lòng chọn căn hộ áp dụng.")]
+        [Display(Name = "Căn hộ áp dụng")]
+        public int? ApartmentId { get; set; }
+
         [Required(ErrorMessage = "Vui lòng nhập tên khách.")]
         [MaxLength(200, ErrorMessage = "Tên khách không vượt quá 200 ký tự.")]
         [Display(Name = "Tên khách")]
@@ -49,25 +60,36 @@ public class CreateModel : PageModel
         public string? Notes { get; set; }
     }
 
-    public void OnGet()
+    public async Task<IActionResult> OnGetAsync()
     {
-    }
-
-    public async Task<IActionResult> OnPostAsync()
-    {
-        if (!ModelState.IsValid)
-        {
-            return Page();
-        }
-
         var userId = GetUserId();
         if (userId == null)
         {
             return Forbid();
         }
 
+        await LoadApartmentOptionsAsync(userId.Value);
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        var userId = GetUserId();
+        if (userId == null)
+        {
+            return Forbid();
+        }
+
+        await LoadApartmentOptionsAsync(userId.Value);
+
+        if (!ModelState.IsValid)
+        {
+            return Page();
+        }
+
         var result = await _visitorManagementService.CreateResidentVisitorAsync(
             userId.Value,
+            Input.ApartmentId!.Value,
             Input.VisitorName,
             Input.PhoneNumber,
             Input.IdentityCard,
@@ -82,6 +104,25 @@ public class CreateModel : PageModel
 
         TempData["SuccessMessage"] = result.Message;
         return RedirectToPage("Index");
+    }
+
+    private async Task LoadApartmentOptionsAsync(int userId)
+    {
+        var apartments = await _residentApartmentAccessService.GetActiveApartmentOptionsAsync(userId);
+        if (!Input.ApartmentId.HasValue && apartments.Count == 1)
+        {
+            Input.ApartmentId = apartments[0].ApartmentId;
+        }
+
+        ApartmentOptions = new SelectList(
+            apartments.Select(a => new
+            {
+                Value = a.ApartmentId,
+                Text = a.Display
+            }),
+            "Value",
+            "Text",
+            Input.ApartmentId);
     }
 
     private int? GetUserId()
