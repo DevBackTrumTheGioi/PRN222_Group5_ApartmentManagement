@@ -36,17 +36,4 @@ public class IndexModel : PageModel
     {
         Invoices = await _invoiceManagementService.GetInvoicesAsync(BillingMonth, BillingYear, Status);
     }
-
-    public async Task<IActionResult> OnPostGenerateAsync(int billingMonth, int billingYear, int dueDay = 10)
-    {
-        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdString, out var userId))
-        {
-            return RedirectToPage("/Account/Login");
-        }
-
-        var result = await _invoiceManagementService.GenerateInvoicesAsync(billingMonth, billingYear, dueDay, userId);
-        StatusMessage = result.Message;
-        return RedirectToPage(new { BillingMonth = billingMonth, BillingYear = billingYear });
-    }
 }
