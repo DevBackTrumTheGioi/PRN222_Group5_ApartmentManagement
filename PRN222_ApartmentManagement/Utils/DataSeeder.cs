@@ -665,10 +665,10 @@ public static class DataSeeder
                 ApartmentId = apartment.ApartmentId,
                 ServiceTypeId = serviceTypeByName["Phí quản lý"].ServiceTypeId,
                 Quantity = (int)Math.Round(apartment.Area ?? 60m, MidpointRounding.AwayFromZero),
-                RegisteredFrom = new DateTime(now.Year - 1, 1, 1),
+                RegisteredFrom = apartment.CreatedAt.Date.AddDays(1 - apartment.CreatedAt.Day),
                 IsActive = true,
                 Notes = "Tính theo diện tích thông thủy của căn hộ.",
-                CreatedAt = now.AddYears(-1)
+                CreatedAt = apartment.CreatedAt
             });
 
             services.Add(new ApartmentService
@@ -676,10 +676,10 @@ public static class DataSeeder
                 ApartmentId = apartment.ApartmentId,
                 ServiceTypeId = serviceTypeByName["Phí vệ sinh rác"].ServiceTypeId,
                 Quantity = 1,
-                RegisteredFrom = new DateTime(now.Year - 1, 1, 1),
+                RegisteredFrom = apartment.CreatedAt.Date.AddDays(1 - apartment.CreatedAt.Day),
                 IsActive = true,
                 Notes = "Thu cố định theo căn hộ.",
-                CreatedAt = now.AddYears(-1)
+                CreatedAt = apartment.CreatedAt
             });
 
             services.Add(new ApartmentService
@@ -687,10 +687,10 @@ public static class DataSeeder
                 ApartmentId = apartment.ApartmentId,
                 ServiceTypeId = serviceTypeByName["Internet cáp quang"].ServiceTypeId,
                 Quantity = 1,
-                RegisteredFrom = new DateTime(now.Year - 1, 6, 1),
+                RegisteredFrom = apartment.CreatedAt.Date.AddMonths(2).AddDays(1 - apartment.CreatedAt.Day),
                 IsActive = true,
                 Notes = "Gói gia đình 150Mbps.",
-                CreatedAt = now.AddMonths(-10)
+                CreatedAt = apartment.CreatedAt.AddDays(1)
             });
 
             if (apartment.ApartmentId % 3 == 0)
@@ -700,11 +700,11 @@ public static class DataSeeder
                     ApartmentId = apartment.ApartmentId,
                     ServiceTypeId = serviceTypeByName["Truyền hình cáp"].ServiceTypeId,
                     Quantity = 1,
-                    RegisteredFrom = new DateTime(now.Year - 1, 6, 1),
+                    RegisteredFrom = apartment.CreatedAt.Date.AddMonths(2).AddDays(1 - apartment.CreatedAt.Day),
                     IsActive = false,
-                    RegisteredTo = new DateTime(now.Year, now.Month, 1).AddDays(-1),
-                    Notes = "Đã dừng từ đầu tháng hiện tại để minh hoạ lịch sử dịch vụ.",
-                    CreatedAt = now.AddMonths(-10)
+                    RegisteredTo = apartment.CreatedAt.Date.AddMonths(4).AddDays(0),
+                    Notes = "Đã dừng từ tháng thứ 4 sau khi vào ở để minh hoạ lịch sử dịch vụ.",
+                    CreatedAt = apartment.CreatedAt.AddDays(1)
                 });
             }
 
@@ -720,10 +720,10 @@ public static class DataSeeder
                     ApartmentId = apartment.ApartmentId,
                     ServiceTypeId = serviceTypeByName["Phí gửi xe máy"].ServiceTypeId,
                     Quantity = motorbikeCount,
-                    RegisteredFrom = new DateTime(now.Year - 1, 1, 1),
+                    RegisteredFrom = apartment.CreatedAt.Date.AddDays(1 - apartment.CreatedAt.Day),
                     IsActive = true,
                     Notes = "Số lượng xe máy đăng ký gửi cố định.",
-                    CreatedAt = now.AddYears(-1)
+                    CreatedAt = apartment.CreatedAt
                 });
             }
 
@@ -734,10 +734,10 @@ public static class DataSeeder
                     ApartmentId = apartment.ApartmentId,
                     ServiceTypeId = serviceTypeByName["Phí gửi ô tô"].ServiceTypeId,
                     Quantity = carCount,
-                    RegisteredFrom = new DateTime(now.Year - 1, 1, 1),
+                    RegisteredFrom = apartment.CreatedAt.Date.AddDays(1 - apartment.CreatedAt.Day),
                     IsActive = true,
                     Notes = "Số lượng ô tô đăng ký gửi cố định.",
-                    CreatedAt = now.AddYears(-1)
+                    CreatedAt = apartment.CreatedAt
                 });
             }
         }
