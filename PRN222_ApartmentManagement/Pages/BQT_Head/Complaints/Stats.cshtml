@@ -1,0 +1,80 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQT_Head.Complaints.StatsModel
+@{
+    ViewData["Title"] = "Thống kê khiếu nại";
+    ViewData["Subtitle"] = "Tổng quan tiến độ xử lý khiếu nại cư dân";
+    ViewData["CurrentPage"] = "complaintstats";
+}
+
+<div class="space-y-6">
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm text-slate-500">Tổng khiếu nại</p>
+            <p class="mt-2 text-3xl font-bold text-slate-900">@Model.TotalComplaints</p>
+            <p class="mt-2 text-xs text-slate-400">Tất cả khiếu nại cư dân đã ghi nhận</p>
+        </div>
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+            <p class="text-sm text-emerald-700">Đã xử lý tháng này</p>
+            <p class="mt-2 text-3xl font-bold text-emerald-700">@Model.ResolvedThisMonth</p>
+            <p class="mt-2 text-xs text-emerald-600">Khiếu nại hoàn thành trong tháng hiện tại</p>
+        </div>
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+            <p class="text-sm text-amber-700">Đang tồn đọng</p>
+            <p class="mt-2 text-3xl font-bold text-amber-700">@Model.OpenComplaints</p>
+            <p class="mt-2 text-xs text-amber-600">Bao gồm chờ xử lý và đang xử lý</p>
+        </div>
+        <div class="rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
+            <p class="text-sm text-blue-700">Thời gian xử lý TB</p>
+            <p class="mt-2 text-3xl font-bold text-blue-700">@Model.AverageResolutionHoursText</p>
+            <p class="mt-2 text-xs text-blue-600">Tính trên các khiếu nại đã hoàn thành</p>
+        </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[1.35fr,1fr]">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold text-slate-900">Phân bố theo trạng thái</h2>
+                <a asp-page="/BQT_Head/Complaints/Index" class="text-sm font-semibold text-emerald-600 hover:underline">Xem danh sách</a>
+            </div>
+
+            <div class="mt-6 space-y-4">
+                @foreach (var item in Model.StatusItems)
+                {
+                    var percentText = Model.TotalComplaints == 0 ? "0%" : $"{item.Percent:0.#}%";
+                    <div>
+                        <div class="mb-2 flex items-center justify-between text-sm">
+                            <span class="font-medium text-slate-700">@item.Label</span>
+                            <span class="text-slate-500">@item.Count khiếu nại</span>
+                        </div>
+                        <div class="h-3 rounded-full bg-slate-100">
+                            <div class="h-3 rounded-full @item.BarClass" style="width: @percentText"></div>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-400">@percentText tổng số khiếu nại</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="text-lg font-bold text-slate-900">Chỉ số giám sát</h2>
+            <div class="mt-6 space-y-4">
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-sm text-slate-500">Tỷ lệ xử lý hoàn tất</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900">@Model.ResolutionRateText</p>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-sm text-slate-500">Khiếu nại đã chuyển BQL</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900">@Model.EscalatedComplaints</p>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-sm text-slate-500">Khiếu nại chưa phân công</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900">@Model.UnassignedComplaints</p>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-sm text-slate-500">Mức ưu tiên cao/khẩn</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900">@Model.HighPriorityComplaints</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

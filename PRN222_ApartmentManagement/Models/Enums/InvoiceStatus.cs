@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PRN222_ApartmentManagement.Models.Enums;
 
@@ -19,7 +19,9 @@ public enum InvoiceStatus
     [Display(Name = "Đã hủy")]
     Cancelled,
 
-    [Display(Name = "Chờ xác nhận")]
-    Pending
+    /// <summary>
+    /// Đã phát hành — đã gửi notification cho chủ hộ, chờ thanh toán.
+    /// </summary>
+    Issued
 }
 

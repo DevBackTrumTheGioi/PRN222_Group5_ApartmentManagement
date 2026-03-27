@@ -16,11 +16,17 @@ public enum NotificationType
     [Display(Name = "Thông báo chung")]
     Announcement,
 
+    [Display(Name = "Cuộc họp")]
+    Meeting,
+
     [Display(Name = "Hợp đồng")]
     Contract,
 
     [Display(Name = "Tiện ích")]
     Amenity,
+
+    [Display(Name = "Khảo sát & bỏ phiếu")]
+    Community,
 
     [Display(Name = "Khác")]
     Other

@@ -1,0 +1,120 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.FaceAuth.LogsModel
+@{
+    var isManager = User.IsInRole("BQL_Manager");
+    ViewData["Title"] = "Lịch sử xác thực Face ID";
+    ViewData["CurrentPage"] = "faceauthlogs";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Lịch sử xác thực Face ID",
+        BreadcrumbItems = new[]
+        {
+            new { Label = isManager ? "BQL Manager" : "BQL Staff", Href = isManager ? "/BQL_Manager" : "/BQL_Staff" },
+            new { Label = "Lịch sử Face ID", Href = "#" }
+        }
+    };
+}
+
+<div class="space-y-6">
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">Bộ lọc lịch sử</h2>
+                <p class="mt-1 text-sm text-slate-500">Tra cứu kết quả xác thực theo cư dân, căn hộ và thiết bị.</p>
+            </div>
+            @if (isManager)
+            {
+                <a href="/BQL_Manager/FaceAuth/Dashboard" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                    <span class="material-icons text-base">analytics</span>
+                    Bảng điều khiển Face ID
+                </a>
+            }
+        </div>
+
+        <form method="get" class="grid grid-cols-1 gap-4 md:grid-cols-5">
+            <div class="space-y-2 md:col-span-2">
+                <label asp-for="SearchQuery" class="text-sm font-medium text-slate-700">Tìm kiếm</label>
+                <input asp-for="SearchQuery" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm" placeholder="Tên cư dân, căn hộ, IP, thiết bị" />
+            </div>
+            <div class="space-y-2">
+                <label asp-for="IsSuccess" class="text-sm font-medium text-slate-700">Kết quả</label>
+                <select asp-for="IsSuccess" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm">
+                    <option value="">Tất cả</option>
+                    <option value="true">Thành công</option>
+                    <option value="false">Thất bại</option>
+                </select>
+            </div>
+            <div class="space-y-2">
+                <label asp-for="FromDate" class="text-sm font-medium text-slate-700">Từ ngày</label>
+                <input asp-for="FromDate" type="date" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm" />
+            </div>
+            <div class="space-y-2">
+                <label asp-for="ToDate" class="text-sm font-medium text-slate-700">Đến ngày</label>
+                <input asp-for="ToDate" type="date" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm" />
+            </div>
+            <div class="flex items-end gap-3 md:col-span-5">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                    <span class="material-icons text-base">filter_alt</span>
+                    Lọc lịch sử
+                </button>
+                <a asp-page="./Logs" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                    <span class="material-icons text-base">restart_alt</span>
+                    Đặt lại
+                </a>
+            </div>
+        </form>
+    </section>
+
+    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-6 py-5">
+            <h2 class="text-lg font-semibold text-slate-900">Danh sách xác thực</h2>
+            <p class="mt-1 text-sm text-slate-500">Hiển thị tối đa @Model.Logs.Count bản ghi phù hợp bộ lọc hiện tại.</p>
+        </div>
+        @if (Model.Logs.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-600">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold">Cư dân</th>
+                            <th class="px-6 py-3 text-left font-semibold">Căn hộ</th>
+                            <th class="px-6 py-3 text-left font-semibold">Thời gian</th>
+                            <th class="px-6 py-3 text-left font-semibold">Kết quả</th>
+                            <th class="px-6 py-3 text-left font-semibold">Độ khớp</th>
+                            <th class="px-6 py-3 text-left font-semibold">IP / Thiết bị</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var log in Model.Logs)
+                        {
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <p class="font-semibold text-slate-900">@log.ResidentName</p>
+                                    <p class="mt-1 text-xs text-slate-500">Mã cư dân: @log.ResidentId</p>
+                                </td>
+                                <td class="px-6 py-4 text-slate-700">Căn @((log.ApartmentNumber ?? "-")) @(string.IsNullOrWhiteSpace(log.BuildingBlock) ? string.Empty : $"- Tòa {log.BuildingBlock}")</td>
+                                <td class="px-6 py-4 text-slate-600">@log.AuthTime.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium @(log.IsSuccess ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700")">
+                                        <span class="material-icons text-sm">@(log.IsSuccess ? "check_circle" : "cancel")</span>
+                                        @(log.IsSuccess ? "Thành công" : "Thất bại")
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-slate-700">@((log.ConfidenceScore * 100).ToString("N1"))%</td>
+                                <td class="px-6 py-4">
+                                    <p class="text-slate-700">@(string.IsNullOrWhiteSpace(log.IpAddress) ? "-" : log.IpAddress)</p>
+                                    <p class="mt-1 max-w-xs truncate text-xs text-slate-500" title="@log.DeviceInfo">@(string.IsNullOrWhiteSpace(log.DeviceInfo) ? "Không có thông tin thiết bị" : log.DeviceInfo)</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="px-6 py-16 text-center text-sm text-slate-500">Chưa có lịch sử xác thực phù hợp với bộ lọc hiện tại.</div>
+        }
+    </section>
+</div>

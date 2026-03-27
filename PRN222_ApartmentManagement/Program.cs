@@ -27,6 +27,7 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AllowAnonymousToPage("/Account/VerifyPhone");
     options.Conventions.AllowAnonymousToPage("/Admin/SeedData");
     options.Conventions.AllowAnonymousToPage("/Error");
+    options.Conventions.AllowAnonymousToPage("/Resident/Payments/VNPayIpn");
     options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
     options.Conventions.AuthorizeFolder("/BQL_Manager", "AdminAndBQLManager");
     options.Conventions.AuthorizeFolder("/BQL_Staff", "BQLStaffOnly");
@@ -215,9 +216,12 @@ builder.Services.AddScoped<IRequestService, RequestService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IResidentCardService, ResidentCardService>();
 builder.Services.AddScoped<IApartmentService, ApartmentService>();
+builder.Services.AddScoped<VNPayHelper>();
 builder.Services.AddScoped<IAmenityService, AmenityService>();
 builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
 builder.Services.AddScoped<IVisitorManagementService, VisitorManagementService>();
+builder.Services.AddScoped<IOperationalReportService, OperationalReportService>();
+builder.Services.AddScoped<ICommunityEngagementService, CommunityEngagementService>();
 
 var app = builder.Build();
 

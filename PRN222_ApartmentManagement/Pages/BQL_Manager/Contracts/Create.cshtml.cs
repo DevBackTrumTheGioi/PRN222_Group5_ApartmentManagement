@@ -143,14 +143,14 @@ public class CreateModel : PageModel
         {
             if (!StringUtils.IsValidVietnamesePhoneNumber(Input.OwnerPhone!))
             {
-                ModelState.AddModelError("Input.OwnerPhone", "So dien thoai khong hop le.");
+                ModelState.AddModelError("Input.OwnerPhone", "Số điện thoại không hợp lệ.");
                 return Page();
             }
         }
 
         if (!string.IsNullOrWhiteSpace(Input.OwnerEmail) && !StringUtils.IsValidEmail(Input.OwnerEmail))
         {
-            ModelState.AddModelError("Input.OwnerEmail", "Email khong hop le.");
+            ModelState.AddModelError("Input.OwnerEmail", "Email không hợp lệ.");
             return Page();
         }
 

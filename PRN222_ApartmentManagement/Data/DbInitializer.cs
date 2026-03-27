@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PRN222_ApartmentManagement.Utils;
 
 namespace PRN222_ApartmentManagement.Data;
 
@@ -14,26 +15,19 @@ public static class DbInitializer
     {
         try
         {
-            // Check if database can connect
             var canConnect = await context.Database.CanConnectAsync();
 
             if (!canConnect)
             {
                 logger.LogInformation("Database does not exist. Creating database...");
-                
-                // Create database with all tables
                 await context.Database.EnsureCreatedAsync();
-                
                 logger.LogInformation("Database created successfully at {Time}", DateTime.Now);
-                
-                // Seed initial data if needed
                 await SeedDataAsync(context, logger);
             }
             else
             {
                 logger.LogInformation("Database already exists. Checking for pending migrations...");
-                
-                // Apply any pending migrations
+
                 var pendingMigrations = (await context.Database.GetPendingMigrationsAsync()).ToList();
                 if (pendingMigrations.Any())
                 {
@@ -47,8 +41,8 @@ public static class DbInitializer
                 }
             }
 
-            // Always ensure default settings exist
             await SeedSettingsAsync(context, logger);
+            await EnsureCommunityEngagementSchemaAsync(context, logger);
         }
         catch (Exception ex)
         {
@@ -62,98 +56,17 @@ public static class DbInitializer
     /// </summary>
     private static async Task SeedDataAsync(ApartmentDbContext context, ILogger logger)
     {
-        // Check if data already exists
-        if (await context.Users.AnyAsync())
+        if (await context.Users.AnyAsync() &&
+            await context.Apartments.AnyAsync() &&
+            await context.ServiceTypes.AnyAsync() &&
+            await context.Amenities.AnyAsync())
         {
-            logger.LogInformation("Database already contains data. Skipping seed.");
+            logger.LogInformation("Database already contains core data. Skipping automatic seed.");
             return;
         }
 
-        logger.LogInformation("Seeding initial data...");
-
-        // Password hash for '123456' using BCrypt
-        string passwordHash = BCrypt.Net.BCrypt.HashPassword("123456");
-
-        var users = new List<Models.User>
-        {
-            new Models.User
-            {
-                Username = "admin",
-                PasswordHash = passwordHash,
-                FullName = "System Administrator",
-                Email = "admin@apartment.com",
-                Role = Models.UserRole.Admin,
-                IsActive = true,
-                CreatedAt = DateTime.Now
-            },
-            new Models.User
-            {
-                Username = "manager",
-                PasswordHash = passwordHash,
-                FullName = "BQL Manager",
-                Email = "manager@apartment.com",
-                Role = Models.UserRole.BQL_Manager,
-                IsActive = true,
-                CreatedAt = DateTime.Now
-            },
-            new Models.User
-            {
-                Username = "staff",
-                PasswordHash = passwordHash,
-                FullName = "BQL Staff",
-                Email = "staff@apartment.com",
-                Role = Models.UserRole.BQL_Staff,
-                IsActive = true,
-                CreatedAt = DateTime.Now
-            },
-            new Models.User
-            {
-                Username = "bqt_head",
-                PasswordHash = passwordHash,
-                FullName = "BQT Head",
-                Email = "bqt_head@apartment.com",
-                Role = Models.UserRole.BQT_Head,
-                IsActive = true,
-                CreatedAt = DateTime.Now
-            },
-            new Models.User
-            {
-                Username = "resident",
-                PasswordHash = passwordHash,
-                FullName = "Nguyen Van Resident",
-                Email = "resident@apartment.com",
-                Role = Models.UserRole.Resident,
-                IsActive = true,
-                CreatedAt = DateTime.Now
-            },
-            new Models.User
-            {
-                Username = "bqt_member",
-                PasswordHash = passwordHash,
-                FullName = "BQT Member",
-                Email = "bqt_member@apartment.com",
-                Role = Models.UserRole.BQT_Member,
-                IsActive = true,
-                CreatedAt = DateTime.Now
-            }
-        };
-
-        context.Users.AddRange(users);
-
-        // Add some service types
-        var serviceTypes = new[]
-        {
-            new Models.ServiceType { ServiceTypeName = "Electricity", MeasurementUnit = "kWh", IsActive = true },
-            new Models.ServiceType { ServiceTypeName = "Water", MeasurementUnit = "m³", IsActive = true },
-            new Models.ServiceType { ServiceTypeName = "Management Fee", MeasurementUnit = "month", IsActive = true },
-            new Models.ServiceType { ServiceTypeName = "Parking Fee", MeasurementUnit = "vehicle", IsActive = true },
-            new Models.ServiceType { ServiceTypeName = "Internet", MeasurementUnit = "month", IsActive = true }
-        };
-
-        context.ServiceTypes.AddRange(serviceTypes);
-
-        await context.SaveChangesAsync();
-
+        logger.LogInformation("Seeding realistic initial data...");
+        await DataSeeder.SeedAsync(context, logger);
         logger.LogInformation("Initial data seeded successfully");
     }
 
@@ -162,20 +75,113 @@ public static class DbInitializer
     /// </summary>
     private static async Task SeedSettingsAsync(ApartmentDbContext context, ILogger logger)
     {
-        if (await context.SystemSettings.AnyAsync()) return;
+        if (await context.SystemSettings.AnyAsync())
+        {
+            return;
+        }
 
         logger.LogInformation("Seeding default system settings...");
 
-        var settings = new List<Models.SystemSetting>
-        {
-            new Models.SystemSetting { SettingKey = "ApartmentName", SettingValue = "ApartmentMS", Description = "Tên chung cư hiển thị trên hệ thống" },
-            new Models.SystemSetting { SettingKey = "ApartmentLogo", SettingValue = "apartment", Description = "Tên Icon Material hiển thị ở Logo" },
-            new Models.SystemSetting { SettingKey = "ApartmentAddress", SettingValue = "123 Đường ABC, Quận XYZ, TP. HCM", Description = "Địa chỉ chung cư" },
-            new Models.SystemSetting { SettingKey = "ApartmentContact", SettingValue = "0123.456.789", Description = "Số điện thoại liên hệ" }
-        };
+        context.SystemSettings.AddRange(
+            new Models.SystemSetting
+            {
+                SettingKey = "ApartmentName",
+                SettingValue = "Sunrise Riverside",
+                Description = "Tên chung cư hiển thị trên hệ thống"
+            },
+            new Models.SystemSetting
+            {
+                SettingKey = "ApartmentLogo",
+                SettingValue = "apartment",
+                Description = "Tên Icon Material hiển thị ở Logo"
+            },
+            new Models.SystemSetting
+            {
+                SettingKey = "ApartmentAddress",
+                SettingValue = "88 Nguyễn Hữu Thọ, Phường Tân Hưng, Quận 7, TP. Hồ Chí Minh",
+                Description = "Địa chỉ chung cư"
+            },
+            new Models.SystemSetting
+            {
+                SettingKey = "ApartmentContact",
+                SettingValue = "028 3888 6688",
+                Description = "Số điện thoại liên hệ"
+            });
 
-        context.SystemSettings.AddRange(settings);
         await context.SaveChangesAsync();
+    }
+
+    private static async Task EnsureCommunityEngagementSchemaAsync(ApartmentDbContext context, ILogger logger)
+    {
+        const string sql = """
+IF OBJECT_ID(N'[dbo].[CommunityCampaigns]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[CommunityCampaigns](
+        [CampaignId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [Title] NVARCHAR(200) NOT NULL,
+        [Description] NVARCHAR(2000) NULL,
+        [QuestionText] NVARCHAR(500) NOT NULL,
+        [CampaignType] NVARCHAR(20) NOT NULL,
+        [Status] NVARCHAR(20) NOT NULL,
+        [AllowMultipleChoices] BIT NOT NULL DEFAULT 0,
+        [IsDeleted] BIT NOT NULL DEFAULT 0,
+        [StartsAt] DATETIME2 NOT NULL,
+        [EndsAt] DATETIME2 NOT NULL,
+        [CreatedBy] INT NOT NULL,
+        [CreatedAt] DATETIME2 NOT NULL,
+        [UpdatedAt] DATETIME2 NULL,
+        CONSTRAINT [FK_CommunityCampaigns_Users_CreatedBy] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Users]([UserId])
+    );
+END;
+
+IF OBJECT_ID(N'[dbo].[CommunityCampaignOptions]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[CommunityCampaignOptions](
+        [OptionId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [CampaignId] INT NOT NULL,
+        [OptionText] NVARCHAR(300) NOT NULL,
+        [DisplayOrder] INT NOT NULL,
+        CONSTRAINT [FK_CommunityCampaignOptions_CommunityCampaigns_CampaignId] FOREIGN KEY ([CampaignId]) REFERENCES [dbo].[CommunityCampaigns]([CampaignId]) ON DELETE CASCADE
+    );
+    CREATE INDEX [IX_CommunityCampaignOptions_CampaignId_DisplayOrder] ON [dbo].[CommunityCampaignOptions]([CampaignId], [DisplayOrder]);
+END;
+
+IF OBJECT_ID(N'[dbo].[CommunityCampaignResponses]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[CommunityCampaignResponses](
+        [ResponseId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [CampaignId] INT NOT NULL,
+        [UserId] INT NOT NULL,
+        [Comment] NVARCHAR(1000) NULL,
+        [SubmittedAt] DATETIME2 NOT NULL,
+        CONSTRAINT [FK_CommunityCampaignResponses_CommunityCampaigns_CampaignId] FOREIGN KEY ([CampaignId]) REFERENCES [dbo].[CommunityCampaigns]([CampaignId]) ON DELETE CASCADE,
+        CONSTRAINT [FK_CommunityCampaignResponses_Users_UserId] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId])
+    );
+    CREATE UNIQUE INDEX [IX_CommunityCampaignResponses_CampaignId_UserId] ON [dbo].[CommunityCampaignResponses]([CampaignId], [UserId]);
+END;
+
+IF OBJECT_ID(N'[dbo].[CommunityCampaignResponseOptions]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[CommunityCampaignResponseOptions](
+        [ResponseOptionId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [ResponseId] INT NOT NULL,
+        [OptionId] INT NOT NULL,
+        CONSTRAINT [FK_CommunityCampaignResponseOptions_CommunityCampaignResponses_ResponseId] FOREIGN KEY ([ResponseId]) REFERENCES [dbo].[CommunityCampaignResponses]([ResponseId]) ON DELETE CASCADE,
+        CONSTRAINT [FK_CommunityCampaignResponseOptions_CommunityCampaignOptions_OptionId] FOREIGN KEY ([OptionId]) REFERENCES [dbo].[CommunityCampaignOptions]([OptionId])
+    );
+    CREATE UNIQUE INDEX [IX_CommunityCampaignResponseOptions_ResponseId_OptionId] ON [dbo].[CommunityCampaignResponseOptions]([ResponseId], [OptionId]);
+END;
+""";
+
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(sql);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to ensure community engagement schema");
+            throw;
+        }
     }
 
     /// <summary>

@@ -47,7 +47,10 @@ public class IndexModel : PageModel
     public async Task<IActionResult> OnGetAsync(int page = 1, string? type = null)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Forbid();
+        if (userId == null)
+        {
+            return Forbid();
+        }
 
         CurrentPage = page < 1 ? 1 : page;
         CurrentTypeFilter = type;
@@ -80,7 +83,7 @@ public class IndexModel : PageModel
             ReadAt = n.ReadAt,
             Priority = n.Priority.ToString(),
             CreatedAt = n.CreatedAt,
-            Icon = Utils.NotificationUtils.GetNotificationIcon(n.NotificationType.ToString()),
+            Icon = NotificationUtils.GetNotificationIcon(n.NotificationType.ToString()),
             TimeAgo = GetTimeAgo(n.CreatedAt),
             RedirectUrl = NotificationUtils.GetNotificationRedirectUrl(
                 n.NotificationType.ToString(),
@@ -92,21 +95,25 @@ public class IndexModel : PageModel
         return Page();
     }
 
-    // ===== API: Lấy unread count (AJAX từ layout) =====
     public async Task<IActionResult> OnGetUnreadCountAsync()
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return new JsonResult(new { count = 0 });
+        if (userId == null)
+        {
+            return new JsonResult(new { count = 0 });
+        }
 
         var count = await _notificationService.GetUnreadCountAsync(userId.Value);
         return new JsonResult(new { count });
     }
 
-    // ===== API: Lấy recent notifications (dropdown) =====
     public async Task<IActionResult> OnGetRecentAsync()
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return new JsonResult(new { items = Array.Empty<object>() });
+        if (userId == null)
+        {
+            return new JsonResult(new { items = Array.Empty<object>() });
+        }
 
         var role = User.FindFirstValue(ClaimTypes.Role);
         var items = await _notificationService.GetRecentNotificationsAsync(userId.Value, 5);
@@ -121,7 +128,7 @@ public class IndexModel : PageModel
             n.IsRead,
             Priority = n.Priority.ToString(),
             CreatedAt = n.CreatedAt.ToString("dd/MM/yyyy HH:mm"),
-            Icon = Utils.NotificationUtils.GetNotificationIcon(n.NotificationType.ToString()),
+            Icon = NotificationUtils.GetNotificationIcon(n.NotificationType.ToString()),
             TimeAgo = GetTimeAgo(n.CreatedAt),
             RedirectUrl = NotificationUtils.GetNotificationRedirectUrl(
                 n.NotificationType.ToString(),
@@ -133,15 +140,16 @@ public class IndexModel : PageModel
         return new JsonResult(new { items = result });
     }
 
-    // ===== POST: Đánh dấu đã đọc =====
     public async Task<IActionResult> OnPostMarkAsReadAsync(int id)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Forbid();
+        if (userId == null)
+        {
+            return Forbid();
+        }
 
         await _notificationService.MarkAsReadAsync(id, userId.Value);
 
-        // Nếu là AJAX request, trả JSON
         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
         {
             return new JsonResult(new { success = true });
@@ -150,11 +158,13 @@ public class IndexModel : PageModel
         return RedirectToPage();
     }
 
-    // ===== POST: Đánh dấu tất cả đã đọc =====
     public async Task<IActionResult> OnPostMarkAllReadAsync()
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Forbid();
+        if (userId == null)
+        {
+            return Forbid();
+        }
 
         var count = await _notificationService.MarkAllAsReadAsync(userId.Value);
         TempData["SuccessMessage"] = $"Đã đánh dấu {count} thông báo là đã đọc.";
@@ -181,8 +191,10 @@ public class IndexModel : PageModel
             NotificationType.Invoice => "Hóa đơn",
             NotificationType.Request => "Yêu cầu",
             NotificationType.Announcement => "Thông báo chung",
+            NotificationType.Meeting => "Cuộc họp",
             NotificationType.Contract => "Hợp đồng",
             NotificationType.Amenity => "Tiện ích",
+            NotificationType.Community => "Khảo sát & bỏ phiếu",
             _ => "Khác"
         };
     }

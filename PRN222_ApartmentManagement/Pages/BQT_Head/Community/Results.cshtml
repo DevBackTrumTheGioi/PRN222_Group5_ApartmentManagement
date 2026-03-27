@@ -1,0 +1,85 @@
+@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.BQT_Head.Community.ResultsModel
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Kết quả chiến dịch";
+    ViewData["Subtitle"] = "Tổng hợp phản hồi cư dân theo lựa chọn";
+    ViewData["CurrentPage"] = "community";
+}
+
+<div class="space-y-6">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-2xl font-bold text-slate-900">@Model.Campaign.Title</h2>
+                    <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">@Model.Campaign.CampaignType.GetDisplayName()</span>
+                </div>
+                <p class="mt-2 text-sm text-slate-600">@Model.Campaign.QuestionText</p>
+                @if (!string.IsNullOrWhiteSpace(Model.Campaign.Description))
+                {
+                    <p class="mt-2 text-sm text-slate-500">@Model.Campaign.Description</p>
+                }
+            </div>
+            <div class="text-right text-sm">
+                <p class="font-semibold text-slate-900">@Model.Campaign.TotalResponses phản hồi</p>
+                <p class="text-slate-400">@Model.Campaign.StartsAt.ToString("dd/MM/yyyy HH:mm") - @Model.Campaign.EndsAt.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-slate-900">Tỷ lệ theo đáp án</h3>
+        <div class="mt-5 space-y-4">
+            @foreach (var option in Model.Campaign.Options)
+            {
+                <div>
+                    <div class="mb-2 flex items-center justify-between text-sm">
+                        <span class="font-medium text-slate-700">@option.OptionText</span>
+                        <span class="text-slate-500">@option.VoteCount phiếu (@option.VotePercent.ToString("0.#")%)</span>
+                    </div>
+                    <div class="h-3 rounded-full bg-slate-100">
+                        <div class="h-3 rounded-full bg-emerald-500" style="width: @option.VotePercent.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-slate-900">Phản hồi gần nhất</h3>
+        @if (!Model.Campaign.RecentResponses.Any())
+        {
+            <p class="mt-4 text-sm text-slate-400">Chưa có phản hồi nào.</p>
+        }
+        else
+        {
+            <div class="mt-5 overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-500">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Cư dân</th>
+                            <th class="px-4 py-3 text-left">Lựa chọn</th>
+                            <th class="px-4 py-3 text-left">Ghi chú</th>
+                            <th class="px-4 py-3 text-right">Thời gian</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var response in Model.Campaign.RecentResponses)
+                        {
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <p class="font-medium text-slate-800">@response.ResidentName</p>
+                                    <p class="text-xs text-slate-400">@response.ApartmentNumber</p>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600">@response.SelectedOptionsLabel</td>
+                                <td class="px-4 py-3 text-slate-500">@(!string.IsNullOrWhiteSpace(response.Comment) ? response.Comment : "Không có")</td>
+                                <td class="px-4 py-3 text-right text-slate-400">@response.SubmittedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

@@ -1,4 +1,5 @@
 using PRN222_ApartmentManagement.Models;
+using PRN222_ApartmentManagement.Models.DTOs;
 
 namespace PRN222_ApartmentManagement.Services.Interfaces;
 
@@ -9,8 +10,17 @@ public interface IUserManagementService
     Task<User?> GetUserForEditAsync(int userId);
     Task<(bool Success, string? ErrorField, string? ErrorMessage)> CreateUserAsync(UserUpsertRequest request);
     Task<(bool Success, string? ErrorField, string? ErrorMessage)> UpdateUserAsync(UserUpsertRequest request);
+    Task<(bool Success, string? ErrorField, string? ErrorMessage)> CreateFamilyMemberAsync(
+        FamilyMemberCreateDto dto,
+        int creatorResidentUserId,
+        int apartmentId);
     Task<(bool Success, string? ErrorMessage)> ToggleStatusAsync(int userId);
     Task<(bool Success, string? ErrorMessage)> SoftDeleteAsync(int userId);
+    Task<List<User>> GetFamilyMembersAsync(int ownerUserId);
+    Task<List<MyApartmentViewModel>> GetMyApartmentsAsync(int userId);
+    Task<ApartmentDetailViewModel?> GetApartmentWithDetailsAsync(int apartmentId, int userId);
+    Task<List<User>> GetFamilyMembersForApartmentAsync(int apartmentId);
+    Task<List<ApartmentResidentDto>> GetAllResidentsForApartmentAsync(int apartmentId);
 }
 
 public class UserUpsertRequest

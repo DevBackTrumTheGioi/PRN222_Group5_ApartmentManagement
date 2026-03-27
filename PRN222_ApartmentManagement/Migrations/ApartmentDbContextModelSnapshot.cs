@@ -404,6 +404,9 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Property<int>("Floor")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -830,6 +833,75 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.ToTable("InvoiceDetails");
                 });
 
+            modelBuilder.Entity("PRN222_ApartmentManagement.Models.Meeting", b =>
+                {
+                    b.Property<int>("MeetingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MeetingId"));
+
+                    b.Property<string>("Attendees")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan?>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("MeetingType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("MinutesContent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MinutesFileName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("MinutesFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("ScheduledDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan?>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MeetingId");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.ToTable("Meetings");
+                });
+
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Notification", b =>
                 {
                     b.Property<int>("NotificationId")
@@ -922,6 +994,26 @@ namespace PRN222_ApartmentManagement.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("VnpBankCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("VnpPayDate")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("VnpResponseCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("VnpTransactionNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("VnpTxnRef")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.HasKey("TransactionId");
 
                     b.HasIndex("CreatedBy");
@@ -930,6 +1022,8 @@ namespace PRN222_ApartmentManagement.Migrations
 
                     b.HasIndex("TransactionCode")
                         .IsUnique();
+
+                    b.HasIndex("VnpTxnRef");
 
                     b.ToTable("PaymentTransactions");
                 });
@@ -1909,6 +2003,17 @@ namespace PRN222_ApartmentManagement.Migrations
                     b.Navigation("ServicePrice");
 
                     b.Navigation("ServiceType");
+                });
+
+            modelBuilder.Entity("PRN222_ApartmentManagement.Models.Meeting", b =>
+                {
+                    b.HasOne("PRN222_ApartmentManagement.Models.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("PRN222_ApartmentManagement.Models.Notification", b =>

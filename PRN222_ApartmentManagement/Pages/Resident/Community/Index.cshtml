@@ -1,0 +1,68 @@
+@page
+@model PRN222_ApartmentManagement.Pages.Resident.Community.IndexModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Khảo sát & bỏ phiếu";
+    ViewData["Subtitle"] = "Tham gia các chiến dịch đang mở từ Ban Quản Trị";
+    ViewData["CurrentPage"] = "community";
+}
+
+<div class="space-y-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <form method="get" class="flex flex-wrap items-end gap-3">
+            <div class="min-w-[220px] flex-1">
+                <label class="mb-1 block text-xs font-medium text-slate-600">Tìm kiếm</label>
+                <input asp-for="SearchTerm" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Tên chiến dịch, câu hỏi..." />
+            </div>
+            <button type="submit" class="rounded-lg bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">Lọc</button>
+        </form>
+    </div>
+
+    @if (!Model.Campaigns.Any())
+    {
+        <div class="rounded-2xl border border-slate-200 bg-white p-12 text-center text-slate-400 shadow-sm">
+            Hiện chưa có khảo sát hoặc bỏ phiếu nào.
+        </div>
+    }
+    else
+    {
+        <div class="grid gap-4 lg:grid-cols-2">
+            @foreach (var item in Model.Campaigns)
+            {
+                var typeClass = item.CampaignType == CommunityCampaignType.Vote
+                    ? "border-blue-200 bg-blue-50 text-blue-700"
+                    : "border-amber-200 bg-amber-50 text-amber-700";
+                var statusClass = item.CanParticipate
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : item.HasResponded
+                        ? "border-slate-200 bg-slate-50 text-slate-600"
+                        : "border-red-200 bg-red-50 text-red-600";
+
+                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-lg font-bold text-slate-900">@item.Title</h3>
+                        <span class="rounded-full border px-2 py-0.5 text-xs font-medium @typeClass">@item.CampaignType.GetDisplayName()</span>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-600">@item.QuestionText</p>
+                    <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                        <span class="rounded-full border px-2 py-0.5 font-medium @statusClass">
+                            @(item.CanParticipate ? "Đang mở" : item.HasResponded ? "Đã tham gia" : "Đã đóng")
+                        </span>
+                        <span class="text-slate-400">@item.StartsAt.ToString("dd/MM HH:mm") - @item.EndsAt.ToString("dd/MM HH:mm")</span>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <a asp-page="Participate" asp-route-id="@item.CampaignId" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                            @(item.HasResponded ? "Xem phản hồi" : "Tham gia ngay")
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

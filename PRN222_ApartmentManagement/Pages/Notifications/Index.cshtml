@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Thông báo";
     ViewData["Subtitle"] = "Tất cả thông báo của bạn";
+    ViewData["CurrentPage"] = "notifications";
     Layout = "_Layout";
 }
 
@@ -22,9 +23,11 @@
             var types = new[] {
                 ("Request", "Yêu cầu", "📝"),
                 ("Announcement", "Thông báo", "📢"),
+                ("Meeting", "Cuộc họp", "🗓️"),
                 ("Invoice", "Hóa đơn", "💰"),
                 ("Contract", "Hợp đồng", "📄"),
                 ("Amenity", "Tiện ích", "🏊"),
+                ("Community", "Khảo sát", "🗳️"),
                 ("System", "Hệ thống", "⚙️")
             };
         }
@@ -164,6 +167,7 @@ else
                     case 'invoice': return 'Hóa đơn';
                     case 'request': return 'Yêu cầu';
                     case 'announcement': return 'Thông báo chung';
+                    case 'meeting': return 'Cuộc họp';
                     case 'contract': return 'Hợp đồng';
                     case 'amenity': return 'Tiện ích';
                     default: return 'Khác';

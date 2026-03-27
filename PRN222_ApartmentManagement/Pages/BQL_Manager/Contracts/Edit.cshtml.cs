@@ -65,7 +65,7 @@ public class EditModel : PageModel
         Contract = await _contractService.GetByIdWithDetailsAsync(id);
         if (Contract == null)
         {
-            TempData["StatusMessage"] = "Khong tim thay hop dong.";
+            TempData["StatusMessage"] = "Không tìm thấy hợp đồng.";
             return RedirectToPage("Index");
         }
 

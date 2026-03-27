@@ -31,7 +31,7 @@ public class TerminateModel : PageModel
 
         if (Contract == null)
         {
-            TempData["StatusMessage"] = "Khong tim thay hop dong.";
+            TempData["StatusMessage"] = "Không tìm thấy hợp đồng.";
             return RedirectToPage("Index");
         }
 
@@ -50,7 +50,7 @@ public class TerminateModel : PageModel
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdClaim, out var userId))
         {
-            ErrorMessage = "Khong the xac dinh nguoi dung hien tai.";
+            ErrorMessage = "Không thể xác định người dùng hiện tại.";
             Contract = await _contractService.GetByIdWithDetailsAsync(id);
             return Page();
         }

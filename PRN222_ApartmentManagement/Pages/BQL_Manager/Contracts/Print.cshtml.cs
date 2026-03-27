@@ -23,7 +23,7 @@ public class PrintModel : PageModel
 
         if (Contract == null)
         {
-            TempData["StatusMessage"] = "Khong tim thay hop dong.";
+            TempData["StatusMessage"] = "Không tìm thấy hợp đồng.";
             return RedirectToPage("Index");
         }
 

@@ -19,10 +19,13 @@ public class ReceiptModel : PageModel
 
     public PaymentTransaction Transaction { get; set; } = null!;
 
+    public string ReturnUrl { get; set; } = "/Resident/Invoices";
+
     public async Task<IActionResult> OnGetAsync(int id)
     {
         if (User.IsInRole("Resident"))
         {
+            ReturnUrl = "/Resident/Invoices";
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdString, out var userId))
             {
@@ -39,8 +42,22 @@ public class ReceiptModel : PageModel
             return Page();
         }
 
-        if (User.IsInRole("BQL_Manager") || User.IsInRole("BQL_Staff"))
+        if (User.IsInRole("BQL_Manager"))
         {
+            ReturnUrl = "/BQL_Manager/Invoices";
+            var transaction = await _paymentManagementService.GetReceiptForManagementAsync(id);
+            if (transaction == null)
+            {
+                return NotFound();
+            }
+
+            Transaction = transaction;
+            return Page();
+        }
+
+        if (User.IsInRole("BQL_Staff"))
+        {
+            ReturnUrl = "/BQL_Staff/Invoices";
             var transaction = await _paymentManagementService.GetReceiptForManagementAsync(id);
             if (transaction == null)
             {

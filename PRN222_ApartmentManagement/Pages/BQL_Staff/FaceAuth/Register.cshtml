@@ -1,0 +1,162 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.BQL_Staff.FaceAuth.RegisterModel
+@{
+    ViewData["Title"] = "Hỗ trợ đăng ký Face ID";
+    ViewData["CurrentPage"] = "faceauthstaff";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Hỗ trợ đăng ký Face ID",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Staff", Href = "/BQL_Staff" },
+            new { Label = "Face ID", Href = "/BQL_Staff/FaceAuth" },
+            new { Label = "Hỗ trợ đăng ký", Href = "#" }
+        }
+    };
+}
+
+<div class="space-y-6">
+    @if (!ViewContext.ModelState.IsValid)
+    {
+        <div asp-validation-summary="ModelOnly" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+    }
+
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">Đăng ký cho @Model.Resident.FullName</h2>
+                <p class="mt-1 text-sm text-slate-500">Tên đăng nhập: @Model.Resident.Username • Căn @((Model.Resident.Apartment?.ApartmentNumber ?? "-"))</p>
+            </div>
+            <a asp-page="./Index" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                <span class="material-icons text-base">arrow_back</span>
+                Quay lại danh sách
+            </a>
+        </div>
+    </section>
+
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div class="relative aspect-video overflow-hidden rounded-2xl border-4 border-slate-200 bg-black shadow-xl">
+            <video id="video" autoplay muted playsinline class="h-full w-full object-cover"></video>
+            <canvas id="overlay" class="absolute left-0 top-0 h-full w-full"></canvas>
+            <div id="loadingStatus" class="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/80 text-white">
+                <div class="flex flex-col items-center">
+                    <span class="material-icons animate-spin text-4xl">sync</span>
+                    <p class="mt-3 text-sm">Đang khởi tạo camera...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 class="text-lg font-semibold text-slate-900">Hướng dẫn tại quầy</h3>
+                <ul class="mt-4 space-y-3 text-sm text-slate-600">
+                    <li>1. Kiểm tra ánh sáng và hướng camera thẳng vào khuôn mặt.</li>
+                    <li>2. Yêu cầu cư dân bỏ khẩu trang, kính râm, mũ che mặt.</li>
+                    <li>3. Chỉ xác nhận khi khung nhận diện chuyển sang màu xanh.</li>
+                    <li>4. Sau khi đăng ký xong, nhân viên có thể kiểm tra tại trang lịch sử.</li>
+                </ul>
+                <div id="statusAlert" class="mt-4 hidden rounded-xl px-4 py-3 text-sm font-medium"></div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <button id="captureBtn" disabled class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    <span class="material-icons text-base">photo_camera</span>
+                    Lưu dữ liệu khuôn mặt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="registerForm" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" id="faceDescriptor" asp-for="FaceDescriptorString" />
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        const video = document.getElementById('video');
+        const overlay = document.getElementById('overlay');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const captureBtn = document.getElementById('captureBtn');
+        const statusAlert = document.getElementById('statusAlert');
+        const faceDescriptorInput = document.getElementById('faceDescriptor');
+        const registerForm = document.getElementById('registerForm');
+        let currentDescriptor = null;
+        let detectionInterval = null;
+
+        async function init() {
+            try {
+                const modelUrl = 'https://justadudewhohacks.github.io/face-api.js/models';
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
+                ]);
+
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                loadingStatus.classList.add('hidden');
+                startDetection();
+            } catch (error) {
+                console.error(error);
+                loadingStatus.innerHTML = '<p class="p-4 text-center text-red-300">Không thể truy cập camera hoặc tải model Face ID.</p>';
+            }
+        }
+
+        function startDetection() {
+            const displaySize = { width: video.clientWidth, height: video.clientHeight };
+            faceapi.matchDimensions(overlay, displaySize);
+
+            detectionInterval = setInterval(async () => {
+                const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
+
+                const ctx = overlay.getContext('2d');
+                ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+                if (!detection) {
+                    currentDescriptor = null;
+                    captureBtn.disabled = true;
+                    showAlert('Vui lòng đưa khuôn mặt vào trung tâm khung hình.', false);
+                    return;
+                }
+
+                const resized = faceapi.resizeResults(detection, displaySize);
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(resized.detection.box.x, resized.detection.box.y, resized.detection.box.width, resized.detection.box.height);
+
+                currentDescriptor = detection.descriptor;
+                captureBtn.disabled = false;
+                showAlert('Đã nhận diện được khuôn mặt. Có thể lưu dữ liệu ngay.', true);
+            }, 250);
+        }
+
+        function showAlert(message, isSuccess) {
+            statusAlert.className = `mt-4 rounded-xl px-4 py-3 text-sm font-medium ${isSuccess ? 'bg-emerald-50 text-emerald-700 block' : 'bg-amber-50 text-amber-700 block'}`;
+            statusAlert.textContent = message;
+        }
+
+        captureBtn.addEventListener('click', () => {
+            if (!currentDescriptor) {
+                return;
+            }
+
+            faceDescriptorInput.value = JSON.stringify(Array.from(currentDescriptor));
+            registerForm.submit();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+            }
+        });
+
+        init();
+    </script>
+}
