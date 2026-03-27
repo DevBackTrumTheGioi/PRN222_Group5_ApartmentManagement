@@ -19,17 +19,20 @@ public class FaceAuthService : IFaceAuthService
     private readonly IUserRepository _userRepository;
     private readonly IGenericRepository<FaceAuthHistory> _faceAuthHistoryRepository;
     private readonly IActivityLogService _activityLogService;
+    private readonly IResidentApartmentAccessService _residentApartmentAccessService;
 
     public FaceAuthService(
         ApartmentDbContext context,
         IUserRepository userRepository,
         IGenericRepository<FaceAuthHistory> faceAuthHistoryRepository,
-        IActivityLogService activityLogService)
+        IActivityLogService activityLogService,
+        IResidentApartmentAccessService residentApartmentAccessService)
     {
         _context = context;
         _userRepository = userRepository;
         _faceAuthHistoryRepository = faceAuthHistoryRepository;
         _activityLogService = activityLogService;
+        _residentApartmentAccessService = residentApartmentAccessService;
     }
 
     public async Task<(bool Success, string? ErrorMessage)> RegisterFaceAsync(int userId, string faceDescriptor)
@@ -404,6 +407,7 @@ public class FaceAuthService : IFaceAuthService
     {
         var now = DateTime.Now;
         var isWithinOperatingHours = IsAmenityOpenNow(amenity, now);
+        var preferredApartment = resident.Apartment ?? await _residentApartmentAccessService.GetPreferredApartmentAsync(resident.UserId);
 
         var result = new AmenityFaceAccessResultDto
         {
@@ -417,13 +421,13 @@ public class FaceAuthService : IFaceAuthService
             IsWithinOperatingHours = isWithinOperatingHours,
             ResidentId = resident.UserId,
             ResidentName = resident.FullName,
-            ApartmentNumber = resident.Apartment?.ApartmentNumber,
-            BuildingBlock = resident.Apartment?.BuildingBlock,
+            ApartmentNumber = preferredApartment?.ApartmentNumber,
+            BuildingBlock = preferredApartment?.BuildingBlock,
             ConfidenceScore = confidenceScore,
             AccessModeLabel = isManualOverride ? "Check-in thủ công" : "Quét khuôn mặt"
         };
 
-        if (resident.ApartmentId == null)
+        if (!await _residentApartmentAccessService.HasAnyActiveApartmentAsync(resident.UserId))
         {
             result.Message = "Cư dân chưa được gán căn hộ nên không thể sử dụng tiện ích.";
             await LogFaceAccessAttemptAsync(resident.UserId, false, confidenceScore, ipAddress, BuildDeviceInfo(deviceInfo, amenity.AmenityName, isManualOverride, result.Message));

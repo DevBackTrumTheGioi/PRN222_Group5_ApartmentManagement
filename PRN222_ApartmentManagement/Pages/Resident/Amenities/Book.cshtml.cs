@@ -14,10 +14,14 @@ namespace PRN222_ApartmentManagement.Pages.Resident.Amenities;
 public class BookModel : PageModel
 {
     private readonly IAmenityService _amenityService;
+    private readonly IResidentApartmentAccessService _residentApartmentAccessService;
 
-    public BookModel(IAmenityService amenityService)
+    public BookModel(
+        IAmenityService amenityService,
+        IResidentApartmentAccessService residentApartmentAccessService)
     {
         _amenityService = amenityService;
+        _residentApartmentAccessService = residentApartmentAccessService;
     }
 
     [BindProperty]
@@ -26,10 +30,15 @@ public class BookModel : PageModel
     public Amenity? Amenity { get; set; }
     public IReadOnlyList<AmenityAvailabilitySlotDto> Slots { get; set; } = [];
     public List<SelectListItem> TimeOptions { get; set; } = [];
+    public SelectList ApartmentOptions { get; set; } = null!;
     public bool HasApartment { get; set; }
 
     public class InputModel
     {
+        [Required(ErrorMessage = "Vui lòng chọn căn hộ áp dụng.")]
+        [Display(Name = "Căn hộ áp dụng")]
+        public int? ApartmentId { get; set; }
+
         [Required(ErrorMessage = "Vui lòng chọn ngày sử dụng.")]
         [Display(Name = "Ngày sử dụng")]
         public DateTime BookingDate { get; set; } = DateTime.Now.Date;
@@ -60,7 +69,8 @@ public class BookModel : PageModel
         }
 
         Input.BookingDate = date?.Date ?? DateTime.Now.Date;
-        HasApartment = await _amenityService.ResidentHasApartmentAsync(userId.Value);
+        await LoadApartmentOptionsAsync(userId.Value);
+        HasApartment = ApartmentOptions.Any();
 
         var loaded = await LoadPageDataAsync(id);
         if (!loaded)
@@ -92,7 +102,8 @@ public class BookModel : PageModel
             return Forbid();
         }
 
-        HasApartment = await _amenityService.ResidentHasApartmentAsync(userId.Value);
+        await LoadApartmentOptionsAsync(userId.Value);
+        HasApartment = ApartmentOptions.Any();
 
         if (!TimeSpan.TryParse(Input.StartTime, out var startTime))
         {
@@ -117,6 +128,7 @@ public class BookModel : PageModel
 
         var result = await _amenityService.CreateBookingAsync(
             userId.Value,
+            Input.ApartmentId!.Value,
             id,
             Input.BookingDate,
             startTime,
@@ -132,6 +144,25 @@ public class BookModel : PageModel
 
         TempData["SuccessMessage"] = $"{Amenity!.AmenityName}: {Input.BookingDate:dd/MM/yyyy} {startTime:hh\\:mm}-{endTime:hh\\:mm}";
         return RedirectToPage("MyBookings");
+    }
+
+    private async Task LoadApartmentOptionsAsync(int userId)
+    {
+        var apartments = await _residentApartmentAccessService.GetActiveApartmentOptionsAsync(userId);
+        if (!Input.ApartmentId.HasValue && apartments.Count == 1)
+        {
+            Input.ApartmentId = apartments[0].ApartmentId;
+        }
+
+        ApartmentOptions = new SelectList(
+            apartments.Select(a => new
+            {
+                Value = a.ApartmentId,
+                Text = a.Display
+            }),
+            "Value",
+            "Text",
+            Input.ApartmentId);
     }
 
     private async Task<bool> LoadPageDataAsync(int amenityId)

@@ -51,6 +51,14 @@ public class RequestService : IRequestService
     public async Task<IEnumerable<Request>> GetComplaintsAsync()
         => SortByUrgency(await _requestRepository.GetComplaintsAsync());
 
+    public async Task<IEnumerable<Request>> GetOutstandingNonComplaintRequestsAsync()
+    {
+        var all = await _requestRepository.GetAllWithDetailsAsync();
+        return SortByUrgency(all.Where(r =>
+            r.RequestType != RequestType.Complaint &&
+            r.Status is RequestStatus.Pending or RequestStatus.InProgress));
+    }
+
     public async Task<Request> CreateRequestAsync(Request request, List<IFormFile>? attachments)
     {
         request.RequestNumber = await _requestRepository.GenerateRequestNumberAsync();

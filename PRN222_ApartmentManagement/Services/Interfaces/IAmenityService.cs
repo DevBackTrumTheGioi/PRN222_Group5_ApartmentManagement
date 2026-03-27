@@ -15,6 +15,7 @@ public interface IAmenityService
     Task<IReadOnlyList<AmenityAvailabilitySlotDto>> GetAvailabilitySlotsAsync(int amenityId, DateTime bookingDate);
     Task<(bool Success, string Message, AmenityBooking? Booking)> CreateBookingAsync(
         int residentId,
+        int apartmentId,
         int amenityId,
         DateTime bookingDate,
         TimeSpan startTime,

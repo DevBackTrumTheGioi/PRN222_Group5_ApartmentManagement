@@ -27,6 +27,7 @@ public interface IRequestService
 
     // BQT
     Task<IEnumerable<Request>> GetComplaintsAsync();
+    Task<IEnumerable<Request>> GetOutstandingNonComplaintRequestsAsync();
     Task ForwardComplaintAsync(int requestId, int managerId, string reason);
 
     // BQL — khiếu nại được forward từ BQT

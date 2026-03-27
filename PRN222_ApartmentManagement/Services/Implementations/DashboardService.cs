@@ -9,10 +9,14 @@ namespace PRN222_ApartmentManagement.Services.Implementations;
 public class DashboardService : IDashboardService
 {
     private readonly ApartmentDbContext _context;
+    private readonly IResidentApartmentAccessService _residentApartmentAccessService;
 
-    public DashboardService(ApartmentDbContext context)
+    public DashboardService(
+        ApartmentDbContext context,
+        IResidentApartmentAccessService residentApartmentAccessService)
     {
         _context = context;
+        _residentApartmentAccessService = residentApartmentAccessService;
     }
 
     public async Task<AdminDashboardViewModel> GetAdminDashboardAsync()
@@ -106,10 +110,8 @@ public class DashboardService : IDashboardService
 
     public async Task<ResidentDashboardViewModel> GetResidentDashboardAsync(int userId)
     {
-        var user = await _context.Users
-            .Include(u => u.Apartment)
-            .FirstOrDefaultAsync(u => u.UserId == userId);
-            
+        var preferredApartment = await _residentApartmentAccessService.GetPreferredApartmentAsync(userId);
+        var apartmentIds = await _residentApartmentAccessService.GetActiveApartmentIdsAsync(userId);
         var now = DateTime.Now;
 
         var recentAnnouncements = await _context.Announcements
@@ -134,12 +136,16 @@ public class DashboardService : IDashboardService
 
         var model = new ResidentDashboardViewModel
         {
-            Apartment = user?.Apartment,
-            UnpaidInvoices = await _context.Invoices
-                .CountAsync(i => user != null && i.ApartmentId == user.ApartmentId && i.Status == InvoiceStatus.Unpaid),
-            TotalUnpaidAmount = await _context.Invoices
-                .Where(i => user != null && i.ApartmentId == user.ApartmentId && i.Status == InvoiceStatus.Unpaid)
-                .SumAsync(i => i.TotalAmount),
+            Apartment = preferredApartment,
+            UnpaidInvoices = apartmentIds.Count == 0
+                ? 0
+                : await _context.Invoices
+                    .CountAsync(i => apartmentIds.Contains(i.ApartmentId) && i.Status == InvoiceStatus.Unpaid),
+            TotalUnpaidAmount = apartmentIds.Count == 0
+                ? 0
+                : await _context.Invoices
+                    .Where(i => apartmentIds.Contains(i.ApartmentId) && i.Status == InvoiceStatus.Unpaid)
+                    .SumAsync(i => i.TotalAmount),
                 
             RecentRequests = await _context.Requests
                 .Where(r => r.ResidentId == userId)

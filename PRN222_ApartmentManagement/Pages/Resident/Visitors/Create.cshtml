@@ -28,6 +28,15 @@
 
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div class="space-y-1.5 md:col-span-2">
+                    <label asp-for="Input.ApartmentId" class="text-sm font-medium text-slate-700"></label>
+                    <select asp-for="Input.ApartmentId" asp-items="Model.ApartmentOptions"
+                            class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">-- Chọn căn hộ --</option>
+                    </select>
+                    <span asp-validation-for="Input.ApartmentId" class="text-xs text-red-500"></span>
+                </div>
+
+                <div class="space-y-1.5 md:col-span-2">
                     <label asp-for="Input.VisitorName" class="text-sm font-medium text-slate-700"></label>
                     <input asp-for="Input.VisitorName" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                     <span asp-validation-for="Input.VisitorName" class="text-xs text-red-500"></span>
