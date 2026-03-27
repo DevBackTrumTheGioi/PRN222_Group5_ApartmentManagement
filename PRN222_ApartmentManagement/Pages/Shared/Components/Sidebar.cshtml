@@ -92,8 +92,10 @@
         var complaintsHref = isBqtHead ? "/BQT_Head/Complaints/Index" : "/BQT_Member/Complaints/Index";
         var complaintStatsHref = isBqtHead ? "/BQT_Head/Complaints/Stats" : "/BQT_Member/Complaints/Stats";
         var communityHref = isBqtHead ? "/BQT_Head/Community" : "/BQT_Member/Community";
+        var requestsHref = isBqtHead ? "/BQT_Head/Requests" : "/BQT_Member/Requests";
 
         workItems.Add(new SidebarMenuItem { Icon = "feedback", Label = "Danh sách khiếu nại", Href = complaintsHref, Key = "complaints" });
+        workItems.Add(new SidebarMenuItem { Icon = "assignment_late", Label = "Yêu cầu tồn đọng", Href = requestsHref, Key = "bqtrequests" });
         workItems.Add(new SidebarMenuItem { Icon = "monitoring", Label = "Thống kê khiếu nại", Href = complaintStatsHref, Key = "complaintstats" });
         workItems.Add(new SidebarMenuItem { Icon = "how_to_vote", Label = "Khảo sát & bỏ phiếu", Href = communityHref, Key = "community" });
     }
@@ -237,9 +239,9 @@
                 {
                     var isActive = currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase);
                     <a href="@item.Href"
-                       class="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors @(isActive ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-600 hover:bg-slate-50")">
-                        <span class="material-icons text-xl @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
-                        <span class="text-sm">@item.Label</span>
+                       class="flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors @(isActive ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-600 hover:bg-slate-50")">
+                        <span class="material-icons mt-0.5 text-xl @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
+                        <span class="flex-1 text-left text-sm leading-tight whitespace-normal">@item.Label</span>
                     </a>
                 }
             }
@@ -264,9 +266,9 @@
                         {
                             var isActive = currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase);
                             <a href="@item.Href"
-                               class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors @(isActive ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-600 hover:bg-slate-50")">
-                                <span class="material-icons text-lg @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
-                                <span class="text-sm">@item.Label</span>
+                               class="flex items-start gap-3 rounded-lg px-3 py-2 transition-colors @(isActive ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-600 hover:bg-slate-50")">
+                                <span class="material-icons mt-0.5 text-lg @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
+                                <span class="flex-1 text-left text-sm leading-tight whitespace-normal">@item.Label</span>
                             </a>
                         }
                     </div>

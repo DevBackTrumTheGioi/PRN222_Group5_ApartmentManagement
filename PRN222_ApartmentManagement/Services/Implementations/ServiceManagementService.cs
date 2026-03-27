@@ -15,17 +15,20 @@ public class ServiceManagementService : IServiceManagementService
     private readonly IServiceTypeRepository _serviceTypeRepository;
     private readonly IServicePriceRepository _servicePriceRepository;
     private readonly IServiceOrderRepository _serviceOrderRepository;
+    private readonly IResidentApartmentAccessService _residentApartmentAccessService;
 
     public ServiceManagementService(
         ApartmentDbContext context,
         IServiceTypeRepository serviceTypeRepository,
         IServicePriceRepository servicePriceRepository,
-        IServiceOrderRepository serviceOrderRepository)
+        IServiceOrderRepository serviceOrderRepository,
+        IResidentApartmentAccessService residentApartmentAccessService)
     {
         _context = context;
         _serviceTypeRepository = serviceTypeRepository;
         _servicePriceRepository = servicePriceRepository;
         _serviceOrderRepository = serviceOrderRepository;
+        _residentApartmentAccessService = residentApartmentAccessService;
     }
 
     public async Task<IReadOnlyList<ServiceType>> GetManagerServiceTypesAsync(string? search, bool? isActive)
@@ -164,6 +167,7 @@ public class ServiceManagementService : IServiceManagementService
 
     public async Task<(bool Success, string Message, ServiceOrder? Order)> CreateOrderAsync(
         int residentId,
+        int apartmentId,
         int serviceTypeId,
         DateTime requestedDate,
         string? requestedTimeSlot,
@@ -173,9 +177,14 @@ public class ServiceManagementService : IServiceManagementService
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserId == residentId && u.IsActive && !u.IsDeleted && u.Role == UserRole.Resident);
 
-        if (resident?.ApartmentId == null)
+        if (resident == null)
         {
             return (false, "Bạn chưa được gán căn hộ. Vui lòng liên hệ Ban Quản lý.", null);
+        }
+
+        if (!await _residentApartmentAccessService.IsResidentInApartmentAsync(residentId, apartmentId))
+        {
+            return (false, "Căn hộ đã chọn không thuộc quyền sử dụng hiện tại của bạn.", null);
         }
 
         if (requestedDate.Date < DateTime.Now.Date)
@@ -211,7 +220,7 @@ public class ServiceManagementService : IServiceManagementService
         var order = new ServiceOrder
         {
             OrderNumber = await _serviceOrderRepository.GenerateOrderNumberAsync(),
-            ApartmentId = resident.ApartmentId.Value,
+            ApartmentId = apartmentId,
             ResidentId = residentId,
             ServiceTypeId = serviceTypeId,
             RequestedDate = requestedDate.Date,

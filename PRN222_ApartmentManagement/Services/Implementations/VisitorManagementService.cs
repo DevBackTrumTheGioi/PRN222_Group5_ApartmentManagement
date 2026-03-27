@@ -11,15 +11,21 @@ public class VisitorManagementService : IVisitorManagementService
 {
     private readonly ApartmentDbContext _context;
     private readonly IVisitorRepository _visitorRepository;
+    private readonly IResidentApartmentAccessService _residentApartmentAccessService;
 
-    public VisitorManagementService(ApartmentDbContext context, IVisitorRepository visitorRepository)
+    public VisitorManagementService(
+        ApartmentDbContext context,
+        IVisitorRepository visitorRepository,
+        IResidentApartmentAccessService residentApartmentAccessService)
     {
         _context = context;
         _visitorRepository = visitorRepository;
+        _residentApartmentAccessService = residentApartmentAccessService;
     }
 
     public async Task<(bool Success, string Message, Visitor? Visitor)> CreateResidentVisitorAsync(
         int residentId,
+        int apartmentId,
         string visitorName,
         string phoneNumber,
         string? identityCard,
@@ -35,7 +41,7 @@ public class VisitorManagementService : IVisitorManagementService
                 u.IsActive &&
                 u.Role == UserRole.Resident);
 
-        if (resident?.ApartmentId == null)
+        if (resident == null)
         {
             return (false, "Bạn chưa được gán căn hộ. Vui lòng liên hệ Ban Quản lý.", null);
         }
@@ -65,6 +71,11 @@ public class VisitorManagementService : IVisitorManagementService
             return (false, "CCCD/CMND không hợp lệ. Vui lòng chỉ nhập chữ và số.", null);
         }
 
+        if (!await _residentApartmentAccessService.IsResidentInApartmentAsync(residentId, apartmentId))
+        {
+            return (false, "Căn hộ đã chọn không thuộc quyền sử dụng hiện tại của bạn.", null);
+        }
+
         if (visitDate.Date < DateTime.Now.Date)
         {
             return (false, "Ngày khách đến không được ở quá khứ.", null);
@@ -72,7 +83,7 @@ public class VisitorManagementService : IVisitorManagementService
 
         var normalizedVisitDate = visitDate.Date;
         var hasActiveDuplicate = await _context.Visitors.AnyAsync(v =>
-            v.ApartmentId == resident.ApartmentId.Value &&
+            v.ApartmentId == apartmentId &&
             v.VisitDate == normalizedVisitDate &&
             (v.Status == VisitorStatus.Pending || v.Status == VisitorStatus.CheckedIn) &&
             (v.PhoneNumber == phoneNumber ||
@@ -88,7 +99,7 @@ public class VisitorManagementService : IVisitorManagementService
             VisitorName = visitorName,
             PhoneNumber = phoneNumber,
             IdentityCard = identityCard,
-            ApartmentId = resident.ApartmentId.Value,
+            ApartmentId = apartmentId,
             RegisteredBy = residentId,
             VisitDate = normalizedVisitDate,
             Status = VisitorStatus.Pending,

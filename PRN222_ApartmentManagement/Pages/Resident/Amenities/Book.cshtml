@@ -34,6 +34,14 @@
             }
 
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div class="md:col-span-2">
+                    <label asp-for="Input.ApartmentId" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
+                    <select asp-for="Input.ApartmentId" asp-items="Model.ApartmentOptions" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Chọn căn hộ</option>
+                    </select>
+                    <span asp-validation-for="Input.ApartmentId" class="mt-1 block text-xs text-red-500"></span>
+                </div>
+
                 <div>
                     <label asp-for="Input.BookingDate" class="mb-1.5 block text-sm font-medium text-slate-700"></label>
                     <input asp-for="Input.BookingDate" type="date" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />

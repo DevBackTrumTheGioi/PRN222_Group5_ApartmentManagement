@@ -215,6 +215,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRequestService, RequestService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IResidentCardService, ResidentCardService>();
+builder.Services.AddScoped<IResidentApartmentAccessService, ResidentApartmentAccessService>();
 builder.Services.AddScoped<IApartmentService, ApartmentService>();
 builder.Services.AddScoped<VNPayHelper>();
 builder.Services.AddScoped<IAmenityService, AmenityService>();

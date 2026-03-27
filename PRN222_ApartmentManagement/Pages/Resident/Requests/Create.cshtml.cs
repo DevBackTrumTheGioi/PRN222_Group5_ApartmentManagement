@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.Enums;
-using PRN222_ApartmentManagement.Repositories.Interfaces;
 using PRN222_ApartmentManagement.Services.Interfaces;
 using PRN222_ApartmentManagement.Utils;
 
@@ -16,7 +15,7 @@ namespace PRN222_ApartmentManagement.Pages.Resident.Requests;
 public class CreateModel : PageModel
 {
     private readonly IRequestService _requestService;
-    private readonly IUserRepository _userRepository;
+    private readonly IResidentApartmentAccessService _residentApartmentAccessService;
 
     private static readonly string[] AllowedContentTypes =
     [
@@ -25,10 +24,12 @@ public class CreateModel : PageModel
     ];
     private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-    public CreateModel(IRequestService requestService, IUserRepository userRepository)
+    public CreateModel(
+        IRequestService requestService,
+        IResidentApartmentAccessService residentApartmentAccessService)
     {
         _requestService = requestService;
-        _userRepository = userRepository;
+        _residentApartmentAccessService = residentApartmentAccessService;
     }
 
     [BindProperty]
@@ -38,9 +39,14 @@ public class CreateModel : PageModel
     public List<IFormFile>? Attachments { get; set; }
 
     public SelectList RequestTypeOptions { get; set; } = null!;
+    public SelectList ApartmentOptions { get; set; } = null!;
 
     public class InputModel
     {
+        [Required(ErrorMessage = "Vui lòng chọn căn hộ áp dụng.")]
+        [Display(Name = "Căn hộ áp dụng")]
+        public int? ApartmentId { get; set; }
+
         [Required(ErrorMessage = "Vui lòng nhập tiêu đề.")]
         [MaxLength(200, ErrorMessage = "Tiêu đề không vượt quá 200 ký tự.")]
         [Display(Name = "Tiêu đề")]
@@ -56,40 +62,46 @@ public class CreateModel : PageModel
     public async Task<IActionResult> OnGetAsync()
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var user = await _userRepository.GetByIdAsync(userId);
+        var hasActiveApartment = await _residentApartmentAccessService.HasAnyActiveApartmentAsync(userId);
 
-        if (user == null || user.ApartmentId == null)
+        if (!hasActiveApartment)
         {
             TempData["ErrorMessage"] = "Bạn chưa được gán căn hộ. Vui lòng liên hệ Ban Quản Lý.";
             return RedirectToPage("/Resident/Index");
         }
 
-        LoadSelectLists();
+        await LoadSelectListsAsync(userId);
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var user = await _userRepository.GetByIdAsync(userId);
+        var hasActiveApartment = await _residentApartmentAccessService.HasAnyActiveApartmentAsync(userId);
 
-        if (user == null || user.ApartmentId == null)
+        if (!hasActiveApartment)
         {
             TempData["ErrorMessage"] = "Bạn chưa được gán căn hộ. Vui lòng liên hệ Ban Quản Lý.";
             return RedirectToPage("/Resident/Index");
+        }
+
+        if (!Input.ApartmentId.HasValue ||
+            !await _residentApartmentAccessService.IsResidentInApartmentAsync(userId, Input.ApartmentId.Value))
+        {
+            ModelState.AddModelError($"{nameof(Input)}.{nameof(Input.ApartmentId)}", "Căn hộ đã chọn không hợp lệ.");
         }
 
         ValidateAttachments();
 
         if (!ModelState.IsValid)
         {
-            LoadSelectLists();
+            await LoadSelectListsAsync(userId);
             return Page();
         }
 
         var request = new Request
         {
-            ApartmentId = user.ApartmentId.Value,
+            ApartmentId = Input.ApartmentId!.Value,
             ResidentId = userId,
             Title = Input.Title,
             RequestType = Input.RequestType,
@@ -106,7 +118,7 @@ public class CreateModel : PageModel
         catch (Exception)
         {
             ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại.");
-            LoadSelectLists();
+            await LoadSelectListsAsync(userId);
             return Page();
         }
     }
@@ -137,8 +149,24 @@ public class CreateModel : PageModel
         }
     }
 
-    private void LoadSelectLists()
+    private async Task LoadSelectListsAsync(int userId)
     {
+        var apartments = await _residentApartmentAccessService.GetActiveApartmentOptionsAsync(userId);
+        if (!Input.ApartmentId.HasValue && apartments.Count == 1)
+        {
+            Input.ApartmentId = apartments[0].ApartmentId;
+        }
+
+        ApartmentOptions = new SelectList(
+            apartments.Select(a => new
+            {
+                Value = a.ApartmentId,
+                Text = a.Display
+            }),
+            "Value",
+            "Text",
+            Input.ApartmentId);
+
         RequestTypeOptions = new SelectList(
             Enum.GetValues<RequestType>().Select(e => new
             {

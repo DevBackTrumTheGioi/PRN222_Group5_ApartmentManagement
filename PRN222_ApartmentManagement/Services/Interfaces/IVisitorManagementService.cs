@@ -7,6 +7,7 @@ public interface IVisitorManagementService
 {
     Task<(bool Success, string Message, Visitor? Visitor)> CreateResidentVisitorAsync(
         int residentId,
+        int apartmentId,
         string visitorName,
         string phoneNumber,
         string? identityCard,

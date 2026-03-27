@@ -64,6 +64,38 @@ public class CreateModel : PageModel
             ModelState.Remove("Input.OwnerIdentityCard");
             ModelState.Remove("Input.OwnerDateOfBirth");
 
+            if (Input.ApartmentId <= 0)
+            {
+                ErrorMessage = "Vui lòng chọn căn hộ.";
+                return Page();
+            }
+
+            if (!Input.ContractType.HasValue)
+            {
+                ErrorMessage = "Vui lòng chọn loại hợp đồng.";
+                return Page();
+            }
+
+            if (Input.StartDate == default)
+            {
+                ErrorMessage = "Vui lòng chọn ngày bắt đầu.";
+                return Page();
+            }
+
+            if (Input.ContractType == ContractType.Rental)
+            {
+                if (!Input.EndDate.HasValue)
+                {
+                    ErrorMessage = "Vui lòng nhập ngày kết thúc cho hợp đồng thuê.";
+                    return Page();
+                }
+                if (!Input.MonthlyRent.HasValue || Input.MonthlyRent <= 0)
+                {
+                    ErrorMessage = "Vui lòng nhập tiền thuê hàng tháng cho hợp đồng thuê.";
+                    return Page();
+                }
+            }
+
             if (!Input.ExistingOwnerId.HasValue || Input.ExistingOwnerId.Value == 0)
             {
                 ErrorMessage = "Vui lòng tra cứu CCCD để chọn chủ hộ đã tồn tại.";
@@ -92,6 +124,33 @@ public class CreateModel : PageModel
         }
         else
         {
+            if (Input.ApartmentId <= 0)
+            {
+                ModelState.AddModelError("Input.ApartmentId", "Vui lòng chọn căn hộ.");
+            }
+
+            if (!Input.ContractType.HasValue)
+            {
+                ModelState.AddModelError("Input.ContractType", "Vui lòng chọn loại hợp đồng.");
+            }
+
+            if (Input.StartDate == default)
+            {
+                ModelState.AddModelError("Input.StartDate", "Vui lòng chọn ngày bắt đầu.");
+            }
+
+            if (Input.ContractType == ContractType.Rental)
+            {
+                if (!Input.EndDate.HasValue)
+                {
+                    ModelState.AddModelError("Input.EndDate", "Ngày kết thúc là bắt buộc cho hợp đồng thuê.");
+                }
+                if (!Input.MonthlyRent.HasValue || Input.MonthlyRent <= 0)
+                {
+                    ModelState.AddModelError("Input.MonthlyRent", "Tiền thuê hàng tháng phải lớn hơn 0.");
+                }
+            }
+
             if (string.IsNullOrWhiteSpace(Input.OwnerFullName))
             {
                 ModelState.AddModelError("Input.OwnerFullName", "Vui lòng nhập họ và tên.");

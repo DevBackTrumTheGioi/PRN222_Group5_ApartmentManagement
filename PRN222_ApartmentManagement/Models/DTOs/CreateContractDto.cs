@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using PRN222_ApartmentManagement.Models.Enums;
 
 namespace PRN222_ApartmentManagement.Models.DTOs;
@@ -5,7 +6,11 @@ namespace PRN222_ApartmentManagement.Models.DTOs;
 public class CreateContractDto
 {
     public int ApartmentId { get; set; }
+
+    [Required(ErrorMessage = "Loại hợp đồng là bắt buộc.")]
     public ContractType? ContractType { get; set; }
+
+    [Required(ErrorMessage = "Ngày bắt đầu là bắt buộc.")]
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public decimal? MonthlyRent { get; set; }
