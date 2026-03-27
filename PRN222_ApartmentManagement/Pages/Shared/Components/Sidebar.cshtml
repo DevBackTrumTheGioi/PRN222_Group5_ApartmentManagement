@@ -48,6 +48,7 @@
                 new() { Icon = "people", Label = "Cư dân", Href = "/BQL_Manager/Residents", Key = "residents" },
                 new() { Icon = "credit_card", Label = "Thẻ căn hộ", Href = "/BQL_Manager/Cards", Key = "residentcards" },
                 new() { Icon = "pool", Label = "Tiện ích", Href = "/BQL_Manager/Amenities", Key = "amenities" },
+                new() { Icon = "event_note", Label = "Booking tiện ích", Href = "/BQL_Manager/Amenities/Bookings", Key = "amenitybookings" },
                 new() { Icon = "cleaning_services", Label = "Loại dịch vụ", Href = "/BQL_Manager/Services", Key = "services" },
                 new() { Icon = "fact_check", Label = "Đơn dịch vụ", Href = "/BQL_Manager/ServiceOrders", Key = "serviceorders" }
             }
@@ -77,6 +78,7 @@
     {
         workItems.Add(new SidebarMenuItem { Icon = "support_agent", Label = "Yêu cầu của tôi", Href = "/Resident/Requests/MyRequests", Key = "requests" });
         workItems.Add(new SidebarMenuItem { Icon = "event_available", Label = "Đặt tiện ích", Href = "/Resident/Amenities", Key = "amenities" });
+        workItems.Add(new SidebarMenuItem { Icon = "event_note", Label = "Booking tiện ích", Href = "/Resident/Amenities/MyBookings", Key = "amenitybookings" });
         workItems.Add(new SidebarMenuItem { Icon = "cleaning_services", Label = "Dịch vụ theo yêu cầu", Href = "/Resident/Services", Key = "services" });
         workItems.Add(new SidebarMenuItem { Icon = "list_alt", Label = "Đơn dịch vụ của tôi", Href = "/Resident/Services/MyOrders", Key = "services" });
         workItems.Add(new SidebarMenuItem { Icon = "person_add", Label = "Đăng ký khách", Href = "/Resident/Visitors/Create", Key = "visitors" });

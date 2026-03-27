@@ -23,6 +23,13 @@ public interface IAmenityService
         int participantCount,
         string? notes);
     Task<IReadOnlyList<AmenityBooking>> GetResidentBookingsAsync(int residentId, string? status = null);
+    Task<IReadOnlyList<AmenityBooking>> GetManagerBookingsAsync(
+        string? searchTerm,
+        string? status = null,
+        int? amenityId = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null);
     Task<(bool Success, string Message)> CancelBookingAsync(int bookingId, int residentId);
+    Task<(bool Success, string Message)> UpdateBookingStatusAsync(int bookingId, string status);
     Task<bool> ResidentHasApartmentAsync(int residentId);
 }

@@ -22,11 +22,13 @@ public class MyBookingsModel : PageModel
     public string? StatusFilter { get; set; }
 
     public IReadOnlyList<AmenityBooking> Bookings { get; set; } = [];
+    public IReadOnlyList<AmenityBooking> ActiveBookings { get; set; } = [];
 
     public int TotalCount { get; set; }
     public int ConfirmedCount { get; set; }
     public int CompletedCount { get; set; }
     public int CancelledCount { get; set; }
+    public int ActiveWindowCount { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -41,6 +43,8 @@ public class MyBookingsModel : PageModel
         ConfirmedCount = allBookings.Count(b => b.Status == AmenityBookingStatusHelper.Confirmed);
         CompletedCount = allBookings.Count(b => b.Status == AmenityBookingStatusHelper.Completed);
         CancelledCount = allBookings.Count(b => b.Status == AmenityBookingStatusHelper.Cancelled);
+        ActiveBookings = allBookings.Where(IsActiveWindow).ToList();
+        ActiveWindowCount = ActiveBookings.Count;
 
         Bookings = string.IsNullOrWhiteSpace(StatusFilter)
             ? allBookings
@@ -67,5 +71,17 @@ public class MyBookingsModel : PageModel
     {
         var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return int.TryParse(value, out var userId) ? userId : null;
+    }
+
+    private static bool IsActiveWindow(AmenityBooking booking)
+    {
+        if (booking.Status == AmenityBookingStatusHelper.Cancelled)
+        {
+            return false;
+        }
+
+        var now = DateTime.Now;
+        return booking.BookingDate.Date > now.Date ||
+               (booking.BookingDate.Date == now.Date && booking.EndTime > now.TimeOfDay);
     }
 }
