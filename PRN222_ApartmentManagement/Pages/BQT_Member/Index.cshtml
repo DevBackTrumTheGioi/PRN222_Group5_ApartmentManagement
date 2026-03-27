@@ -8,19 +8,7 @@
 
 <div class="space-y-6">
     <!-- Summary Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-                    <span class="material-icons">payments</span>
-                </div>
-                <div>
-                    <p class="text-sm text-slate-500 font-medium">Công nợ hiện tại</p>
-                    <h3 class="text-2xl font-bold">@Model.DashboardData.TotalOutstandingDebt.ToString("N0") <span class="text-sm font-normal">đ</span></h3>
-                </div>
-            </div>
-        </div>
-
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
@@ -62,11 +50,11 @@
     <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center">
         <span class="material-icons text-slate-200 text-6xl mb-4">visibility</span>
         <h3 class="text-lg font-bold text-slate-900 mb-2">Chế độ xem giám sát</h3>
-        <p class="text-slate-500 max-w-md mx-auto mb-6">Bạn có quyền xem tất cả báo cáo vận hành và tài chính của tòa nhà. Quyền phê duyệt và thay đổi thuộc về Trưởng Ban Quản Trị.</p>
+        <p class="text-slate-500 max-w-md mx-auto mb-6">Bạn có quyền theo dõi danh sách khiếu nại, thống kê xử lý và thông báo chung của tòa nhà. Quyền phản hồi và điều phối thuộc về Trưởng Ban Quản Trị.</p>
         <div class="flex flex-wrap justify-center gap-4">
-            <a href="/BQT_Member/FinancialReports" class="px-6 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Báo cáo tài chính</a>
             <a asp-page="/BQT_Member/Complaints/Index" class="px-6 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Xem khiếu nại</a>
-            <a href="/Announcements" class="px-6 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Thông báo chung</a>
+            <a asp-page="/BQT_Member/Complaints/Stats" class="px-6 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Thống kê khiếu nại</a>
+            <a href="/Announcements/Index" class="px-6 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Thông báo chung</a>
         </div>
     </div>
 </div>

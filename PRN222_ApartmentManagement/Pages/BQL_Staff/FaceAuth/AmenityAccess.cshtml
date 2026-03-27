@@ -1,0 +1,307 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQL_Staff.FaceAuth.AmenityAccessModel
+@{
+    ViewData["Title"] = "Test xác thực tiện ích";
+    ViewData["CurrentPage"] = "faceauthstaff";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Test xác thực tại tiện ích",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Staff", Href = "/BQL_Staff" },
+            new { Label = "Face ID", Href = "/BQL_Staff/FaceAuth" },
+            new { Label = "Test tiện ích", Href = "#" }
+        }
+    };
+}
+
+<div class="space-y-6">
+    @if (!ViewContext.ModelState.IsValid)
+    {
+        <div asp-validation-summary="ModelOnly" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+    }
+
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">Cấu hình kiosk test</h2>
+                <p class="mt-1 text-sm text-slate-500">Chọn tiện ích trước khi quét. Hệ thống sẽ kiểm tra Face ID và quyền sử dụng tại thời điểm hiện tại.</p>
+            </div>
+
+            <form method="get" class="grid w-full grid-cols-1 gap-3 md:max-w-2xl md:grid-cols-[minmax(0,1fr)_auto]">
+                <div class="space-y-2">
+                    <label asp-for="AmenityId" class="text-sm font-medium text-slate-700">Tiện ích cần kiểm tra</label>
+                    <select asp-for="AmenityId" asp-items="Model.AmenityOptions" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm">
+                        <option value="">Chọn tiện ích</option>
+                    </select>
+                </div>
+                <div class="flex items-end gap-3">
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                        <span class="material-icons text-base">storefront</span>
+                        Tải khu test
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        @if (Model.SelectedAmenity != null)
+        {
+            <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Tiện ích</p>
+                    <p class="mt-2 text-lg font-semibold text-slate-900">@Model.SelectedAmenity.AmenityName</p>
+                    <p class="mt-1 text-sm text-slate-500">@(string.IsNullOrWhiteSpace(Model.SelectedAmenity.Location) ? "Chưa cập nhật vị trí" : Model.SelectedAmenity.Location)</p>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Cơ chế vào cổng</p>
+                    <span class="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold @(Model.SelectedAmenity.RequiresBooking ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700")">
+                        @(Model.SelectedAmenity.RequiresBooking ? "Cần booking còn hiệu lực" : "Mở tự do cho cư dân")
+                    </span>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Khung giờ hoạt động</p>
+                    <p class="mt-2 text-lg font-semibold text-slate-900">@Model.SelectedAmenity.OpenTime.ToString(@"hh\:mm") - @Model.SelectedAmenity.CloseTime.ToString(@"hh\:mm")</p>
+                </div>
+            </div>
+        }
+    </section>
+
+    @if (Model.Result != null)
+    {
+        var toneClass = Model.Result.AccessGranted
+            ? "border-emerald-200 bg-emerald-50"
+            : "border-red-200 bg-red-50";
+        var iconClass = Model.Result.AccessGranted
+            ? "bg-emerald-100 text-emerald-700"
+            : "bg-red-100 text-red-700";
+        var iconName = Model.Result.AccessGranted ? "verified_user" : "gpp_bad";
+
+        <section class="rounded-xl border @toneClass p-6 shadow-sm">
+            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div class="flex gap-4">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl @iconClass">
+                        <span class="material-icons">@iconName</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">@Model.Result.AccessModeLabel</p>
+                        <h2 class="mt-1 text-xl font-bold text-slate-900">@Model.Result.Message</h2>
+                        <p class="mt-2 text-sm text-slate-600">Kiểm tra lúc @Model.Result.CheckedAt.ToString("dd/MM/yyyy HH:mm:ss") cho tiện ích <span class="font-semibold">@Model.Result.AmenityName</span>.</p>
+                    </div>
+                </div>
+
+                <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold @(Model.Result.AccessGranted ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700")">
+                    @(Model.Result.AccessGranted ? "Được vào" : "Từ chối vào")
+                </span>
+            </div>
+
+            @if (Model.Result.ResidentId.HasValue)
+            {
+                <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div class="rounded-xl border border-white/60 bg-white/70 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Cư dân</p>
+                        <p class="mt-2 font-semibold text-slate-900">@Model.Result.ResidentName</p>
+                    </div>
+                    <div class="rounded-xl border border-white/60 bg-white/70 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Căn hộ</p>
+                        <p class="mt-2 font-semibold text-slate-900">Căn @(Model.Result.ApartmentNumber ?? "-") @(string.IsNullOrWhiteSpace(Model.Result.BuildingBlock) ? string.Empty : $"- Tòa {Model.Result.BuildingBlock}")</p>
+                    </div>
+                    <div class="rounded-xl border border-white/60 bg-white/70 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Độ khớp</p>
+                        <p class="mt-2 font-semibold text-slate-900">@((Model.Result.ConfidenceScore * 100).ToString("N1"))%</p>
+                    </div>
+                    <div class="rounded-xl border border-white/60 bg-white/70 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Booking hợp lệ</p>
+                        <p class="mt-2 font-semibold text-slate-900">@(Model.Result.HasValidBooking ? "Có" : "Không")</p>
+                        @if (!string.IsNullOrWhiteSpace(Model.Result.BookingWindowLabel))
+                        {
+                            <p class="mt-1 text-xs text-slate-500">@Model.Result.BookingWindowLabel</p>
+                        }
+                    </div>
+                </div>
+            }
+        </section>
+    }
+
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.9fr)]">
+        <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-5 flex items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-900">Camera quét khuôn mặt</h2>
+                    <p class="mt-1 text-sm text-slate-500">Trang này mô phỏng kiosk để staff test rule xác thực tiện ích trước khi triển khai thực tế.</p>
+                </div>
+                <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                    @(Model.SelectedAmenity == null ? "Chưa chọn tiện ích" : "Sẵn sàng kiểm tra")
+                </span>
+            </div>
+
+            <div class="relative aspect-video overflow-hidden rounded-2xl border-4 border-slate-200 bg-black shadow-xl">
+                <video id="video" autoplay muted playsinline class="h-full w-full object-cover"></video>
+                <canvas id="overlay" class="absolute left-0 top-0 h-full w-full"></canvas>
+                <div id="loadingStatus" class="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/80 text-white">
+                    <div class="flex flex-col items-center">
+                        <span class="material-icons animate-spin text-4xl">sync</span>
+                        <p class="mt-3 text-sm">Đang khởi tạo camera...</p>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" asp-page-handler="Scan" id="scanForm" class="mt-5 space-y-4">
+                <input type="hidden" asp-for="AmenityId" />
+                <input type="hidden" asp-for="ScanInput.AmenityId" />
+                <input type="hidden" asp-for="ScanInput.FaceDescriptorString" id="faceDescriptor" />
+                <input type="hidden" asp-for="ScanInput.DeviceInfo" id="scanDeviceInfo" />
+
+                <div id="statusAlert" class="hidden rounded-xl px-4 py-3 text-sm font-medium"></div>
+
+                <button id="captureBtn" type="button" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50" @(Model.SelectedAmenity == null ? "disabled" : null)>
+                    <span class="material-icons text-base">photo_camera</span>
+                    Quét và xác thực quyền sử dụng
+                </button>
+            </form>
+        </section>
+
+        <div class="space-y-6">
+            <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 class="text-lg font-semibold text-slate-900">Nguyên tắc kiểm tra</h2>
+                <ul class="mt-4 space-y-3 text-sm text-slate-600">
+                    <li>1. Với tiện ích mở tự do như hồ bơi hoặc phòng gym, chỉ cần Face ID khớp với cư dân đang hoạt động.</li>
+                    <li>2. Với tiện ích cần đặt chỗ, hệ thống chỉ cho qua khi có booking đang hiệu lực tại đúng thời điểm quét.</li>
+                    <li>3. Nếu khuôn mặt không match hoặc camera lỗi, staff có thể dùng khu vực check-in thủ công bên dưới.</li>
+                </ul>
+            </section>
+
+            <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-900">Check-in thủ công</h2>
+                        <p class="mt-1 text-sm text-slate-500">Dùng như fallback khi quét khuôn mặt thất bại nhưng staff vẫn cần xác minh quyền dùng tiện ích.</p>
+                    </div>
+                    <span class="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">Fallback</span>
+                </div>
+
+                <form method="post" asp-page-handler="Manual" class="mt-5 space-y-4">
+                    <input type="hidden" asp-for="AmenityId" />
+                    <input type="hidden" asp-for="ManualInput.AmenityId" />
+                    <input type="hidden" asp-for="ManualInput.DeviceInfo" id="manualDeviceInfo" />
+
+                    <div class="space-y-2">
+                        <label asp-for="ManualInput.ResidentId" class="text-sm font-medium text-slate-700">Chọn cư dân</label>
+                        <select asp-for="ManualInput.ResidentId" asp-items="Model.ResidentOptions" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm">
+                            <option value="">Chọn cư dân cần check-in thủ công</option>
+                        </select>
+                        <span asp-validation-for="ManualInput.ResidentId" class="text-xs text-red-500"></span>
+                    </div>
+
+                    <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50" @(Model.SelectedAmenity == null ? "disabled" : null)>
+                        <span class="material-icons text-base">fact_check</span>
+                        Kiểm tra thủ công theo cư dân
+                    </button>
+                </form>
+            </section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        const video = document.getElementById('video');
+        const overlay = document.getElementById('overlay');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const captureBtn = document.getElementById('captureBtn');
+        const statusAlert = document.getElementById('statusAlert');
+        const faceDescriptorInput = document.getElementById('faceDescriptor');
+        const scanDeviceInfoInput = document.getElementById('scanDeviceInfo');
+        const manualDeviceInfoInput = document.getElementById('manualDeviceInfo');
+        const scanForm = document.getElementById('scanForm');
+
+        let currentDescriptor = null;
+        let detectionInterval = null;
+
+        async function init() {
+            try {
+                const modelUrl = 'https://justadudewhohacks.github.io/face-api.js/models';
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
+                ]);
+
+                scanDeviceInfoInput.value = navigator.userAgent;
+                manualDeviceInfoInput.value = navigator.userAgent;
+
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                loadingStatus.classList.add('hidden');
+                startDetection();
+            } catch (error) {
+                console.error(error);
+                loadingStatus.innerHTML = '<p class="p-4 text-center text-red-300">Không thể truy cập camera hoặc tải model Face ID.</p>';
+            }
+        }
+
+        function startDetection() {
+            const displaySize = { width: video.clientWidth, height: video.clientHeight };
+            faceapi.matchDimensions(overlay, displaySize);
+
+            detectionInterval = setInterval(async () => {
+                const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
+
+                const ctx = overlay.getContext('2d');
+                ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+                if (!detection) {
+                    currentDescriptor = null;
+                    if (captureBtn) {
+                        captureBtn.disabled = true;
+                    }
+                    showAlert('Vui lòng đưa khuôn mặt vào trung tâm khung hình.', false);
+                    return;
+                }
+
+                const resized = faceapi.resizeResults(detection, displaySize);
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(resized.detection.box.x, resized.detection.box.y, resized.detection.box.width, resized.detection.box.height);
+
+                currentDescriptor = detection.descriptor;
+                if (captureBtn && @((Model.SelectedAmenity != null).ToString().ToLowerInvariant())) {
+                    captureBtn.disabled = false;
+                }
+                showAlert('Đã nhận diện khuôn mặt. Có thể gửi lên hệ thống để xác thực.', true);
+            }, 250);
+        }
+
+        function showAlert(message, isSuccess) {
+            if (!statusAlert) {
+                return;
+            }
+
+            statusAlert.className = `rounded-xl px-4 py-3 text-sm font-medium ${isSuccess ? 'bg-emerald-50 text-emerald-700 block' : 'bg-amber-50 text-amber-700 block'}`;
+            statusAlert.textContent = message;
+        }
+
+        if (captureBtn) {
+            captureBtn.addEventListener('click', () => {
+                if (!currentDescriptor || !scanForm) {
+                    return;
+                }
+
+                faceDescriptorInput.value = JSON.stringify(Array.from(currentDescriptor));
+                scanForm.submit();
+            });
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+            }
+        });
+
+        init();
+    </script>
+}

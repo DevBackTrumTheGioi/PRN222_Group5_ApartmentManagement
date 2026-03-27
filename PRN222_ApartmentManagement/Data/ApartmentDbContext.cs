@@ -49,6 +49,10 @@ public class ApartmentDbContext : DbContext
 
     // Communication entities
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<CommunityCampaign> CommunityCampaigns { get; set; }
+    public DbSet<CommunityCampaignOption> CommunityCampaignOptions { get; set; }
+    public DbSet<CommunityCampaignResponse> CommunityCampaignResponses { get; set; }
+    public DbSet<CommunityCampaignResponseOption> CommunityCampaignResponseOptions { get; set; }
 
     // BQT meeting entities
     public DbSet<Meeting> Meetings { get; set; }
@@ -190,6 +194,16 @@ public class ApartmentDbContext : DbContext
             .HasConversion<string>()
             .HasMaxLength(20);
 
+        modelBuilder.Entity<CommunityCampaign>()
+            .Property(c => c.CampaignType)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<CommunityCampaign>()
+            .Property(c => c.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
         modelBuilder.Entity<Meeting>()
             .Property(m => m.MeetingType)
             .HasConversion<string>()
@@ -265,6 +279,17 @@ public class ApartmentDbContext : DbContext
 
         modelBuilder.Entity<UserRefreshToken>()
             .HasIndex(rt => new { rt.UserId, rt.ExpiresAt });
+
+        modelBuilder.Entity<CommunityCampaignOption>()
+            .HasIndex(o => new { o.CampaignId, o.DisplayOrder });
+
+        modelBuilder.Entity<CommunityCampaignResponse>()
+            .HasIndex(r => new { r.CampaignId, r.UserId })
+            .IsUnique();
+
+        modelBuilder.Entity<CommunityCampaignResponseOption>()
+            .HasIndex(ro => new { ro.ResponseId, ro.OptionId })
+            .IsUnique();
 
         // Configure relationships with specific navigation properties
         modelBuilder.Entity<User>()
@@ -427,6 +452,42 @@ public class ApartmentDbContext : DbContext
 
         modelBuilder.Entity<AmenityBooking>()
             .HasIndex(ab => new { ab.AmenityId, ab.BookingDate, ab.StartTime, ab.EndTime });
+
+        modelBuilder.Entity<CommunityCampaign>()
+            .HasOne(c => c.Creator)
+            .WithMany()
+            .HasForeignKey(c => c.CreatedBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<CommunityCampaignOption>()
+            .HasOne(o => o.Campaign)
+            .WithMany(c => c.Options)
+            .HasForeignKey(o => o.CampaignId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CommunityCampaignResponse>()
+            .HasOne(r => r.Campaign)
+            .WithMany(c => c.Responses)
+            .HasForeignKey(r => r.CampaignId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CommunityCampaignResponse>()
+            .HasOne(r => r.Respondent)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<CommunityCampaignResponseOption>()
+            .HasOne(ro => ro.Response)
+            .WithMany(r => r.SelectedOptions)
+            .HasForeignKey(ro => ro.ResponseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CommunityCampaignResponseOption>()
+            .HasOne(ro => ro.Option)
+            .WithMany(o => o.ResponseSelections)
+            .HasForeignKey(ro => ro.OptionId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<ContractMember>()
             .HasOne(cm => cm.Resident)

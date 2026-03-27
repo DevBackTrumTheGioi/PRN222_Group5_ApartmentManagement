@@ -1,0 +1,178 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.BQL_Staff.FaceAuth.IndexModel
+@{
+    ViewData["Title"] = "Quản lý Face ID";
+    ViewData["CurrentPage"] = "faceauthstaff";
+    Layout = "_Layout";
+    ViewData["PageHeader"] = new
+    {
+        Title = "Quản lý Face ID",
+        BreadcrumbItems = new[]
+        {
+            new { Label = "BQL Staff", Href = "/BQL_Staff" },
+            new { Label = "Face ID", Href = "#" }
+        }
+    };
+}
+
+<div class="space-y-6">
+    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+    {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">@Model.SuccessMessage</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">@Model.ErrorMessage</div>
+    }
+
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-slate-500">Tổng cư dân</p>
+            <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@Model.Summary.TotalResidents</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-slate-500">Đã đăng ký</p>
+            <p class="mt-3 text-3xl font-bold tracking-tight text-emerald-700">@Model.Summary.RegisteredResidents</p>
+            <p class="mt-2 text-sm text-slate-500">Tỷ lệ @Model.Summary.RegistrationRate.ToString("N2")%</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-slate-500">Chưa đăng ký</p>
+            <p class="mt-3 text-3xl font-bold tracking-tight text-amber-700">@Model.Summary.UnregisteredResidents</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-slate-500">Xác thực hôm nay</p>
+            <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">@Model.Summary.AttemptsToday</p>
+            <a href="/FaceAuth/Logs" class="mt-2 inline-flex text-sm font-medium text-emerald-600 hover:text-emerald-700">Xem lịch sử</a>
+        </div>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">Tra cứu dữ liệu Face ID</h2>
+                <p class="mt-1 text-sm text-slate-500">Hỗ trợ đăng ký tại quầy, xem danh sách đã đăng ký và đặt lại dữ liệu khi cần.</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <a asp-page="./AmenityAccess" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                    <span class="material-icons text-base">verified_user</span>
+                    Test tiện ích
+                </a>
+                <a href="/FaceAuth/Logs" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                    <span class="material-icons text-base">history</span>
+                    Lịch sử xác thực
+                </a>
+            </div>
+        </div>
+
+        <form method="get" class="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div class="space-y-2 md:col-span-2">
+                <label asp-for="SearchQuery" class="text-sm font-medium text-slate-700">Tìm kiếm</label>
+                <input asp-for="SearchQuery" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm" placeholder="Tên, tên đăng nhập, số điện thoại, căn hộ" />
+            </div>
+            <div class="space-y-2">
+                <label asp-for="IsRegistered" class="text-sm font-medium text-slate-700">Trạng thái</label>
+                <select asp-for="IsRegistered" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm">
+                    <option value="">Tất cả</option>
+                    <option value="true">Đã đăng ký</option>
+                    <option value="false">Chưa đăng ký</option>
+                </select>
+            </div>
+            <div class="flex items-end gap-3">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                    <span class="material-icons text-base">filter_alt</span>
+                    Lọc
+                </button>
+                <a asp-page="./Index" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                    <span class="material-icons text-base">restart_alt</span>
+                    Đặt lại
+                </a>
+            </div>
+        </form>
+    </section>
+
+    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-6 py-5">
+            <h2 class="text-lg font-semibold text-slate-900">Danh sách cư dân</h2>
+        </div>
+
+        @if (Model.Residents.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-600">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold">Cư dân</th>
+                            <th class="px-6 py-3 text-left font-semibold">Căn hộ</th>
+                            <th class="px-6 py-3 text-left font-semibold">Trạng thái Face ID</th>
+                            <th class="px-6 py-3 text-left font-semibold">Lần xác thực gần nhất</th>
+                            <th class="px-6 py-3 text-right font-semibold">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var resident in Model.Residents)
+                        {
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <p class="font-semibold text-slate-900">@resident.FullName</p>
+                                    <p class="mt-1 text-xs text-slate-500">@resident.Username @(string.IsNullOrWhiteSpace(resident.PhoneNumber) ? string.Empty : $"• {resident.PhoneNumber}")</p>
+                                </td>
+                                <td class="px-6 py-4 text-slate-700">Căn @((resident.ApartmentNumber ?? "-")) @(string.IsNullOrWhiteSpace(resident.BuildingBlock) ? string.Empty : $"- Tòa {resident.BuildingBlock}")</td>
+                                <td class="px-6 py-4">
+                                    @if (resident.IsFaceRegistered)
+                                    {
+                                        <div class="space-y-1">
+                                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                                                <span class="material-icons text-sm">check_circle</span>
+                                                Đã đăng ký
+                                            </span>
+                                            <p class="text-xs text-slate-500">Cập nhật: @(resident.RegisteredAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                                            <span class="material-icons text-sm">pending</span>
+                                            Chưa đăng ký
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">
+                                    @if (resident.LastAuthTime.HasValue)
+                                    {
+                                        <div>
+                                            <p>@resident.LastAuthTime.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                                            <p class="mt-1 text-xs text-slate-500">Thành công: @resident.SuccessfulAuthCount • Thất bại: @resident.FailedAuthCount</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-slate-400">Chưa có lịch sử</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex justify-end gap-2">
+                                        <a asp-page="./Register" asp-route-id="@resident.UserId" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700">
+                                            <span class="material-icons text-sm">photo_camera</span>
+                                            @(resident.IsFaceRegistered ? "Cập nhật" : "Hỗ trợ đăng ký")
+                                        </a>
+                                        <form method="post" asp-page-handler="Reset" onsubmit="return confirm('Xóa dữ liệu Face ID của cư dân này?');">
+                                            <input type="hidden" name="residentId" value="@resident.UserId" />
+                                            <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 @(resident.IsFaceRegistered ? string.Empty : "opacity-50 cursor-not-allowed")" @(resident.IsFaceRegistered ? null : "disabled")>
+                                                <span class="material-icons text-sm">restart_alt</span>
+                                                Đặt lại
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="px-6 py-16 text-center text-sm text-slate-500">Không có cư dân phù hợp với bộ lọc hiện tại.</div>
+        }
+    </section>
+</div>

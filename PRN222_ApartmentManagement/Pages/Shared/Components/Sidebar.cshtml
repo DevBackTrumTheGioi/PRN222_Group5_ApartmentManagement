@@ -1,4 +1,4 @@
-@using PRN222_ApartmentManagement.Services.Interfaces
+﻿@using PRN222_ApartmentManagement.Services.Interfaces
 @inject ISettingService SettingService
 @{
     var apartmentName = await SettingService.GetSettingAsync("ApartmentName", "ApartmentMS");
@@ -59,11 +59,15 @@
     {
         workItems.Add(new SidebarMenuItem { Icon = "assignment", Label = "Yêu cầu cư dân", Href = "/BQL_Manager/Requests", Key = "requests" });
         workItems.Add(new SidebarMenuItem { Icon = "escalator_warning", Label = "Yêu cầu chuyển cấp", Href = "/BQL_Manager/Requests/Escalated", Key = "escalated" });
+        workItems.Add(new SidebarMenuItem { Icon = "analytics", Label = "Dashboard Face ID", Href = "/BQL_Manager/FaceAuth/Dashboard", Key = "faceauthdashboard" });
+        workItems.Add(new SidebarMenuItem { Icon = "history", Label = "Lịch sử Face ID", Href = "/FaceAuth/Logs", Key = "faceauthlogs" });
     }
 
     if (isBqlStaff)
     {
         workItems.Add(new SidebarMenuItem { Icon = "assignment_ind", Label = "Việc được giao", Href = "/BQL_Staff/Requests/Assigned", Key = "assigned" });
+        workItems.Add(new SidebarMenuItem { Icon = "face", Label = "Quản lý Face ID", Href = "/BQL_Staff/FaceAuth", Key = "faceauthstaff" });
+        workItems.Add(new SidebarMenuItem { Icon = "history", Label = "Lịch sử Face ID", Href = "/FaceAuth/Logs", Key = "faceauthlogs" });
         workItems.Add(new SidebarMenuItem { Icon = "handyman", Label = "Đơn dịch vụ được giao", Href = "/BQL_Staff/ServiceOrders/Assigned", Key = "assignedservices" });
         workItems.Add(new SidebarMenuItem { Icon = "groups", Label = "Khách ra vào", Href = "/BQL_Staff/Visitors", Key = "staffvisitors" });
         workItems.Add(new SidebarMenuItem { Icon = "history", Label = "Lịch sử khách", Href = "/BQL_Staff/Visitors/History", Key = "staffvisitors" });
@@ -78,8 +82,25 @@
         workItems.Add(new SidebarMenuItem { Icon = "person_add", Label = "Đăng ký khách", Href = "/Resident/Visitors/Create", Key = "visitors" });
         workItems.Add(new SidebarMenuItem { Icon = "groups", Label = "Khách của tôi", Href = "/Resident/Visitors", Key = "visitors" });
         workItems.Add(new SidebarMenuItem { Icon = "home", Label = "Căn hộ của tôi", Href = "/Resident/FamilyMembers", Key = "family-members" });
+        workItems.Add(new SidebarMenuItem { Icon = "how_to_vote", Label = "Khảo sát & bỏ phiếu", Href = "/Resident/Community", Key = "community" });
         workItems.Add(new SidebarMenuItem { Icon = "face", Label = "Face ID", Href = "/Resident/FaceAuth/Status", Key = "faceauth" });
         workItems.Add(new SidebarMenuItem { Icon = "event", Label = "Lịch họp", Href = "/Resident/Meetings", Key = "meetings" });
+    }
+
+    if (isBqtHead || isBqtMember)
+    {
+        var complaintsHref = isBqtHead ? "/BQT_Head/Complaints/Index" : "/BQT_Member/Complaints/Index";
+        var complaintStatsHref = isBqtHead ? "/BQT_Head/Complaints/Stats" : "/BQT_Member/Complaints/Stats";
+        var communityHref = isBqtHead ? "/BQT_Head/Community" : "/BQT_Member/Community";
+
+        workItems.Add(new SidebarMenuItem { Icon = "feedback", Label = "Danh sách khiếu nại", Href = complaintsHref, Key = "complaints" });
+        workItems.Add(new SidebarMenuItem { Icon = "monitoring", Label = "Thống kê khiếu nại", Href = complaintStatsHref, Key = "complaintstats" });
+        workItems.Add(new SidebarMenuItem { Icon = "how_to_vote", Label = "Khảo sát & bỏ phiếu", Href = communityHref, Key = "community" });
+    }
+
+    if (isBqtHead)
+    {
+        workItems.Add(new SidebarMenuItem { Icon = "insights", Label = "Báo cáo vận hành", Href = "/BQT_Head/OperationalReports", Key = "operationalreports" });
     }
 
     if (workItems.Count > 0)
@@ -107,7 +128,7 @@
         financeItems.Add(new SidebarMenuItem { Icon = "receipt_long", Label = "Hóa đơn", Href = "/Resident/Invoices", Key = "invoices" });
     }
 
-    if (isBqlManager || isBqtHead || isBqtMember)
+    if (isBqlManager)
     {
         financeItems.Add(new SidebarMenuItem { Icon = "analytics", Label = "Báo cáo tài chính", Href = "/FinancialReports", Key = "financialreports" });
     }
@@ -123,6 +144,13 @@
         });
     }
 
+    var announcementHref = isResident
+        ? "/Announcements/View"
+        : isBqlStaff
+            ? "/Notifications"
+            : "/Announcements/Index";
+    var announcementKey = isBqlStaff ? "notifications" : "announcements";
+
     if (isBqtHead || isBqtMember)
     {
         menuGroups.Add(new SidebarMenuGroup
@@ -137,7 +165,6 @@
         });
     }
 
-    var announcementHref = isResident ? "/Announcements/View" : "/Announcements/Index";
     menuGroups.Add(new SidebarMenuGroup
     {
         GroupName = "Truyền thông",
@@ -145,7 +172,7 @@
         IsCollapsible = false,
         Items = new List<SidebarMenuItem>
         {
-            new() { Icon = "campaign", Label = "Thông báo", Href = announcementHref, Key = "announcements" }
+            new() { Icon = "campaign", Label = "Thông báo", Href = announcementHref, Key = announcementKey }
         }
     });
 
@@ -173,6 +200,7 @@
         IsCollapsible = false,
         Items = new List<SidebarMenuItem>
         {
+            new() { Icon = "person", Label = "Hồ sơ cá nhân", Href = "/Account/Profile", Key = "profile" },
             new() { Icon = "lock", Label = "Đổi mật khẩu", Href = "/Account/ChangePassword", Key = "changepassword" }
         }
     });
