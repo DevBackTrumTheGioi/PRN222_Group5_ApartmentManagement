@@ -189,8 +189,7 @@
             {
                 new() { Icon = "manage_accounts", Label = "Người dùng", Href = "/Admin/Users", Key = "users" },
                 new() { Icon = "history", Label = "Nhật ký hệ thống", Href = "/Admin/ActivityLogs", Key = "activitylogs" },
-                new() { Icon = "tune", Label = "Cấu hình", Href = "/Admin/Settings", Key = "settings" },
-                new() { Icon = "database", Label = "Seed dữ liệu", Href = "/Admin/SeedData", Key = "seeddata" }
+                new() { Icon = "tune", Label = "Cấu hình", Href = "/Admin/Settings", Key = "settings" }
             }
         });
     }
@@ -226,7 +225,7 @@
         </div>
     </div>
 
-    <nav class="flex-1 space-y-2 overflow-y-auto px-3 py-4">
+    <nav class="min-w-0 flex-1 space-y-2 overflow-y-auto px-3 py-4">
         @foreach (var group in menuGroups)
         {
             var groupId = "menu-" + group.GroupName.ToLower().Replace(" ", "-");
@@ -239,36 +238,36 @@
                 {
                     var isActive = currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase);
                     <a href="@item.Href"
-                       class="flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors @(isActive ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-600 hover:bg-slate-50")">
-                        <span class="material-icons mt-0.5 text-xl @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
-                        <span class="flex-1 text-left text-sm leading-tight whitespace-normal">@item.Label</span>
+                       class="flex w-full min-w-0 items-center gap-3 rounded-lg px-3 py-2.5 transition-colors @(isActive ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-600 hover:bg-slate-50")">
+                        <span class="material-icons shrink-0 text-xl @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
+                        <span class="min-w-0 flex-1 text-left text-sm leading-snug break-words">@item.Label</span>
                     </a>
                 }
             }
             else
             {
-                <div class="space-y-1">
+                <div class="min-w-0 space-y-1">
                     <button type="button"
-                            class="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors @(hasActiveItem ? "bg-emerald-50/50" : "hover:bg-slate-50")"
+                            class="flex w-full min-w-0 items-center justify-between gap-2 rounded-lg px-3 py-2 transition-colors @(hasActiveItem ? "bg-emerald-50/50" : "hover:bg-slate-50")"
                             onclick="toggleMenu('@groupId')">
-                        <div class="flex items-center gap-3">
-                            <span class="material-icons text-xl text-slate-400">@group.Icon</span>
-                            <span class="text-sm font-medium text-slate-700">@group.GroupName</span>
+                        <div class="flex min-w-0 flex-1 items-center gap-3">
+                            <span class="material-icons shrink-0 text-xl text-slate-400">@group.Icon</span>
+                            <span class="min-w-0 flex-1 text-left text-sm font-medium leading-snug text-slate-700 break-words">@group.GroupName</span>
                         </div>
                         <span id="@groupId-icon"
-                              class="material-icons text-lg text-slate-400 transition-transform duration-200 @(isExpanded ? "rotate-180" : string.Empty)">
+                              class="material-icons shrink-0 text-lg text-slate-400 transition-transform duration-200 @(isExpanded ? "rotate-180" : string.Empty)">
                             expand_more
                         </span>
                     </button>
 
-                    <div id="@groupId" class="space-y-1 pl-3 @(isExpanded ? string.Empty : "hidden")">
+                    <div id="@groupId" class="min-w-0 space-y-1 pl-3 @(isExpanded ? string.Empty : "hidden")">
                         @foreach (var item in group.Items)
                         {
                             var isActive = currentPage.Equals(item.Key, StringComparison.OrdinalIgnoreCase);
                             <a href="@item.Href"
-                               class="flex items-start gap-3 rounded-lg px-3 py-2 transition-colors @(isActive ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-600 hover:bg-slate-50")">
-                                <span class="material-icons mt-0.5 text-lg @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
-                                <span class="flex-1 text-left text-sm leading-tight whitespace-normal">@item.Label</span>
+                               class="flex w-full min-w-0 items-center gap-3 rounded-lg px-3 py-2 transition-colors @(isActive ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-600 hover:bg-slate-50")">
+                                <span class="material-icons shrink-0 text-lg @(isActive ? "text-emerald-600" : "text-slate-400")">@item.Icon</span>
+                                <span class="min-w-0 flex-1 text-left text-sm leading-snug break-words">@item.Label</span>
                             </a>
                         }
                     </div>

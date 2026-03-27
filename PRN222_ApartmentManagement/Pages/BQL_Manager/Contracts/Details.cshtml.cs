@@ -50,7 +50,7 @@ public class DetailsModel : PageModel
             return await OnGetAsync(id);
         }
 
-        try
+        try 
         {
             var contract = await _contractService.ApproveContractAsync(id, approverId);
             SuccessMessage = $"Đã kích hoạt hợp đồng {contract?.ContractNumber} - Tài khoản chủ hộ đã được tạo";

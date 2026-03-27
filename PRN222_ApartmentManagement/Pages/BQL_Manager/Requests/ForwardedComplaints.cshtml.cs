@@ -9,7 +9,7 @@ using PRN222_ApartmentManagement.Utils;
 
 namespace PRN222_ApartmentManagement.Pages.BQL_Manager.Requests;
 
-[Authorize(Roles = "BQL_Manager")]
+[Authorize(Policy = "AdminAndBQLManager")]
 public class ForwardedComplaintsModel : PageModel
 {
     private readonly IRequestService _requestService;
