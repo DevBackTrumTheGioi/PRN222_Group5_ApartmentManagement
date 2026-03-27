@@ -16,6 +16,9 @@ public enum ReferenceType
     [Display(Name = "Thông báo")]
     Announcement,
 
+    [Display(Name = "Cuộc họp")]
+    Meeting,
+
     [Display(Name = "Hợp đồng")]
     Contract,
 

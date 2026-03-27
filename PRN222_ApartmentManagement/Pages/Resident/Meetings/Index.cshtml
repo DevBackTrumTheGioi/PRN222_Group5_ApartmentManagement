@@ -1,0 +1,109 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.Resident.Meetings.IndexModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Lịch họp";
+    ViewData["Subtitle"] = "Tra cứu lịch họp cư dân và thông báo khẩn";
+    ViewData["CurrentPage"] = "meetings";
+}
+
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Lịch họp</h1>
+        <p class="text-sm text-slate-500">Lịch họp dành cho cư dân và các thông báo khẩn.</p>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+            <div class="md:col-span-2">
+                <label class="text-xs font-medium text-slate-600">Tìm kiếm</label>
+                <input type="text" name="SearchQuery" value="@Model.SearchQuery" placeholder="Tiêu đề, địa điểm, người tạo..."
+                       class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+                <label class="text-xs font-medium text-slate-600">Loại cuộc họp</label>
+                <select name="TypeFilter" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Tất cả</option>
+                    @foreach (var item in new[] { MeetingType.Resident, MeetingType.Emergency })
+                    {
+                        <option value="@item" selected="@(Model.TypeFilter == item)">@item.GetDisplayName()</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-medium text-slate-600">Trạng thái</label>
+                <select name="StatusFilter" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Tất cả</option>
+                    @foreach (var item in Enum.GetValues<MeetingStatus>())
+                    {
+                        <option value="@item" selected="@(Model.StatusFilter == item)">@item.GetDisplayName()</option>
+                    }
+                </select>
+            </div>
+            <div class="flex gap-2 md:justify-end">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-800">
+                    <span class="material-icons text-base">filter_list</span>
+                    Lọc
+                </button>
+            </div>
+        </form>
+    </div>
+
+    @if (!Model.Meetings.Any())
+    {
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center text-slate-400">
+            <span class="material-icons text-5xl mb-2">event_busy</span>
+            <p>Chưa có lịch họp phù hợp.</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-4">
+            @foreach (var meeting in Model.Meetings)
+            {
+                var statusClass = meeting.Status switch
+                {
+                    MeetingStatus.Scheduled => "bg-amber-50 text-amber-700 border-amber-200",
+                    MeetingStatus.InProgress => "bg-blue-50 text-blue-700 border-blue-200",
+                    MeetingStatus.Completed => "bg-emerald-50 text-emerald-700 border-emerald-200",
+                    MeetingStatus.Cancelled => "bg-red-50 text-red-700 border-red-200",
+                    _ => "bg-slate-50 text-slate-700 border-slate-200"
+                };
+
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+                    <div class="flex items-start justify-between gap-4 flex-wrap">
+                        <div>
+                            <h3 class="text-base font-semibold text-slate-900">@meeting.Title</h3>
+                            <p class="text-sm text-slate-500 mt-1">@(string.IsNullOrWhiteSpace(meeting.Description) ? "Không có mô tả" : meeting.Description)</p>
+                            <div class="mt-3 flex flex-wrap items-center gap-2">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">@meeting.MeetingType.GetDisplayName()</span>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border @statusClass">@meeting.Status.GetDisplayName()</span>
+                            </div>
+                        </div>
+                        <a asp-page="Details" asp-route-id="@meeting.MeetingId" class="inline-flex items-center gap-1 px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50">
+                            <span class="material-icons text-sm">visibility</span>
+                            Xem chi tiết
+                        </a>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-slate-600">
+                        <div class="rounded-lg bg-slate-50 border border-slate-100 p-3">
+                            <p class="text-xs text-slate-400 uppercase font-semibold">Thời gian</p>
+                            <p class="mt-1 font-medium text-slate-900">@meeting.ScheduledDate.ToString("dd/MM/yyyy")</p>
+                            <p class="text-xs text-slate-500">@MeetingUtils.GetMeetingTime(meeting)</p>
+                        </div>
+                        <div class="rounded-lg bg-slate-50 border border-slate-100 p-3">
+                            <p class="text-xs text-slate-400 uppercase font-semibold">Địa điểm</p>
+                            <p class="mt-1 font-medium text-slate-900">@(string.IsNullOrWhiteSpace(meeting.Location) ? "—" : meeting.Location)</p>
+                        </div>
+                        <div class="rounded-lg bg-slate-50 border border-slate-100 p-3">
+                            <p class="text-xs text-slate-400 uppercase font-semibold">Người tạo</p>
+                            <p class="mt-1 font-medium text-slate-900">@meeting.Creator.FullName</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

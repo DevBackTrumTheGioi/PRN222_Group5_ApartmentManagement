@@ -191,6 +191,7 @@ public class IndexModel : PageModel
             NotificationType.Invoice => "Hóa đơn",
             NotificationType.Request => "Yêu cầu",
             NotificationType.Announcement => "Thông báo chung",
+            NotificationType.Meeting => "Cuộc họp",
             NotificationType.Contract => "Hợp đồng",
             NotificationType.Amenity => "Tiện ích",
             NotificationType.Community => "Khảo sát & bỏ phiếu",

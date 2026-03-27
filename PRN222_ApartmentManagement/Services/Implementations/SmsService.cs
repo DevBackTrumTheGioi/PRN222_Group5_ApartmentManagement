@@ -15,8 +15,8 @@ public class SmsService : ISmsService
 
     public async Task<(bool Success, string Error)> SendCredentialsAsync(string phone, string username, string password)
     {
-        var message = $"[Chung cu] Tai khoan cua ban:\n\nUsername: {username}\nPassword: {password}\n\n" +
-                      $"Vui long dang nhap va xac minh so dien thoai de kich hoat tai khoan.";
+        var message = $"[Chung cư] Tài khoản của bạn:\n\nUsername: {username}\nPassword: {password}\n\n" +
+                      $"Vui lòng đăng nhập và xác minh số điện thoại để kích hoạt tài khoản.";
 
         var result = await _uniMatrixHelper.SendSmsAsync(phone, message);
         return (result.Success, result.Error ?? "");
@@ -39,6 +39,6 @@ public class SmsService : ISmsService
         var result = await _uniMatrixHelper.VerifyOtpAsync(phone, code, intent);
         if (result.Valid)
             return (true, "");
-        return (false, result.Error ?? "OTP khong hop le.");
+        return (false, result.Error ?? "OTP không hợp lệ.");
     }
 }

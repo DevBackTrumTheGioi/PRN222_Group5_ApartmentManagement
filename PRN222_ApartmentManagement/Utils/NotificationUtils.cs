@@ -197,6 +197,7 @@ public static class NotificationUtils
             "Invoice" => "💰",
             "Request" => "📝",
             "Announcement" => "📢",
+            "Meeting" => "🗓️",
             "Message" => "💬",
             "Visitor" => "👤",
             "Parcel" => "📦",
@@ -238,6 +239,24 @@ public static class NotificationUtils
     }
 
     /// <summary>
+    /// Tạo nội dung thông báo cuộc họp
+    /// </summary>
+    public static (string Title, string Content) CreateMeetingNotification(
+        string meetingTitle,
+        DateTime scheduledDate,
+        string? location = null)
+    {
+        var title = "Lịch họp mới";
+        var content = $"Có cuộc họp mới: {meetingTitle} vào {scheduledDate:dd/MM/yyyy HH:mm}";
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            content += $" tại {location}";
+        }
+
+        return (title, content);
+    }
+
+    /// <summary>
     /// Lấy URL điều hướng cho thông báo
     /// </summary>
     public static string GetNotificationRedirectUrl(string notificationType, string referenceType, int? referenceId, string? recipientRole = null)
@@ -254,9 +273,30 @@ public static class NotificationUtils
             "Invoice" => $"/Invoices/Index?highlight={referenceId.Value}",
             "Contract" => $"/Contracts/Details/{referenceId.Value}",
             "Amenity" => $"/Amenities/Bookings/{referenceId.Value}",
+            "Meeting" => GetMeetingRedirectUrl(recipientRole, referenceId.Value),
             "CommunityCampaign" => GetCommunityRedirectUrl(recipientRole, referenceId.Value),
             _ => "/Notifications"
         };
+    }
+
+    private static string GetMeetingRedirectUrl(string? recipientRole, int meetingId)
+    {
+        if (string.Equals(recipientRole, "BQT_Head", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"/BQT_Head/Meetings/Details/{meetingId}";
+        }
+
+        if (string.Equals(recipientRole, "BQT_Member", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"/BQT_Member/Meetings/Details/{meetingId}";
+        }
+
+        if (string.Equals(recipientRole, "Resident", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"/Resident/Meetings/Details/{meetingId}";
+        }
+
+        return "/Notifications";
     }
 
     private static string GetCommunityRedirectUrl(string? recipientRole, int campaignId)

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRN222_ApartmentManagement.Models;
@@ -30,6 +30,21 @@ public class PaymentTransaction
     public int Status { get; set; } = 0;
 
     public string? GatewayResponse { get; set; }
+
+    [MaxLength(100)]
+    public string? VnpTxnRef { get; set; }
+
+    [MaxLength(50)]
+    public string? VnpTransactionNo { get; set; }
+
+    [MaxLength(10)]
+    public string? VnpResponseCode { get; set; }
+
+    [MaxLength(20)]
+    public string? VnpBankCode { get; set; }
+
+    [MaxLength(30)]
+    public string? VnpPayDate { get; set; }
 
     [ForeignKey("Creator")]
     public int? CreatedBy { get; set; }

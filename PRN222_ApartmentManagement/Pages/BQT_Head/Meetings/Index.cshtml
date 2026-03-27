@@ -1,0 +1,187 @@
+﻿@page
+@model PRN222_ApartmentManagement.Pages.BQT_Head.Meetings.IndexModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Quản lý cuộc họp";
+    ViewData["Subtitle"] = "Lên lịch, thông báo và theo dõi biên bản họp";
+    ViewData["CurrentPage"] = "meetings";
+}
+
+<div class="space-y-6">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm">
+            <span class="material-icons text-emerald-500">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Quản lý cuộc họp</h1>
+            <p class="text-sm text-slate-500">Lịch họp cư dân, biên bản và thông báo offline.</p>
+        </div>
+        <a asp-page="Create" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors">
+            <span class="material-icons text-base">add</span>
+            Tạo cuộc họp
+        </a>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <p class="text-2xl font-bold text-slate-900">@Model.TotalCount</p>
+            <p class="text-xs text-slate-500 mt-1">Tổng cuộc họp</p>
+        </div>
+        <div class="bg-amber-50 rounded-xl border border-amber-200 p-4 shadow-sm">
+            <p class="text-2xl font-bold text-amber-600">@Model.ScheduledCount</p>
+            <p class="text-xs text-amber-500 mt-1">Đã lên lịch</p>
+        </div>
+        <div class="bg-blue-50 rounded-xl border border-blue-200 p-4 shadow-sm">
+            <p class="text-2xl font-bold text-blue-600">@Model.InProgressCount</p>
+            <p class="text-xs text-blue-500 mt-1">Đang diễn ra</p>
+        </div>
+        <div class="bg-emerald-50 rounded-xl border border-emerald-200 p-4 shadow-sm">
+            <p class="text-2xl font-bold text-emerald-600">@Model.CompletedCount</p>
+            <p class="text-xs text-emerald-500 mt-1">Đã hoàn thành</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+            <div class="md:col-span-2">
+                <label class="text-xs font-medium text-slate-600">Tìm kiếm</label>
+                <input type="text" name="SearchQuery" value="@Model.SearchQuery" placeholder="Tiêu đề, địa điểm, người tạo..."
+                       class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+                <label class="text-xs font-medium text-slate-600">Loại cuộc họp</label>
+                <select name="TypeFilter" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Tất cả</option>
+                    @foreach (var item in Enum.GetValues<MeetingType>())
+                    {
+                        <option value="@item" selected="@(Model.TypeFilter == item)">@item.GetDisplayName()</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-medium text-slate-600">Trạng thái</label>
+                <select name="StatusFilter" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Tất cả</option>
+                    @foreach (var item in Enum.GetValues<MeetingStatus>())
+                    {
+                        <option value="@item" selected="@(Model.StatusFilter == item)">@item.GetDisplayName()</option>
+                    }
+                </select>
+            </div>
+            <div class="flex gap-2 md:col-start-4 md:justify-end">
+                @if (Model.HasFilter)
+                {
+                    <a asp-page="Index" class="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+                        <span class="material-icons text-base">close</span>
+                        Xóa lọc
+                    </a>
+                }
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-800">
+                    <span class="material-icons text-base">filter_list</span>
+                    Lọc
+                </button>
+            </div>
+        </form>
+    </div>
+
+    @if (!Model.Meetings.Any())
+    {
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center text-slate-400">
+            <span class="material-icons text-5xl mb-2">event_busy</span>
+            <p>Chưa có cuộc họp nào.</p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
+                        <tr>
+                            <th class="text-left px-4 py-3">Cuộc họp</th>
+                            <th class="text-left px-4 py-3">Thời gian</th>
+                            <th class="text-left px-4 py-3">Địa điểm</th>
+                            <th class="text-left px-4 py-3">Loại / Trạng thái</th>
+                            <th class="text-left px-4 py-3">Người tạo</th>
+                            <th class="text-right px-4 py-3">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var meeting in Model.Meetings)
+                        {
+                            var statusClass = meeting.Status switch
+                            {
+                                MeetingStatus.Scheduled => "bg-amber-50 text-amber-700 border-amber-200",
+                                MeetingStatus.InProgress => "bg-blue-50 text-blue-700 border-blue-200",
+                                MeetingStatus.Completed => "bg-emerald-50 text-emerald-700 border-emerald-200",
+                                MeetingStatus.Cancelled => "bg-red-50 text-red-700 border-red-200",
+                                _ => "bg-slate-50 text-slate-700 border-slate-200"
+                            };
+
+                            <tr class="hover:bg-slate-50/60">
+                                <td class="px-4 py-4 align-top">
+                                    <p class="font-semibold text-slate-900">@meeting.Title</p>
+                                    <p class="text-xs text-slate-500 line-clamp-2 mt-1">@(string.IsNullOrWhiteSpace(meeting.Description) ? "Không có mô tả" : meeting.Description)</p>
+                                    @if (!string.IsNullOrWhiteSpace(meeting.MinutesContent))
+                                    {
+                                        <p class="mt-2 inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                                            <span class="material-icons text-sm">description</span>
+                                            Có biên bản
+                                        </p>
+                                    }
+                                </td>
+                                <td class="px-4 py-4 align-top text-slate-600 whitespace-nowrap">
+                                    <p class="font-medium">@meeting.ScheduledDate.ToString("dd/MM/yyyy")</p>
+                                    <p class="text-xs text-slate-400">@MeetingUtils.GetMeetingTime(meeting)</p>
+                                </td>
+                                <td class="px-4 py-4 align-top text-slate-600">@(string.IsNullOrWhiteSpace(meeting.Location) ? "—" : meeting.Location)</td>
+                                <td class="px-4 py-4 align-top">
+                                    <div class="space-y-2">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">@meeting.MeetingType.GetDisplayName()</span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border @statusClass">@meeting.Status.GetDisplayName()</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-4 align-top text-slate-600">@meeting.Creator.FullName</td>
+                                <td class="px-4 py-4 align-top">
+                                    <div class="flex items-center justify-end gap-2 flex-wrap">
+                                        <a asp-page="Details" asp-route-id="@meeting.MeetingId" class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50">
+                                            <span class="material-icons text-sm">visibility</span>
+                                            Xem
+                                        </a>
+                                        <a asp-page="Edit" asp-route-id="@meeting.MeetingId" class="inline-flex items-center gap-1 px-3 py-1.5 border border-amber-200 rounded-lg text-xs font-medium text-amber-700 hover:bg-amber-50">
+                                            <span class="material-icons text-sm">edit</span>
+                                            Sửa
+                                        </a>
+                                        <a asp-page="Minutes" asp-route-id="@meeting.MeetingId" class="inline-flex items-center gap-1 px-3 py-1.5 border border-emerald-200 rounded-lg text-xs font-medium text-emerald-700 hover:bg-emerald-50">
+                                            <span class="material-icons text-sm">notes</span>
+                                            Biên bản
+                                        </a>
+                                        <form method="post" asp-page-handler="Delete" asp-route-id="@meeting.MeetingId" onsubmit="return confirm('Xóa cuộc họp này?');">
+                                            <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 border border-red-200 rounded-lg text-xs font-medium text-red-700 hover:bg-red-50">
+                                                <span class="material-icons text-sm">delete</span>
+                                                Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

@@ -16,6 +16,9 @@ public enum NotificationType
     [Display(Name = "Thông báo chung")]
     Announcement,
 
+    [Display(Name = "Cuộc họp")]
+    Meeting,
+
     [Display(Name = "Hợp đồng")]
     Contract,
 

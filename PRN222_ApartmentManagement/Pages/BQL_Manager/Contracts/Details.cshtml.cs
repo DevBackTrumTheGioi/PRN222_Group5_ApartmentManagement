@@ -32,7 +32,7 @@ public class DetailsModel : PageModel
 
         if (Contract == null)
         {
-            TempData["StatusMessage"] = "Khong tim thay hop dong.";
+            TempData["StatusMessage"] = "Không tìm thấy hợp đồng.";
             return RedirectToPage("Index");
         }
 
@@ -46,7 +46,7 @@ public class DetailsModel : PageModel
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userId, out var approverId))
         {
-            ErrorMessage = "Khong the xac dinh nguoi dung hien tai.";
+            ErrorMessage = "Không thể xác định người dùng hiện tại.";
             return await OnGetAsync(id);
         }
 
@@ -68,7 +68,7 @@ public class DetailsModel : PageModel
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdClaim, out var deletedBy))
         {
-            ErrorMessage = "Khong the xac dinh nguoi dung hien tai.";
+            ErrorMessage = "Không thể xác định người dùng hiện tại.";
             return await OnGetAsync(id);
         }
 

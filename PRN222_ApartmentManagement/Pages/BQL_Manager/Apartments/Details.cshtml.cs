@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -18,7 +19,8 @@ public class DetailsModel : PageModel
         _apartmentService = apartmentService;
     }
 
-    public ApartmentDetailDto? Apartment { get; set; }
+    public ApartmentDetailDto? Apartment { get; private set; }
+    public bool IsAdmin { get; private set; }
 
     [TempData]
     public string? StatusMessage { get; set; }
@@ -29,6 +31,7 @@ public class DetailsModel : PageModel
     public async Task<IActionResult> OnGetAsync(int id)
     {
         TempData.Remove("StatusMessage");
+        IsAdmin = User.IsInRole(nameof(UserRole.Admin));
         Apartment = await _apartmentService.GetDetailAsync(id);
 
         if (Apartment == null)
@@ -42,6 +45,9 @@ public class DetailsModel : PageModel
 
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
+        if (!User.IsInRole(nameof(UserRole.Admin)))
+            return Forbid();
+
         var (success, message) = await _apartmentService.DeleteAsync(id);
         if (success)
         {
