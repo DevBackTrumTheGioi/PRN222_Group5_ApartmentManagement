@@ -377,7 +377,7 @@ public class AmenityService : IAmenityService
             status != AmenityBookingStatusHelper.Completed &&
             status != AmenityBookingStatusHelper.Cancelled)
         {
-            return (false, "Trang thai booking khong hop le.");
+            return (false, "Trạng thái booking không hợp lệ.");
         }
 
         var booking = await _context.AmenityBookings
@@ -386,23 +386,23 @@ public class AmenityService : IAmenityService
 
         if (booking == null)
         {
-            return (false, "Khong tim thay booking can cap nhat.");
+            return (false, "Không tìm thấy booking cần cập nhật.");
         }
 
         if (booking.Status == status)
         {
-            return (true, "Booking da o trang thai mong muon.");
+            return (true, "Booking đã ở trạng thái mong muốn.");
         }
 
         if (booking.Status == AmenityBookingStatusHelper.Cancelled)
         {
-            return (false, "Booking da bi huy, khong the cap nhat them.");
+            return (false, "Booking đã bị hủy, không thể cập nhật thêm.");
         }
 
         if (booking.Status == AmenityBookingStatusHelper.Completed &&
             status != AmenityBookingStatusHelper.Confirmed)
         {
-            return (false, "Booking da hoan tat, khong the chuyen sang trang thai nay.");
+            return (false, "Booking đã hoàn tất, không thể chuyển sang trạng thái này.");
         }
 
         booking.Status = status;
@@ -412,16 +412,16 @@ public class AmenityService : IAmenityService
         if (status == AmenityBookingStatusHelper.Cancelled)
         {
             await NotifyResidentAsync(booking.ResidentId, booking.Amenity, booking, AmenityBookingStatusHelper.Cancelled);
-            return (true, "Da huy booking tien ich.");
+            return (true, "Đã hủy booking tiện ích.");
         }
 
         if (status == AmenityBookingStatusHelper.Completed)
         {
             await NotifyResidentAsync(booking.ResidentId, booking.Amenity, booking, AmenityBookingStatusHelper.Completed);
-            return (true, "Da danh dau booking hoan tat.");
+            return (true, "Đã đánh dấu booking hoàn tất.");
         }
 
-        return (true, "Da cap nhat booking ve trang thai da xac nhan.");
+        return (true, "Đã cập nhật booking về trạng thái đã xác nhận.");
     }
 
     private IQueryable<Amenity> BaseAmenityQuery()

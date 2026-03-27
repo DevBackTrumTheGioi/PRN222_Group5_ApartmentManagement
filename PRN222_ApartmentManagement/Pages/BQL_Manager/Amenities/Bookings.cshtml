@@ -2,8 +2,8 @@
 @model PRN222_ApartmentManagement.Pages.BQL_Manager.Amenities.BookingsModel
 @using PRN222_ApartmentManagement.Utils
 @{
-    ViewData["Title"] = "Quan ly booking tien ich";
-    ViewData["Subtitle"] = "Theo doi lich dat cho cua cu dan va xu ly booking";
+    ViewData["Title"] = "Quản lý booking tiện ích";
+    ViewData["Subtitle"] = "Theo dõi lịch đặt chỗ của cư dân và xử lý booking";
     ViewData["CurrentPage"] = "amenitybookings";
 }
 
@@ -26,68 +26,68 @@
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div class="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
             <p class="text-2xl font-bold text-slate-800">@Model.TotalCount</p>
-            <p class="mt-0.5 text-xs text-slate-500">Booking theo bo loc</p>
+            <p class="mt-0.5 text-xs text-slate-500">Booking theo bộ lọc</p>
         </div>
         <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center shadow-sm">
             <p class="text-2xl font-bold text-emerald-700">@Model.ActiveWindowCount</p>
-            <p class="mt-0.5 text-xs text-emerald-600">Con hieu luc</p>
+            <p class="mt-0.5 text-xs text-emerald-600">Còn hiệu lực</p>
         </div>
         <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-center shadow-sm">
             <p class="text-2xl font-bold text-blue-700">@Model.TodayCount</p>
-            <p class="mt-0.5 text-xs text-blue-600">Trong hom nay</p>
+            <p class="mt-0.5 text-xs text-blue-600">Trong hôm nay</p>
         </div>
         <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-center shadow-sm">
             <p class="text-2xl font-bold text-red-700">@Model.CancelledCount</p>
-            <p class="mt-0.5 text-xs text-red-600">Da huy</p>
+            <p class="mt-0.5 text-xs text-red-600">Đã hủy</p>
         </div>
     </div>
 
     <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <form method="get" class="flex flex-wrap items-end gap-3">
             <div class="min-w-[220px] flex-1">
-                <label class="mb-1 block text-xs font-medium text-slate-600">Tim kiem</label>
+                <label class="mb-1 block text-xs font-medium text-slate-600">Tìm kiếm</label>
                 <div class="relative">
                     <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-base text-slate-400">search</span>
                     <input asp-for="SearchTerm"
                            class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                           placeholder="Cu dan, tien ich, can ho..." />
+                           placeholder="Cư dân, tiện ích, căn hộ..." />
                 </div>
             </div>
 
             <div class="min-w-[180px]">
-                <label class="mb-1 block text-xs font-medium text-slate-600">Tien ich</label>
+                <label class="mb-1 block text-xs font-medium text-slate-600">Tiện ích</label>
                 <select asp-for="AmenityId" asp-items="Model.AmenityOptions"
                         class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="">Tat ca tien ich</option>
+                    <option value="">Tất cả tiện ích</option>
                 </select>
             </div>
 
             <div class="min-w-[160px]">
-                <label class="mb-1 block text-xs font-medium text-slate-600">Trang thai</label>
+                <label class="mb-1 block text-xs font-medium text-slate-600">Trạng thái</label>
                 <select asp-for="StatusFilter"
                         class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="">Tat ca</option>
-                    <option value="@AmenityBookingStatusHelper.Confirmed">Da xac nhan</option>
-                    <option value="@AmenityBookingStatusHelper.Completed">Hoan tat</option>
-                    <option value="@AmenityBookingStatusHelper.Cancelled">Da huy</option>
+                    <option value="">Tất cả</option>
+                    <option value="@AmenityBookingStatusHelper.Confirmed">Đã xác nhận</option>
+                    <option value="@AmenityBookingStatusHelper.Completed">Hoàn tất</option>
+                    <option value="@AmenityBookingStatusHelper.Cancelled">Đã hủy</option>
                 </select>
             </div>
 
             <div class="min-w-[170px]">
-                <label class="mb-1 block text-xs font-medium text-slate-600">Tu ngay</label>
+                <label class="mb-1 block text-xs font-medium text-slate-600">Từ ngày</label>
                 <input asp-for="FromDate" type="date"
                        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
             </div>
 
             <div class="min-w-[170px]">
-                <label class="mb-1 block text-xs font-medium text-slate-600">Den ngay</label>
+                <label class="mb-1 block text-xs font-medium text-slate-600">Đến ngày</label>
                 <input asp-for="ToDate" type="date"
                        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
             </div>
 
             <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
                 <input asp-for="ActiveOnly" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-                Chi xem booking con hieu luc
+                Chỉ xem booking còn hiệu lực
             </label>
 
             <div class="ml-auto flex gap-2">
@@ -96,14 +96,14 @@
                     <a asp-page="Bookings"
                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50">
                         <span class="material-icons text-base">close</span>
-                        Xoa loc
+                        Xóa lọc
                     </a>
                 }
 
                 <button type="submit"
                         class="inline-flex items-center gap-1.5 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800">
                     <span class="material-icons text-base">filter_list</span>
-                    Loc
+                    Lọc
                 </button>
             </div>
         </form>
@@ -113,7 +113,7 @@
     {
         <div class="rounded-xl border border-slate-200 bg-white p-16 text-center shadow-sm">
             <span class="material-icons mb-3 text-5xl text-slate-300">event_busy</span>
-            <p class="font-medium text-slate-500">Khong co booking tien ich phu hop.</p>
+            <p class="font-medium text-slate-500">Không có booking tiện ích phù hợp.</p>
         </div>
     }
     else
@@ -123,13 +123,13 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50">
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Cu dan</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Tien ich</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Lich dung</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">So nguoi</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Trang thai</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Ghi chu</th>
-                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Thao tac</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Cư dân</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Tiện ích</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Lịch dùng</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Số người</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Ghi chú</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -144,11 +144,11 @@
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-3 align-top">
                                     <p class="font-semibold text-slate-800">@booking.Resident.FullName</p>
-                                    <p class="mt-0.5 text-xs text-slate-500">@booking.Resident.Username • Can @booking.Apartment.ApartmentNumber</p>
+                                    <p class="mt-0.5 text-xs text-slate-500">@booking.Resident.Username • Căn @booking.Apartment.ApartmentNumber</p>
                                 </td>
                                 <td class="px-4 py-3 align-top">
                                     <p class="font-medium text-slate-700">@booking.Amenity.AmenityName</p>
-                                    <p class="mt-0.5 text-xs text-slate-500">@(booking.Amenity.AmenityType?.TypeName ?? "Chua phan loai")</p>
+                                    <p class="mt-0.5 text-xs text-slate-500">@(booking.Amenity.AmenityType?.TypeName ?? "Chưa phân loại")</p>
                                 </td>
                                 <td class="px-4 py-3 align-top text-slate-600">
                                     <p>@booking.BookingDate.ToString("dd/MM/yyyy")</p>
@@ -156,12 +156,12 @@
                                     @if (isActiveWindow)
                                     {
                                         <span class="mt-2 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-                                            Con hieu luc
+                                            Còn hiệu lực
                                         </span>
                                     }
                                 </td>
                                 <td class="px-4 py-3 align-top text-slate-600">
-                                    <p>@booking.ParticipantCount nguoi</p>
+                                    <p>@booking.ParticipantCount người</p>
                                     <p class="mt-0.5 text-xs text-slate-500">@string.Format("{0:N0} đ", booking.TotalAmount ?? 0)</p>
                                 </td>
                                 <td class="px-4 py-3 align-top">
@@ -173,7 +173,7 @@
                                 <td class="px-4 py-3 align-top text-slate-600">
                                     @if (string.IsNullOrWhiteSpace(booking.Notes))
                                     {
-                                        <span class="text-slate-400">Khong co</span>
+                                        <span class="text-slate-400">Không có</span>
                                     }
                                     else
                                     {
@@ -196,13 +196,13 @@
                                         }
                                         @if (canCancel)
                                         {
-                                            <form method="post" asp-page-handler="UpdateStatus" onsubmit="return confirm('Ban co chac muon huy booking nay?');">
+                                            <form method="post" asp-page-handler="UpdateStatus" onsubmit="return confirm('Bạn có chắc muốn hủy booking này?');">
                                                 <input type="hidden" name="bookingId" value="@booking.BookingId" />
                                                 <input type="hidden" name="status" value="@AmenityBookingStatusHelper.Cancelled" />
                                                 <button type="submit"
                                                         class="inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50">
                                                     <span class="material-icons text-sm">cancel</span>
-                                                    Huy
+                                                    Hủy
                                                 </button>
                                             </form>
                                         }
