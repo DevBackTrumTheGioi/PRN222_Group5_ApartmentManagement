@@ -49,6 +49,7 @@ public static class DbInitializer
 
             // Always ensure default settings exist
             await SeedSettingsAsync(context, logger);
+            await EnsureCommunityEngagementSchemaAsync(context, logger);
         }
         catch (Exception ex)
         {
@@ -176,6 +177,79 @@ public static class DbInitializer
 
         context.SystemSettings.AddRange(settings);
         await context.SaveChangesAsync();
+    }
+
+    private static async Task EnsureCommunityEngagementSchemaAsync(ApartmentDbContext context, ILogger logger)
+    {
+        const string sql = """
+IF OBJECT_ID(N'[dbo].[CommunityCampaigns]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[CommunityCampaigns](
+        [CampaignId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [Title] NVARCHAR(200) NOT NULL,
+        [Description] NVARCHAR(2000) NULL,
+        [QuestionText] NVARCHAR(500) NOT NULL,
+        [CampaignType] NVARCHAR(20) NOT NULL,
+        [Status] NVARCHAR(20) NOT NULL,
+        [AllowMultipleChoices] BIT NOT NULL DEFAULT 0,
+        [IsDeleted] BIT NOT NULL DEFAULT 0,
+        [StartsAt] DATETIME2 NOT NULL,
+        [EndsAt] DATETIME2 NOT NULL,
+        [CreatedBy] INT NOT NULL,
+        [CreatedAt] DATETIME2 NOT NULL,
+        [UpdatedAt] DATETIME2 NULL,
+        CONSTRAINT [FK_CommunityCampaigns_Users_CreatedBy] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Users]([UserId])
+    );
+END;
+
+IF OBJECT_ID(N'[dbo].[CommunityCampaignOptions]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[CommunityCampaignOptions](
+        [OptionId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [CampaignId] INT NOT NULL,
+        [OptionText] NVARCHAR(300) NOT NULL,
+        [DisplayOrder] INT NOT NULL,
+        CONSTRAINT [FK_CommunityCampaignOptions_CommunityCampaigns_CampaignId] FOREIGN KEY ([CampaignId]) REFERENCES [dbo].[CommunityCampaigns]([CampaignId]) ON DELETE CASCADE
+    );
+    CREATE INDEX [IX_CommunityCampaignOptions_CampaignId_DisplayOrder] ON [dbo].[CommunityCampaignOptions]([CampaignId], [DisplayOrder]);
+END;
+
+IF OBJECT_ID(N'[dbo].[CommunityCampaignResponses]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[CommunityCampaignResponses](
+        [ResponseId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [CampaignId] INT NOT NULL,
+        [UserId] INT NOT NULL,
+        [Comment] NVARCHAR(1000) NULL,
+        [SubmittedAt] DATETIME2 NOT NULL,
+        CONSTRAINT [FK_CommunityCampaignResponses_CommunityCampaigns_CampaignId] FOREIGN KEY ([CampaignId]) REFERENCES [dbo].[CommunityCampaigns]([CampaignId]) ON DELETE CASCADE,
+        CONSTRAINT [FK_CommunityCampaignResponses_Users_UserId] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId])
+    );
+    CREATE UNIQUE INDEX [IX_CommunityCampaignResponses_CampaignId_UserId] ON [dbo].[CommunityCampaignResponses]([CampaignId], [UserId]);
+END;
+
+IF OBJECT_ID(N'[dbo].[CommunityCampaignResponseOptions]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[CommunityCampaignResponseOptions](
+        [ResponseOptionId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [ResponseId] INT NOT NULL,
+        [OptionId] INT NOT NULL,
+        CONSTRAINT [FK_CommunityCampaignResponseOptions_CommunityCampaignResponses_ResponseId] FOREIGN KEY ([ResponseId]) REFERENCES [dbo].[CommunityCampaignResponses]([ResponseId]) ON DELETE CASCADE,
+        CONSTRAINT [FK_CommunityCampaignResponseOptions_CommunityCampaignOptions_OptionId] FOREIGN KEY ([OptionId]) REFERENCES [dbo].[CommunityCampaignOptions]([OptionId])
+    );
+    CREATE UNIQUE INDEX [IX_CommunityCampaignResponseOptions_ResponseId_OptionId] ON [dbo].[CommunityCampaignResponseOptions]([ResponseId], [OptionId]);
+END;
+""";
+
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(sql);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to ensure community engagement schema");
+            throw;
+        }
     }
 
     /// <summary>

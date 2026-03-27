@@ -22,6 +22,9 @@ public enum NotificationType
     [Display(Name = "Tiện ích")]
     Amenity,
 
+    [Display(Name = "Khảo sát & bỏ phiếu")]
+    Community,
+
     [Display(Name = "Khác")]
     Other
 }

@@ -8,22 +8,7 @@
 
 <div class="space-y-6">
     <!-- Oversight Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-                    <span class="material-icons">account_balance</span>
-                </div>
-                <div>
-                    <p class="text-sm text-slate-500 font-medium">Doanh thu tháng</p>
-                    <h3 class="text-2xl font-bold">@Model.DashboardData.TotalRevenueThisMonth.ToString("N0") <span class="text-sm font-normal">đ</span></h3>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center text-xs text-amber-600 font-bold">
-                <span class="material-icons text-sm mr-1">warning</span> Công nợ: @Model.DashboardData.TotalOutstandingDebt.ToString("N0") đ
-            </div>
-        </div>
-
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
@@ -65,11 +50,14 @@
     </div>
 
     <!-- Active Complaints -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+    <div class="grid grid-cols-1 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-bold">Khiếu nại mới nhất gửi BQT</h3>
-                <a asp-page="/BQT_Head/Complaints/Index" class="text-emerald-600 text-sm font-semibold hover:underline">Xem tất cả</a>
+                <div class="flex items-center gap-4">
+                    <a asp-page="/BQT_Head/Complaints/Stats" class="text-sm font-semibold text-slate-500 hover:text-emerald-600">Xem thống kê</a>
+                    <a asp-page="/BQT_Head/Complaints/Index" class="text-emerald-600 text-sm font-semibold hover:underline">Xem tất cả</a>
+                </div>
             </div>
             <div class="space-y-4">
                 @if (!Model.DashboardData.RecentComplaints.Any())
@@ -106,54 +94,6 @@
                         </div>
                     }
                 }
-            </div>
-        </div>
-
-        <!-- Operational Health placeholder -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 class="text-lg font-bold mb-6">Chỉ số vận hành BQL</h3>
-            <div class="space-y-6">
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-slate-700">Tốc độ giải quyết yêu cầu</span>
-                        <span class="text-sm font-bold text-emerald-600">Cao</span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2.5">
-                        <div class="bg-emerald-500 h-2.5 rounded-full" style="width: 85%"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-slate-700">Tỉ lệ hài lòng cư dân</span>
-                        <span class="text-sm font-bold text-blue-600">78%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2.5">
-                        <div class="bg-blue-500 h-2.5 rounded-full" style="width: 78%"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-slate-700">Tỉ lệ thu phí tháng</span>
-                        <span class="text-sm font-bold text-amber-600">62%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2.5">
-                        <div class="bg-amber-500 h-2.5 rounded-full" style="width: 62%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-10">
-                <h4 class="text-sm font-bold text-slate-900 mb-4">Hành động BQT</h4>
-                <div class="space-y-2">
-                    <a asp-page="/Announcements/Create" class="flex items-center gap-3 p-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all">
-                        <span class="material-icons text-sm">campaign</span>
-                        <span class="text-sm font-medium">Đăng thông báo BQT</span>
-                    </a>
-                    <a href="/BQT_Head/FinancialReports" class="flex items-center gap-3 p-3 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-all">
-                        <span class="material-icons text-sm text-slate-400">analytics</span>
-                        <span class="text-sm font-medium">Báo cáo tài chính chi tiết</span>
-                    </a>
-                </div>
             </div>
         </div>
     </div>

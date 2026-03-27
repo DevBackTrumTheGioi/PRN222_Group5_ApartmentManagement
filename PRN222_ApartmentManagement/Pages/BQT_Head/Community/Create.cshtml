@@ -1,0 +1,81 @@
+@page
+@model PRN222_ApartmentManagement.Pages.BQT_Head.Community.CreateModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = "Tạo khảo sát / bỏ phiếu";
+    ViewData["Subtitle"] = "Thu thập ý kiến cư dân hoặc tạo cuộc bỏ phiếu chung";
+    ViewData["CurrentPage"] = "community";
+}
+
+<div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    @if (!ModelState.IsValid)
+    {
+        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div asp-validation-summary="All"></div>
+        </div>
+    }
+
+    <form method="post" class="space-y-5">
+        <div class="grid gap-5 md:grid-cols-2">
+            <div>
+                <label asp-for="Input.Title" class="mb-1 block text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.Title" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <span asp-validation-for="Input.Title" class="text-xs text-red-500"></span>
+            </div>
+            <div>
+                <label asp-for="Input.CampaignType" class="mb-1 block text-sm font-medium text-slate-700"></label>
+                <select asp-for="Input.CampaignType" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    @foreach (var item in Enum.GetValues<CommunityCampaignType>())
+                    {
+                        <option value="@item">@item.GetDisplayName()</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <label asp-for="Input.QuestionText" class="mb-1 block text-sm font-medium text-slate-700"></label>
+            <input asp-for="Input.QuestionText" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+
+        <div>
+            <label asp-for="Input.Description" class="mb-1 block text-sm font-medium text-slate-700"></label>
+            <textarea asp-for="Input.Description" rows="3" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+        </div>
+
+        <div class="grid gap-5 md:grid-cols-2">
+            <div>
+                <label asp-for="Input.StartsAt" class="mb-1 block text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.StartsAt" type="datetime-local" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+                <label asp-for="Input.EndsAt" class="mb-1 block text-sm font-medium text-slate-700"></label>
+                <input asp-for="Input.EndsAt" type="datetime-local" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input asp-for="Input.AllowMultipleChoices" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                Cho phép chọn nhiều đáp án
+            </label>
+            <p class="mt-2 text-xs text-slate-500">Tùy chọn này phù hợp cho khảo sát. Nếu là bỏ phiếu, hệ thống sẽ tự giới hạn một lựa chọn.</p>
+        </div>
+
+        <div>
+            <label asp-for="Input.OptionLines" class="mb-1 block text-sm font-medium text-slate-700"></label>
+            <textarea asp-for="Input.OptionLines" rows="6" class="w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Mỗi dòng là một lựa chọn"></textarea>
+            <span asp-validation-for="Input.OptionLines" class="text-xs text-red-500"></span>
+        </div>
+
+        <div class="flex justify-end gap-3">
+            <a asp-page="Index" class="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Quay lại</a>
+            <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Tạo chiến dịch</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

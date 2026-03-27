@@ -22,6 +22,9 @@ public enum ReferenceType
     [Display(Name = "Tiện ích")]
     Amenity,
 
+    [Display(Name = "Khảo sát & bỏ phiếu")]
+    CommunityCampaign,
+
     [Display(Name = "Khách viếng thăm")]
     Visitor,
 

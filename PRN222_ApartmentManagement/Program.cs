@@ -218,6 +218,8 @@ builder.Services.AddScoped<IApartmentService, ApartmentService>();
 builder.Services.AddScoped<IAmenityService, AmenityService>();
 builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
 builder.Services.AddScoped<IVisitorManagementService, VisitorManagementService>();
+builder.Services.AddScoped<IOperationalReportService, OperationalReportService>();
+builder.Services.AddScoped<ICommunityEngagementService, CommunityEngagementService>();
 
 var app = builder.Build();
 
