@@ -283,6 +283,57 @@ public class AmenityService : IAmenityService
             .ToListAsync();
     }
 
+    public async Task<IReadOnlyList<AmenityBooking>> GetManagerBookingsAsync(
+        string? searchTerm,
+        string? status = null,
+        int? amenityId = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null)
+    {
+        var query = _context.AmenityBookings
+            .Include(b => b.Amenity)
+                .ThenInclude(a => a.AmenityType)
+            .Include(b => b.Apartment)
+            .Include(b => b.Resident)
+            .Where(b => !b.Resident.IsDeleted && b.Resident.Role == UserRole.Resident);
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var keyword = searchTerm.Trim().ToLower();
+            query = query.Where(b =>
+                b.Amenity.AmenityName.ToLower().Contains(keyword) ||
+                b.Resident.FullName.ToLower().Contains(keyword) ||
+                b.Resident.Username.ToLower().Contains(keyword) ||
+                b.Apartment.ApartmentNumber.ToLower().Contains(keyword) ||
+                (b.Notes != null && b.Notes.ToLower().Contains(keyword)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(b => b.Status == status);
+        }
+
+        if (amenityId.HasValue)
+        {
+            query = query.Where(b => b.AmenityId == amenityId.Value);
+        }
+
+        if (fromDate.HasValue)
+        {
+            query = query.Where(b => b.BookingDate >= fromDate.Value.Date);
+        }
+
+        if (toDate.HasValue)
+        {
+            query = query.Where(b => b.BookingDate <= toDate.Value.Date);
+        }
+
+        return await query
+            .OrderByDescending(b => b.BookingDate)
+            .ThenByDescending(b => b.StartTime)
+            .ToListAsync();
+    }
+
     public async Task<(bool Success, string Message)> CancelBookingAsync(int bookingId, int residentId)
     {
         var booking = await _context.AmenityBookings
@@ -318,6 +369,59 @@ public class AmenityService : IAmenityService
     public async Task<bool> ResidentHasApartmentAsync(int residentId)
     {
         return await _residentApartmentAccessService.HasAnyActiveApartmentAsync(residentId);
+    }
+
+    public async Task<(bool Success, string Message)> UpdateBookingStatusAsync(int bookingId, string status)
+    {
+        if (status != AmenityBookingStatusHelper.Confirmed &&
+            status != AmenityBookingStatusHelper.Completed &&
+            status != AmenityBookingStatusHelper.Cancelled)
+        {
+            return (false, "Trang thai booking khong hop le.");
+        }
+
+        var booking = await _context.AmenityBookings
+            .Include(b => b.Amenity)
+            .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+
+        if (booking == null)
+        {
+            return (false, "Khong tim thay booking can cap nhat.");
+        }
+
+        if (booking.Status == status)
+        {
+            return (true, "Booking da o trang thai mong muon.");
+        }
+
+        if (booking.Status == AmenityBookingStatusHelper.Cancelled)
+        {
+            return (false, "Booking da bi huy, khong the cap nhat them.");
+        }
+
+        if (booking.Status == AmenityBookingStatusHelper.Completed &&
+            status != AmenityBookingStatusHelper.Confirmed)
+        {
+            return (false, "Booking da hoan tat, khong the chuyen sang trang thai nay.");
+        }
+
+        booking.Status = status;
+        booking.UpdatedAt = DateTime.Now;
+        await _amenityBookingRepository.UpdateAsync(booking);
+
+        if (status == AmenityBookingStatusHelper.Cancelled)
+        {
+            await NotifyResidentAsync(booking.ResidentId, booking.Amenity, booking, AmenityBookingStatusHelper.Cancelled);
+            return (true, "Da huy booking tien ich.");
+        }
+
+        if (status == AmenityBookingStatusHelper.Completed)
+        {
+            await NotifyResidentAsync(booking.ResidentId, booking.Amenity, booking, AmenityBookingStatusHelper.Completed);
+            return (true, "Da danh dau booking hoan tat.");
+        }
+
+        return (true, "Da cap nhat booking ve trang thai da xac nhan.");
     }
 
     private IQueryable<Amenity> BaseAmenityQuery()
@@ -427,7 +531,8 @@ public class AmenityService : IAmenityService
             .AnyAsync(b =>
                 b.AmenityId == amenity.AmenityId &&
                 b.BookingDate == bookingDate.Date &&
-                IsOverlapping(startTime, endTime, b.StartTime, b.EndTime));
+                b.StartTime < endTime &&
+                b.EndTime > startTime);
 
         if (overlappingBookingExists)
         {
@@ -438,7 +543,8 @@ public class AmenityService : IAmenityService
             .AnyAsync(b =>
                 b.ResidentId == residentId &&
                 b.BookingDate == bookingDate.Date &&
-                IsOverlapping(startTime, endTime, b.StartTime, b.EndTime));
+                b.StartTime < endTime &&
+                b.EndTime > startTime);
 
         if (residentOverlapExists)
         {
