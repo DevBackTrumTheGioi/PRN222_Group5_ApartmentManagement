@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PRN222_ApartmentManagement.Data;
 using PRN222_ApartmentManagement.Models;
 using PRN222_ApartmentManagement.Models.DTOs;
@@ -18,6 +19,8 @@ public class ContractService : IContractService
     private readonly IApartmentRepository _apartmentRepository;
     private readonly IResidentApartmentRepository _residentApartmentRepository;
     private readonly IActivityLogService _activityLogService;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<ContractService>? _logger;
     private readonly ApartmentDbContext _dbContext;
 
     private const string DefaultPassword = "123456789";
@@ -29,6 +32,8 @@ public class ContractService : IContractService
         IApartmentRepository apartmentRepository,
         IResidentApartmentRepository residentApartmentRepository,
         IActivityLogService activityLogService,
+        IEmailService emailService,
+        ILogger<ContractService>? logger,
         ApartmentDbContext dbContext)
     {
         _contractRepository = contractRepository;
@@ -37,6 +42,8 @@ public class ContractService : IContractService
         _apartmentRepository = apartmentRepository;
         _residentApartmentRepository = residentApartmentRepository;
         _activityLogService = activityLogService;
+        _emailService = emailService;
+        _logger = logger;
         _dbContext = dbContext;
     }
 
@@ -186,6 +193,19 @@ public class ContractService : IContractService
                 await _dbContext.SaveChangesAsync();
                 ownerUserId = ownerUser.UserId;
                 ownerUsername = username;
+            }
+
+            // Chỉ gửi email khi tạo TÀI KHOẢN MỚI (chủ hộ chưa có trong hệ thống)
+            if (existingByCccd == null && !string.IsNullOrWhiteSpace(contract.OwnerEmail))
+            {
+                try
+                {
+                    await SendCredentialsEmailAsync(contract.OwnerEmail, ownerUsername, DefaultPassword, contract.ContractNumber);
+                }
+                catch (Exception emailEx)
+                {
+                    _logger?.LogWarning(emailEx, "Gửi email thông tin tài khoản cho {Email} thất bại.", contract.OwnerEmail);
+                }
             }
 
             // Tạo ContractMember
@@ -455,5 +475,24 @@ public class ContractService : IContractService
             .Where(cm => cm.ContractId == contractId && cm.MemberRole == MemberRole.ContractOwner)
             .Select(cm => cm.Resident!)
             .FirstOrDefaultAsync();
+    }
+
+    private async Task SendCredentialsEmailAsync(string email, string username, string password, string contractNumber)
+    {
+        var subject = $"Thông tin tài khoản cư dân - Hợp đồng {contractNumber}";
+        var body = $@"
+<p>Xin chào,</p>
+<p>Tài khoản cư dân của bạn đã được tạo thành công khi hợp đồng <strong>{contractNumber}</strong> được kích hoạt.</p>
+<p>Thông tin đăng nhập:</p>
+<ul>
+    <li><strong>Tài khoản (Username):</strong> {username}</li>
+    <li><strong>Mật khẩu (Password):</strong> {password}</li>
+</ul>
+<p>Vui lòng đăng nhập tại trang hệ thống quản lý chung cư và đổi mật khẩu ngay sau khi đăng nhập lần đầu.</p>
+<p>Nếu bạn cần hỗ trợ, vui lòng liên hệ ban quản lý.</p>
+<hr>
+<p style='font-size:12px; color:#888;'>Email được gửi tự động từ Hệ thống Quản lý Chung cư Sunrise Riverside.</p>
+";
+        await _emailService.SendEmailAsync(email, subject, body);
     }
 }

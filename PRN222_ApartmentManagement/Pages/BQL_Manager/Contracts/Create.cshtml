@@ -85,11 +85,12 @@
                         <span asp-validation-for="Input.ApartmentId" class="text-red-500 text-xs"></span>
                     </div>
                     <div class="space-y-2">
-                        <label class="text-sm font-medium text-slate-700">Loại hợp đồng</label>
+                        <label class="text-sm font-medium text-slate-700">Loại hợp đồng <span class="text-red-500">*</span></label>
                         <select asp-for="Input.ContractType" id="contractTypeSelect" asp-items="Html.GetEnumSelectList<ContractType>()"
                                 class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm bg-white">
                             <option value="">-- Chọn loại --</option>
                         </select>
+                        <span asp-validation-for="Input.ContractType" class="text-red-500 text-xs"></span>
                     </div>
                     <div class="space-y-2">
                         <label class="text-sm font-medium text-slate-700">Ngày bắt đầu <span class="text-red-500">*</span></label>
@@ -102,13 +103,15 @@
                     <div id="rentalFields" class="hidden col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="text-sm font-medium text-slate-700">Ngày kết thúc <span class="text-red-500">*</span></label>
-                            <input asp-for="Input.EndDate" type="date"
+                            <input asp-for="Input.EndDate" id="EndDate" type="date"
                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                            <span id="EndDateError" class="text-red-500 text-xs hidden"></span>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Tiền thuê hàng tháng (VNĐ)</label>
-                            <input asp-for="Input.MonthlyRent" type="number" step="any" min="0" placeholder="VD: 5000000"
+                            <label class="text-sm font-medium text-slate-700">Tiền thuê hàng tháng (VNĐ) <span class="text-red-500">*</span></label>
+                            <input asp-for="Input.MonthlyRent" id="MonthlyRent" type="number" step="any" min="0" placeholder="VD: 5000000"
                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                            <span id="MonthlyRentError" class="text-red-500 text-xs hidden"></span>
                         </div>
                         <div class="space-y-2 md:col-span-2">
                             <label class="text-sm font-medium text-slate-700">Tiền đặt cọc (VNĐ)</label>
@@ -290,6 +293,38 @@
 
         document.getElementById('contractTypeSelect').addEventListener('change', toggleContractFields);
 
+        // --- Form submit validation ---
+        function validateForm() {
+            var isRental = document.getElementById('contractTypeSelect').value === '1';
+            var valid = true;
+
+            if (isRental) {
+                var endDate = document.getElementById('EndDate').value;
+                var monthlyRent = document.getElementById('MonthlyRent').value;
+
+                var endDateError = document.getElementById('EndDateError');
+                var monthlyRentError = document.getElementById('MonthlyRentError');
+
+                if (!endDate) {
+                    endDateError.textContent = 'Ngày kết thúc là bắt buộc.';
+                    endDateError.classList.remove('hidden');
+                    valid = false;
+                } else {
+                    endDateError.classList.add('hidden');
+                }
+
+                if (!monthlyRent || parseFloat(monthlyRent) <= 0) {
+                    monthlyRentError.textContent = 'Tiền thuê phải lớn hơn 0.';
+                    monthlyRentError.classList.remove('hidden');
+                    valid = false;
+                } else {
+                    monthlyRentError.classList.add('hidden');
+                }
+            }
+
+            return valid;
+        }
+
         // --- Toggle Chủ mới / Chủ cũ ---
         function toggleOwnerType(type) {
             var isExisting = type === 'existing';
@@ -366,6 +401,7 @@
 
         // --- Modal controls ---
         function openConfirmModal() {
+            if (!validateForm()) return;
             document.getElementById('confirmModal').classList.remove('hidden');
         }
 
