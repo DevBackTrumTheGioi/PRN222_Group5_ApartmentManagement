@@ -1,0 +1,202 @@
+@page "{id:int}"
+@model PRN222_ApartmentManagement.Pages.BQT_Member.Requests.DetailsModel
+@using PRN222_ApartmentManagement.Models.Enums
+@using PRN222_ApartmentManagement.Utils
+@{
+    ViewData["Title"] = $"Chi tiết yêu cầu #{Model.Request.RequestNumber}";
+    ViewData["Subtitle"] = "Theo dõi yêu cầu tồn đọng và gán mức ưu tiên";
+    ViewData["CurrentPage"] = "bqtrequests";
+
+    var (statusBg, statusText, statusIcon) = Model.Request.Status switch
+    {
+        RequestStatus.Pending => ("bg-amber-50 text-amber-700 border-amber-200", "Chờ xử lý", "schedule"),
+        RequestStatus.InProgress => ("bg-blue-50 text-blue-700 border-blue-200", "Đang xử lý", "sync"),
+        _ => ("bg-slate-50 text-slate-500 border-slate-200", Model.Request.Status.ToString(), "help")
+    };
+
+    var (priBg, priText) = Model.Request.Priority switch
+    {
+        RequestPriority.Emergency => ("bg-red-50 text-red-600 border-red-200", "Khẩn cấp"),
+        RequestPriority.High => ("bg-orange-50 text-orange-600 border-orange-200", "Cao"),
+        RequestPriority.Normal => ("bg-slate-50 text-slate-500 border-slate-200", "Bình thường"),
+        RequestPriority.Low => ("bg-slate-50 text-slate-400 border-slate-100", "Thấp"),
+        _ => ("bg-slate-50 text-slate-400 border-slate-100", Model.Request.Priority.ToString())
+    };
+}
+
+<div class="mx-auto max-w-5xl space-y-6">
+    <a asp-page="Index" class="inline-flex items-center text-sm text-slate-500 transition-colors hover:text-emerald-600">
+        <span class="material-icons mr-1 text-lg">arrow_back</span>
+        Quay lại danh sách yêu cầu tồn đọng
+    </a>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <span class="material-icons text-emerald-500">check_circle</span>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <span class="material-icons text-red-500">error</span>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50">
+                <span class="material-icons text-xl text-emerald-600">
+                    @(Model.Request.RequestType switch
+                    {
+                        RequestType.Repair => "build",
+                        RequestType.Feedback => "rate_review",
+                        RequestType.Service => "room_service",
+                        RequestType.Security => "security",
+                        _ => "assignment"
+                    })
+                </span>
+            </div>
+            <div class="min-w-0 flex-1">
+                <div class="mb-1 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-mono text-slate-400">@Model.Request.RequestNumber</span>
+                    <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium @statusBg">
+                        <span class="material-icons text-[11px]">@statusIcon</span>
+                        @statusText
+                    </span>
+                    <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                        @(Model.Request.RequestType?.GetDisplayName() ?? "Khác")
+                    </span>
+                    <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium @priBg">
+                        @priText
+                    </span>
+                </div>
+                <h2 class="text-lg font-bold leading-snug text-slate-900">@Model.Request.Title</h2>
+                @if (!string.IsNullOrWhiteSpace(Model.Request.Description))
+                {
+                    <p class="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">@Model.Request.Description</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div class="space-y-6 lg:col-span-2">
+            @if (Model.Request.RequestAttachments.Any())
+            {
+                <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-700">Tệp đính kèm</h3>
+                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        @foreach (var att in Model.Request.RequestAttachments)
+                        {
+                            var isImage = att.ContentType != null && att.ContentType.StartsWith("image/");
+                            <a href="@att.FilePath" target="_blank" class="group relative overflow-hidden rounded-xl border border-slate-200 transition-all hover:border-emerald-300 hover:shadow-md">
+                                @if (isImage)
+                                {
+                                    <img src="@att.FilePath" alt="@att.FileName" class="h-28 w-full object-cover transition-all group-hover:brightness-90" />
+                                }
+                                else
+                                {
+                                    <div class="flex h-28 w-full flex-col items-center justify-center bg-slate-50">
+                                        <span class="material-icons text-4xl text-red-400">picture_as_pdf</span>
+                                    </div>
+                                }
+                                <div class="bg-white px-2 py-1.5">
+                                    <p class="truncate text-xs font-medium text-slate-700">@att.FileName</p>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-700">Lịch sử trao đổi</h3>
+                @if (!Model.Request.Comments.Any())
+                {
+                    <div class="py-8 text-center text-slate-400">
+                        <span class="material-icons mb-2 text-3xl">chat_bubble_outline</span>
+                        <p class="text-sm">Chưa có trao đổi nào.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-4">
+                        @foreach (var comment in Model.Request.Comments)
+                        {
+                            var isResident = comment.Author?.UserId == Model.Request.ResidentId;
+                            <div class="flex gap-3 @(isResident ? "flex-row-reverse" : "flex-row")">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full @(isResident ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700") text-xs font-bold">
+                                    @(comment.Author?.FullName?.Substring(0, 1).ToUpper() ?? "?")
+                                </div>
+                                <div class="max-w-[75%]">
+                                    <div class="rounded-2xl border px-4 py-2.5 @(isResident ? "rounded-tr-sm border-emerald-100 bg-emerald-50" : "rounded-tl-sm border-slate-100 bg-slate-50")">
+                                        <p class="mb-0.5 text-xs font-semibold @(isResident ? "text-emerald-700" : "text-slate-700")">
+                                            @(comment.Author?.FullName ?? "?")
+                                        </p>
+                                        <p class="whitespace-pre-wrap text-sm text-slate-700">@comment.Content</p>
+                                    </div>
+                                    <p class="px-1 text-[10px] text-slate-400 @(isResident ? "text-right" : "text-left")">
+                                        @comment.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-700">Thông tin</h3>
+                <dl class="space-y-3 text-sm">
+                    <div>
+                        <dt class="mb-0.5 text-xs text-slate-400">Cư dân</dt>
+                        <dd class="font-medium text-slate-800">@Model.Request.Resident?.FullName</dd>
+                    </div>
+                    <div>
+                        <dt class="mb-0.5 text-xs text-slate-400">Căn hộ</dt>
+                        <dd class="font-medium text-slate-800">@Model.Request.Apartment?.ApartmentNumber</dd>
+                    </div>
+                    <div>
+                        <dt class="mb-0.5 text-xs text-slate-400">Ngày gửi</dt>
+                        <dd class="font-medium text-slate-800">@Model.Request.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </div>
+                    <div>
+                        <dt class="mb-0.5 text-xs text-slate-400">Phụ trách hiện tại</dt>
+                        <dd class="font-medium text-slate-800">@(Model.Request.AssignedUser?.FullName ?? "Chưa phân công")</dd>
+                    </div>
+                    @if (Model.Request.EscalatedToUser != null)
+                    {
+                        <div>
+                            <dt class="mb-0.5 text-xs text-slate-400">Đã chuyển cấp</dt>
+                            <dd class="font-medium text-slate-800">@Model.Request.EscalatedToUser.FullName</dd>
+                        </div>
+                    }
+                </dl>
+            </div>
+
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-700">Gán mức ưu tiên</h3>
+                <p class="mb-3 text-xs leading-relaxed text-slate-500">
+                    BQT chỉ theo dõi yêu cầu tồn đọng và có thể điều chỉnh mức ưu tiên để hỗ trợ BQL sắp xếp xử lý.
+                </p>
+                <form method="post" asp-page-handler="UpdatePriority" asp-route-id="@Model.Request.RequestId" class="flex items-center gap-2">
+                    <select name="newPriority" class="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        @foreach (var item in Enum.GetValues<RequestPriority>())
+                        {
+                            <option value="@item" selected="@(Model.Request.Priority == item)">@item.GetDisplayName()</option>
+                        }
+                    </select>
+                    <button type="submit" class="inline-flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700">
+                        <span class="material-icons text-base">save</span>
+                        Lưu
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
